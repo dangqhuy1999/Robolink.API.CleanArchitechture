@@ -1,0 +1,21 @@
+stateDiagram-v2
+    [*] --> Idle : Mở Modal Import
+    Idle --> FileSelected : Chọn file .xlsx
+    
+    FileSelected --> Parsing : Hệ thống đọc File (XLSX Library)
+    
+    Parsing --> Error_InvalidFile : File hỏng / Sai định dạng
+    Error_InvalidFile --> Idle : Thử lại
+    
+    Parsing --> Mapping : Trích xuất Headers thành công
+    
+    state Mapping {
+        [*] --> SelectingSlots
+        SelectingSlots --> ValidatingMap : Kiểm tra kiểu dữ liệu (v1-v10 là số?)
+        ValidatingMap --> SelectingSlots : Cảnh báo sai kiểu dữ liệu
+    }
+    
+    Mapping --> ProcessingData : Nhấn "Confirm Import"
+    
+    ProcessingData --> Success : Ánh xạ thành công & Lưu LocalStorage
+    Success --> [*] : Đóng Wizard & Refresh UI

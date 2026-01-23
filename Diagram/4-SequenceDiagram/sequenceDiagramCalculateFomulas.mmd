@@ -1,0 +1,17 @@
+sequenceDiagram
+    actor User as Người dùng
+    participant Row as TaskRow (Component)
+    participant Eval as evaluateFormula (Helper)
+    participant Config as ProjectConfig
+
+    User->>Row: Nhập giá trị vào ô v1 (ví dụ: 100)
+    Row->>Row: Cập nhật State nội bộ
+    Row->>Config: Lấy công thức (ví dụ: "v1 * v2")
+    
+    Row->>Eval: Gửi (Công thức, {v1: 100, v2: 5...})
+    Eval->>Eval: Dùng RegExp tìm "v1", "v2" trong chuỗi
+    Eval->>Eval: Thay thế biến thành số thực ("100 * 5")
+    Eval->>Eval: Thực thi Function(`return 100 * 5`)
+    
+    Eval-->>Row: Trả về kết quả (500.00)
+    Row->>User: Hiển thị kết quả lên cột "Thành tiền"

@@ -1,0 +1,23 @@
+sequenceDiagram
+    actor User as Người dùng
+    participant UI as ImportWizard (React)
+    participant XLSX as XLSX Library
+    participant Mapper as Logic Mapper
+    participant Store as LocalStorage
+
+    User->>UI: Tải lên file .xlsx
+    UI->>XLSX: Đọc file nhị phân (Binary)
+    XLSX-->>UI: Trả về JSON thô & Danh sách Headers
+    UI->>User: Hiển thị giao diện Mapping (Ánh xạ)
+    User->>UI: Chọn: Cột "Đơn giá" -> Slot "v2"
+    User->>UI: Nhấn "Xác nhận nhập"
+    
+    loop Cho mỗi dòng trong Excel
+        UI->>Mapper: Gửi dòng dữ liệu + Bản đồ Mapping
+        Mapper->>Mapper: Trích xuất v1...v10 theo Mapping
+        Mapper->>Mapper: Đóng gói các cột còn lại vào extraFields
+        Mapper-->>UI: Trả về Object PhaseTask hoàn chỉnh
+    end
+
+    UI->>Store: Lưu danh sách Task mới vào bộ nhớ
+    UI->>User: Thông báo "Nhập liệu thành công"

@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant App as App Dashboard
+    participant GS as GeminiService
+    participant AI as Google Gemini API
+    
+    App->>App: Thu thập 20 bản ghi máy móc gần nhất
+    App->>GS: Gọi analyzeProductionData(records)
+    
+    GS->>GS: Tạo Prompt (Dữ liệu máy + Yêu cầu phân tích)
+    GS->>AI: Gửi Request (Prompt + API Key + JSON Schema)
+    
+    Note over AI: AI quét nhiệt độ, lỗi,<br/>và hiệu suất máy
+    
+    AI-->>GS: Trả về JSON (Summary, Anomaly, Rec)
+    GS-->>App: Trả về Object AiInsight
+    
+    alt Có dị thường (Anomaly Detected)
+        App->>App: Hiển thị Badge đỏ & Cảnh báo nhiệt độ
+    else Bình thường
+        App->>App: Hiển thị bản tóm tắt hiệu suất
+    end

@@ -1,0 +1,46 @@
+graph TD
+    %% Tầng Presentation (Giao diện)
+    subgraph Presentation_Layer [Tầng Giao diện - React Components]
+        UI[App.tsx - Main UI Container]
+        SC[StatCard.tsx]
+        DT[DataTable.tsx]
+        CH[Charts.tsx - Recharts]
+        TR[TaskRow Component]
+        MD[Modals: Project, Task, Import Wizard]
+    end
+
+    %% Tầng Business Logic (Logic nghiệp vụ)
+    subgraph Logic_Layer [Tầng Xử lý Logic - Core Engine]
+        FE[Formula Evaluator - Tính toán v1-v10]
+        IM[Advanced Import Mapper - Ánh xạ Excel]
+        SM[State Management - React Hooks/Memo]
+        CRUD[Project/Task Controller Logic]
+    end
+
+    %% Tầng Service (Dịch vụ bên thứ 3)
+    subgraph Service_Layer [Tầng Dịch vụ - Infrastructure]
+        GS[GeminiService.ts - AI Analysis]
+        XL[XLSX Library - Excel Parsing]
+        MS[mockDataService.ts - Generator]
+    end
+
+    %% Tầng Data (Dữ liệu & Thực thể)
+    subgraph Data_Layer [Tầng Dữ liệu - Persistence]
+        LS[(LocalStorage - Lưu trữ trình duyệt)]
+        TY[types.ts - Core Entities & Interfaces]
+    end
+
+    %% Luồng tương tác
+    UI --> SM
+    SM --> FE
+    SM --> CRUD
+    MD --> IM
+    IM --> XL
+    CRUD --> LS
+    UI --> SC
+    UI --> DT
+    UI --> CH
+    DT --> TR
+    GS --> TY
+    CRUD --> TY
+    SM -.-> GS

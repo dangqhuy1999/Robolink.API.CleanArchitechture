@@ -1,0 +1,43 @@
+graph TD
+    Admin["Quản trị viên / Admin"]
+    Lead["Trưởng nhóm / Kỹ thuật viên"]
+    Operator["Người vận hành / Operator"]
+    AISystem["Hệ thống AI / Gemini"]
+    Excel["Tệp Excel / Data Source"]
+
+    UC1["Quản lý Dự án (CRUD)"]
+    UC2["Thiết lập 10-Slot & Công thức"]
+    UC3["Quản lý Nhân sự & Giai đoạn"]
+    UC4["Nhập liệu số liệu Máy (v1-v10)"]
+    UC5["Advanced Import (Excel)"]
+    UC6["Ánh xạ cột (Resource Mapping)"]
+    UC7["Lưu trữ & Xem thông tin bổ sung (ExtraFields)"]
+    UC8["Xem báo cáo tính toán tự động"]
+    UC9["Phân tích AI & Cảnh báo lỗi"]
+
+    %% Quan hệ giữa các Actor và Use Cases
+    Admin --> UC1
+    Admin --> UC2
+    Admin --> UC3
+    Admin --> UC5
+
+    Lead --> UC1
+    Lead --> UC4
+    Lead --> UC5
+    Lead --> UC7
+    Lead --> UC8
+
+    Operator --> UC4
+    Operator --> UC7
+    Operator --> UC8
+
+    %% Quan hệ giữa các Use Cases
+    UC5 --> UC6
+    UC5 --> UC7
+    UC2 --> UC8
+    UC4 --> UC8
+
+    %% Quan hệ với các hệ thống bên ngoài
+    Excel --> UC5
+    AISystem --> UC9
+    UC9 --> Lead

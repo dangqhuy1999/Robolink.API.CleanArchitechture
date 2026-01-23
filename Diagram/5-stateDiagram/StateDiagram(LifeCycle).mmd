@@ -1,0 +1,26 @@
+stateDiagram-v2
+    [*] --> Pending : Tạo mới / Import từ Excel
+    
+    Pending --> InProgress : Giao việc (Assign) & Bắt đầu làm
+    
+    state InProgress {
+        [*] --> Processing
+        Processing --> UpdatingValue : Cập nhật v1-v10
+        UpdatingValue --> Processing : Tự động tính công thức
+    }
+    
+    InProgress --> Review : Gửi yêu cầu nghiệm thu (QC)
+    
+    Review --> InProgress : Không đạt (Rework) - Yêu cầu sửa lỗi
+    Review --> Done : Đạt chuẩn (QC Passed) - Chốt số liệu
+    
+    InProgress --> OnHold : Tạm dừng (Thiếu vật tư/Sự cố máy)
+    OnHold --> InProgress : Tiếp tục sản xuất
+    
+    Done --> [*] : Lưu trữ hồ sơ (Archived)
+
+    note right of Review
+        Tại đây Manager sẽ kiểm tra 
+        kết quả tính toán từ 10 Slot
+        trước khi đóng Task.
+    end note

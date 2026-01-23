@@ -1,0 +1,90 @@
+classDiagram
+    class Project {
+        +String id (PK)
+        +String name
+        +String clientId
+        +String description
+        +Date startDate
+        +Date deadline
+        +Enum status (Draft, In Progress, Completed, On Hold)
+        +Enum priority (Low, Medium, High, Critical)
+        +String managerId (FK)
+        +CalculationConfig calculationConfig
+    }
+
+    class CalculationConfig {
+        +SlotMap slots
+        +String formula
+        +String resultLabel
+    }
+
+    class SlotMap {
+        +String v1
+        +String v2
+        +String v3
+        +String v4
+        +String v5
+        +String v6
+        +String v7
+        +String v8
+        +String v9
+        +String v10
+    }
+
+    class PhaseTask {
+        +String id (PK)
+        +String projectId (FK)
+        +int phaseId (FK)
+        +String description
+        +String assignedStaffId (FK)
+        +int processRate
+        +Date dueDate
+        +Enum status (Pending, In Progress, Review, Done)
+        +float v1
+        +float v2
+        +float v3
+        +float v4
+        +float v5
+        +float v6
+        +float v7
+        +float v8
+        +float v9
+        +float v10
+        +Map extraFields (JSON)
+    }
+
+    class ProjectPhase {
+        +int id (PK)
+        +String name
+    }
+
+    class Staff {
+        +String id (PK)
+        +String fullName
+        +Enum department (Engineering, Production, Planning, QC)
+        +Enum role (Admin, Manager, Lead, Operator)
+    }
+
+    class ProductionRecord {
+        +String id (PK)
+        +String productCode
+        +Date mfgDate
+        +int quantity
+        +int shift (1, 2, 3)
+        +String lotNumber
+        +String batchNumber
+        +String machineId
+        +String operatorId (FK)
+        +float temperature
+        +Enum status (Running, Idle, Maintenance, Error)
+        +long timestamp
+    }
+
+    %% Relationships based on your code logic
+    Project "1" *-- "0..1" CalculationConfig : contains
+    CalculationConfig "1" *-- "1" SlotMap : defines labels
+    Project "1" -- "0..*" PhaseTask : has
+    ProjectPhase "1" -- "0..*" PhaseTask : categorizes
+    Staff "1" -- "0..*" Project : manages
+    Staff "1" -- "0..*" PhaseTask : assigned_to
+    Staff "1" -- "0..*" ProductionRecord : operates
