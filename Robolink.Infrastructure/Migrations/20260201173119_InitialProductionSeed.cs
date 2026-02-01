@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Robolink.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreatePublish : Migration
+    public partial class InitialProductionSeed : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

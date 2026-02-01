@@ -12,8 +12,8 @@ using Robolink.Infrastructure.Data;
 namespace Robolink.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20260201171316_InitialCreatePublish")]
-    partial class InitialCreatePublish
+    [Migration("20260201173119_InitialProductionSeed")]
+    partial class InitialProductionSeed
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
