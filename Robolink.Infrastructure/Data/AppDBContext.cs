@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Robolink.Core.Entities;
 
 namespace Robolink.Infrastructure.Data
@@ -16,6 +17,25 @@ namespace Robolink.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Chỉ áp dụng Converter nếu đang dùng Postgres
+            if (Database.IsNpgsql())
+            {
+                var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
+                    v => v.Kind == DateTimeKind.Utc ? v : DateTime.SpecifyKind(v, DateTimeKind.Utc),
+                    v => v.Kind == DateTimeKind.Utc ? v : DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+                foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+                {
+                    foreach (var property in entityType.GetProperties())
+                    {
+                        if (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?))
+                        {
+                            property.SetValueConverter(dateTimeConverter);
+                        }
+                    }
+                }
+            }
 
             // 1. SystemPhase (Global Master Data)
             modelBuilder.Entity<SystemPhase>(entity =>

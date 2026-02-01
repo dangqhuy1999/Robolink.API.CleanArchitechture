@@ -7,13 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.2">
+	  <!-- ✅ ADD: Configuration Abstractions -->
+	  <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.2" />
+
+	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.2" />
+	  <!-- ❌ REMOVE: SQL Server packages -->
+	  <!-- <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.2" /> -->
+
+	  <!-- ✅ ADD: PostgreSQL package -->
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.2" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>

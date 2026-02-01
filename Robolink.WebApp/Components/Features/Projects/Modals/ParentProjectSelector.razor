@@ -1,4 +1,4 @@
-@using Robolink.Application.DTOs
+﻿@using Robolink.Application.DTOs
 @using Robolink.Application.Queries.Projects
 @using MediatR
 
@@ -7,13 +7,17 @@
         <i class="bi bi-diagram-2"></i> Parent Project (Optional)
     </label>
     <div class="input-group">
-        <InputSelect class="form-control" @bind-Value="SelectedParentId">
+        <InputSelect class="form-control"
+                     TValue="Guid ?"
+                     Value="SelectedParentId"
+                     ValueChanged="OnValueChanged"
+                     ValueExpression="@(() => SelectedParentId)">
             <option value="">-- None (Main Project) --</option>
             @if (AvailableProjects != null && AvailableProjects.Any())
             {
                 @foreach (var proj in AvailableProjects.OrderBy(p => p.Name))
                 {
-                    <option value="@proj.Id" disabled="@(proj.Id == ExcludeProjectId)">
+                    <option value="@proj.Id.ToString()" disabled="@(proj.Id == ExcludeProjectId)">
                         @proj.ProjectCode - @proj.Name
                     </option>
                 }
@@ -53,6 +57,12 @@
     protected override async Task OnInitializedAsync()
     {
         await RefreshProjects();
+    }
+
+    private async Task OnValueChanged(Guid? value)
+    {
+        SelectedParentId = value; // Cập nhật nội bộ
+        await SelectedParentIdChanged.InvokeAsync(value); // Báo cho cha (Modal) biết để cập nhật updateRequest
     }
 
     private async Task RefreshProjects()

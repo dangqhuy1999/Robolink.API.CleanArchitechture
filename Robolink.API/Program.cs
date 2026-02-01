@@ -12,7 +12,7 @@ builder.Services.AddEndpointsApiExplorer(); // Cần thiết để Swagger tìm 
 builder.Services.AddSwaggerGen();           // ĐĂNG KÝ provider cho Swagger
 
 
-builder.Services.AddAppDI();         // ĐĂNG KÝ provider cho 
+builder.Services.AddAppDI(builder.Configuration);         // ĐĂNG KÝ provider cho 
 
 var app = builder.Build();
 
