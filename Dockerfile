@@ -6,7 +6,7 @@ WORKDIR /src
 COPY ["Robolink.WebApp/Robolink.WebApp.csproj", "Robolink.WebApp/"]
 COPY ["Robolink.Application/Robolink.Application.csproj", "Robolink.Application/"]
 COPY ["Robolink.Infrastructure/Robolink.Infrastructure.csproj", "Robolink.Infrastructure/"]
-COPY ["Robolink.Domain/Robolink.Domain.csproj", "Robolink.Domain/"]
+COPY ["Robolink.Core/Robolink.Core.csproj", "Robolink.Core/"]
 
 RUN dotnet restore "Robolink.WebApp/Robolink.WebApp.csproj"
 
