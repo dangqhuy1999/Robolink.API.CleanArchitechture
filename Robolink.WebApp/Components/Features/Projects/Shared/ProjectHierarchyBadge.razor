@@ -1,0 +1,31 @@
+@if (HasParent)
+{
+    <span class="badge bg-secondary" title="Sub-project">
+        <i class="bi bi-diagram-3"></i> Sub
+    </span>
+}
+
+@if (HasSubProjects)
+{
+    <span class="badge bg-info" title="@($"{SubProjectCount} sub-projects")">
+        <i class="bi bi-diagram-2"></i> Parent (@SubProjectCount)
+    </span>
+}
+
+@if (!HasParent && !HasSubProjects)
+{
+    <span class="badge bg-light text-dark" title="Main project">
+        <i class="bi bi-diagram-1"></i> Main
+    </span>
+}
+
+@code {
+    [Parameter]
+    public bool HasParent { get; set; }
+
+    [Parameter]
+    public bool HasSubProjects { get; set; }
+
+    [Parameter]
+    public int SubProjectCount { get; set; } = 0;
+}

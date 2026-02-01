@@ -1,0 +1,65 @@
+<div class="modal fade" id="createProjectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Project</h5>
+            </div>
+            <div class="modal-body">
+                <form @onsubmit="HandleCreateProject">
+                    <div class="mb-3">
+                        <label class="form-label">Project Code</label>
+                        <input type="text" class="form-control" @bind="request.ProjectCode" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Project Name</label>
+                        <input type="text" class="form-control" @bind="request.Name" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Client ID</label>
+                        <input type="text" class="form-control" @bind="request.ClientId" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Staff ID</label>
+                        <input type="text" class="form-control" @bind="request.ManagerId" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Staff ID</label>
+                        <input type="text" class="form-control" @bind="request.ManagerId" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Start Date</label>
+                        <input type="text" class="form-control" @bind="request.StartDate" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Deadline</label>
+                        <input type="text" class="form-control" @bind="request.Deadline" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <input type="text" class="form-control" @bind="request.Status" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Staff ID</label>
+                        <input type="text" class="form-control" @bind="request.ManagerId" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Priority</label>
+                        <input type="text" class="form-control" @bind="request.Priority" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" @bind="request.Description"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Create Project
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

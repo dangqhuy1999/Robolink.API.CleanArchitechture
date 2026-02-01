@@ -1,12 +1,18 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿using Robolink.API;
+
+var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+// Inject everything on program.cs
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer(); // Cần thiết để Swagger tìm thấy các Endpoint
 builder.Services.AddSwaggerGen();           // ĐĂNG KÝ provider cho Swagger
+
+
+builder.Services.AddAppDI();         // ĐĂNG KÝ provider cho 
 
 var app = builder.Build();
 

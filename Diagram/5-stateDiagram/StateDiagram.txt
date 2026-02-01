@@ -1,0 +1,16 @@
+Dây là bản State Diagram (Sơ đồ trạng thái) chi tiết cho hệ thống IndusHub Engine v5.0.
+
+Trong kỹ thuật phần mềm, sơ đồ này cực kỳ quan trọng để "khóa" các quy trình nghiệp vụ, đảm bảo người dùng không thể thực hiện các bước sai trình tự (ví dụ: chưa xong gia công đã nhảy sang lắp ráp, hoặc chưa qua QC đã đánh dấu hoàn thành).
+Tôi sẽ tập trung vào 2 máy trạng thái (State Machine) quan trọng nhất: Vòng đời Nhiệm vụ (Task Lifecycle) và Luồng Nhập liệu Thông minh (Import Wizard Flow).
+
+1. Task Lifecycle State Diagram (Quy trình sản xuất & QC)
+Sơ đồ này đảm bảo mỗi chi tiết máy hoặc công đoạn sản xuất phải đi đúng lộ trình kiểm soát chất lượng.
+
+2. Import Wizard State Diagram (Logic xử lý dữ liệu ngoại biên)
+Đây là trạng thái "khó nhằn" nhất vì nó xử lý dữ liệu chưa sạch từ Excel để đưa vào hệ thống.
+
+Tại sao bản State Diagram này lại "khóa" được Logic nghiệp vụ?
+- Chống nhảy cóc (Skip steps): Trong code, chúng ta có thể dựa vào sơ đồ này để viết điều kiện: if (status !== 'Review') disable('Done_Button'). Điều này ngăn chặn việc công nhân tự ý hoàn thành việc mà chưa qua kiểm tra.
+- Toàn vẹn dữ liệu (Data Integrity): Trạng thái Mapping đảm bảo rằng chỉ khi các cột Excel được ánh xạ đúng vào các "Slot" số (v1-v10), nút "Xác nhận" mới hiện lên.
+- Tự động hóa tính toán: Ở trạng thái UpdatingValue của Task, bất kỳ thay đổi nào ở các Slot cũng sẽ kích hoạt Formula Evaluator để cập nhật cột Thành tiền/Kết quả ngay lập tức.
+Bản sơ đồ này giúp khách hàng và đội ngũ phát triển nhìn thấy rõ "Luật chơi" của ứng dụng, tránh những lỗi logic phát sinh khi vận hành thực tế tại xưởng sản xuất.

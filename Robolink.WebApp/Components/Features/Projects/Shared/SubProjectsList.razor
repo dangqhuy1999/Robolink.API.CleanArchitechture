@@ -1,0 +1,30 @@
+@using Robolink.Application.DTOs
+
+@if (SubProjects?.Any() == true)
+{
+    <div class="alert alert-light border-start border-info border-3 py-2">
+        <small class="text-muted">
+            <i class="bi bi-diagram-3"></i>
+            <strong>Sub-Projects (@SubProjects.Count):</strong>
+        </small>
+        <div class="mt-2 d-flex flex-wrap gap-2">
+            @foreach (var subProj in SubProjects)
+            {
+                <span class="badge bg-info-subtle text-info-emphasis" 
+                      style="cursor: pointer;"
+                      @onclick="() => OnSelectSubProject.InvokeAsync(subProj.Id)"
+                      title="Click to view">
+                    @subProj.ProjectCode
+                </span>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public List<ProjectDto>? SubProjects { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnSelectSubProject { get; set; }
+}

@@ -1,0 +1,45 @@
+erDiagram
+    CLIENT ||--o{ PROJECT : "1 Client - Nhiều Project"
+    STAFF ||--o{ PROJECT : "1 Staff (Manager) - Nhiều Project"
+    PROJECT ||--o{ PHASE_TASK : "1 Project - Nhiều PhaseTask"
+    STAFF ||--o{ PHASE_TASK : "1 Staff - Nhiều PhaseTask"
+    PROJECT ||--o{ WORK_LOG : "Đối soát sản lượng tổng"
+    PHASE_TASK ||--o{ WORK_LOG : "Ghi nhận kết quả test/vận hành"
+    STAFF ||--o{ WORK_LOG : "Ghi nhận năng suất cá nhân"
+
+    CLIENT {
+        Guid Id PK
+        string Name
+        decimal TotalValue
+    }
+
+    PROJECT {
+        Guid Id PK
+        Guid ClientId FK
+        Guid ManagerId FK
+        string ProjectCode
+        decimal CustomerBudget
+    }
+
+    PHASE_TASK {
+        Guid Id PK
+        Guid ProjectId FK
+        Guid AssignedStaffId FK
+        string Description
+        decimal TargetQuantity
+    }
+
+    STAFF {
+        Guid Id PK
+        string FullName
+        Enum Role
+    }
+
+    WORK_LOG{
+        Guid Id PK
+        Guid ProjectId FK
+        Guid PhaseTaskId FK
+        Guid OperatorId FK
+        int Quantity
+        Enum Status
+    }

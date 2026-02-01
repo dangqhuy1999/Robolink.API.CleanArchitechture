@@ -1,0 +1,22 @@
+@switch (Status)
+{
+    case 0:
+        <span class="badge bg-secondary">Draft</span>
+        break;
+    case 1:
+        <span class="badge bg-primary">In Progress</span>
+        break;
+    case 2:
+        <span class="badge bg-success">Completed</span>
+        break;
+    case 3:
+        <span class="badge bg-warning text-dark">On Hold</span>
+        break;
+    default:
+        <span class="badge bg-light text-dark">Unknown</span>
+        break;
+}
+
+@code {
+    [Parameter] public int Status { get; set; }
+}

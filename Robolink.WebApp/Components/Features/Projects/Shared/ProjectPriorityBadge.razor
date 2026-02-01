@@ -1,0 +1,22 @@
+@switch (Priority)
+{
+    case 0:
+        <span class="badge bg-info">Low</span>
+        break;
+    case 1:
+        <span class="badge bg-warning text-dark">Medium</span>
+        break;
+    case 2:
+        <span class="badge bg-danger">High</span>
+        break;
+    case 3:
+        <span class="badge bg-dark">Critical</span>
+        break;
+    default:
+        <span class="badge bg-light text-dark">Unknown</span>
+        break;
+}
+
+@code {
+    [Parameter] public int Priority { get; set; }
+}

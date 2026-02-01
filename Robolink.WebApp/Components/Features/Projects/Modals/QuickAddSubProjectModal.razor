@@ -1,0 +1,204 @@
+@using MediatR
+@using Robolink.Application.Commands.Projects
+@using Robolink.Application.Queries.Projects
+@using Robolink.Application.Queries.Clients
+@using Robolink.Application.Queries.Staff
+@using Robolink.Application.DTOs
+@inject IMediator Mediator
+@inject IJSRuntime JSRuntime
+
+<div class="modal @(ShowModal ? "show d-block" : "")" tabindex="-1" style="background: @(ShowModal ? "rgba(0,0,0,0.5)" : "");">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-diagram-3-plus"></i> Quick Add Sub-Project
+                </h5>
+                <button type="button" class="btn-close" @onclick="CloseModal"></button>
+            </div>
+            <div class="modal-body">
+                @if (parentProject == null)
+                {
+                    <div class="alert alert-danger">Parent project not found</div>
+                }
+                else if (isLoading)
+                {
+                    <div class="alert alert-info">
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        Loading...
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info mb-3">
+                        <strong>Parent Project:</strong> @parentProject.ProjectCode - @parentProject.Name
+                    </div>
+
+                    <form @onsubmit="HandleCreateSubProject">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Sub-Project Code</label>
+                                <input type="text" class="form-control" @bind="request.ProjectCode" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Sub-Project Name</label>
+                                <input type="text" class="form-control" @bind="request.Name" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" @bind="request.Description" rows="2"></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Project Manager</label>
+                                <InputSelect class="form-control" @bind-Value="request.ManagerId">
+                                    <option value="">-- Select Manager --</option>
+                                    @if (managers != null)
+                                    {
+                                        @foreach (var staff in managers)
+                                        {
+                                            <option value="@staff.Id">@staff.FullName</option>
+                                        }
+                                    }
+                                </InputSelect>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Priority</label>
+                                <InputSelect class="form-control" @bind-Value="request.Priority">
+                                    <option value="0">Low</option>
+                                    <option value="1">Medium</option>
+                                    <option value="2">High</option>
+                                    <option value="3">Critical</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Start Date</label>
+                                <InputDate class="form-control" @bind-Value="request.StartDate" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Deadline</label>
+                                <InputDate class="form-control" @bind-Value="request.Deadline" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Internal Budget</label>
+                                <InputNumber class="form-control" @bind-Value="request.InternalBudget" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Customer Budget</label>
+                                <InputNumber class="form-control" @bind-Value="request.CustomerBudget" />
+                            </div>
+                        </div>
+
+                        <div class="modal-footer px-0 pb-0">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Create Sub-Project
+                            </button>
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool ShowModal { get; set; }
+    [Parameter] public Guid ParentProjectId { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private CreateProjectRequest request = new();
+    private ProjectDto? parentProject;
+    private List<StaffDto> managers = new();
+    private bool isLoading = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ShowModal && ParentProjectId != Guid.Empty)
+        {
+            isLoading = true;
+            request = new()
+            {
+                StartDate = DateTime.Today,
+                Deadline = DateTime.Today.AddDays(30),
+                Priority = 1
+            };
+
+            await LoadParentProject();
+            await LoadManagers();
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadParentProject()
+    {
+        try
+        {
+            parentProject = await Mediator.Send(new GetProjectByIdQuery(ParentProjectId));
+            if (parentProject != null)
+            {
+                // Inherit client and some settings from parent
+                request.ClientId = parentProject.ClientId;
+                request.ParentProjectId = ParentProjectId;
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error loading parent project: {ex.Message}");
+        }
+    }
+
+    private async Task LoadManagers()
+    {
+        try
+        {
+            var result = await Mediator.Send(new GetAllStaffQuery());
+            managers = result?.ToList() ?? new();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error loading managers: {ex.Message}");
+        }
+    }
+
+    private async Task HandleCreateSubProject()
+    {
+        try
+        {
+            var result = await Mediator.Send(new CreateProjectCommand
+            {
+                Request = request,
+                CreatedBy = "Huy Dang"
+            });
+
+            if (result != null)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"Sub-project '{result.Name}' created successfully!");
+                await OnSaved.InvokeAsync();
+                await CloseModal();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+        }
+    }
+
+    private async Task CloseModal()
+    {
+        request = new();
+        parentProject = null;
+        await OnClose.InvokeAsync();
+    }
+}   

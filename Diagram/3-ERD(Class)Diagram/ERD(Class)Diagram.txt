@@ -1,0 +1,31 @@
+Sơ đồ ERD (Entity Relationship Diagram) chi tiết theo dạng Class Diagram dành cho hệ thống IndusHub Engine v5.0.
+
+Sơ đồ này tập trung vào cách cơ sở dữ liệu (hoặc cấu trúc Object) liên kết với nhau, đặc biệt là cách Project định nghĩa "luật chơi" (Công thức & Slots) và PhaseTask thực thi "luật chơi" đó.
+Chi tiết các thực thể chính trong ERD:
+
+1. Project (Thực thể trung tâm)
+- Mối quan hệ:
+	+ Một dự án có một cấu hình tính toán (CalculationConfig).
+	+ Một dự án chứa nhiều nhiệm vụ (PhaseTask).
+	+ Được quản lý bởi một Staff (managerId).
+- Đặc điểm: Lưu trữ thông tin bao quát và thời hạn tổng thể của máy móc đang thiết kế/sản xuất.
+
+2. CalculationConfig & SlotLabels (Logic tầng sâu)
+- Đây không phải là một bảng riêng trong DB mà thường là một JSON Column nằm trong Project.
+- Nó cho phép hệ thống "biết" rằng trong dự án này, v1 có nghĩa là "Số mét", v2 là "Đơn giá".
+- Nếu không có cấu hình này, các con số v1...v10 trong PhaseTask sẽ vô nghĩa.
+
+3. PhaseTask (Thực thể dữ liệu biến động)
+- v1 -> v10: Lưu trữ các số liệu thực tế (số lượng, kích thước, khối lượng...).
+- extraFields: Đây là cột JSON cực kỳ quan trọng. Khi bạn import Excel, những cột nào không được map vào v1-v10 sẽ được "đóng gói" vào đây. Điều này giải quyết vấn đề "cột mới không cần tính toán" mà bạn đã hỏi.
+- Khóa ngoại (FK): Liên kết chặt chẽ với Project và ProjectPhase.
+
+4. ProjectPhase (Danh mục giai đoạn)
+- Thường là các dữ liệu Fix sẵn (Chuẩn bị, Thiết kế, Gia công, Lắp ráp, QC).
+- Giúp phân loại các PhaseTask để dễ quản lý theo quy trình sản xuất máy.
+
+Ưu điểm của thiết kế này:
+- Linh hoạt tuyệt đối: Bạn có thể đổi tên v1 từ "Chiều dài" thành "Nhiệt độ" chỉ bằng cách sửa nhãn ở Project, không cần sửa code.
+- Khả năng mở rộng: extraFields giúp bạn lưu trữ vô hạn thông tin bổ sung từ Excel mà không bao giờ làm tràn bộ nhớ hay hỏng cấu trúc bảng.
+- Tính toán động: Hệ thống lấy formula từ Project và áp vào dữ liệu của PhaseTask để xuất kết quả Real-time.
+Bạn có thể sử dụng sơ đồ này để trình bày về cấu trúc Database/Data Object của ứng dụng. Nếu cần thêm chi tiết về kiểu dữ liệu (Data Types) cho từng cột, hãy cho tôi biết nhé!

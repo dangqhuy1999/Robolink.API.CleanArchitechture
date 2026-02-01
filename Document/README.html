@@ -1,0 +1,698 @@
+<h1 id="robolink-core-domain-layer-documentation">Robolink.Core — Domain Layer Documentation</h1>
+<p><strong>Version:</strong> 2.0  </p>
+<p><strong>Last Updated:</strong> January 30, 2026  </p>
+<p><strong>Status:</strong> Complete with Dynamic Workflow System  </p>
+<hr>
+<h2 id="-table-of-contents">📋 Table of Contents</h2>
+<ol>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#architecture--ddd">Architecture &amp; DDD</a></li>
+<li><a href="#entity-model">Entity Model</a></li>
+<li><a href="#key-concepts-dynamic-workflow">Key Concepts: Dynamic Workflow</a></li>
+<li><a href="#aggregate-roots--boundaries">Aggregate Roots &amp; Boundaries</a></li>
+<li><a href="#data-flow-examples">Data Flow Examples</a></li>
+<li><a href="#enums--value-types">Enums &amp; Value Types</a></li>
+<li><a href="#repository-interfaces">Repository Interfaces</a></li>
+<li><a href="#best-practices">Best Practices</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ol>
+<hr>
+<h2 id="overview">Overview</h2>
+<p><code>Robolink.Core</code> is the <strong>Domain/Core layer</strong> in a 4-layer Clean Architecture:</p>
+<pre><code>Robolink<span class="hljs-selector-class">.Core</span> (Domain Layer) 
+↓ depends on nothing, referenced by all 
+Robolink<span class="hljs-selector-class">.Application</span> (Application Layer) 
+↓ depends on Core 
+Robolink<span class="hljs-selector-class">.Infrastructure</span> (Infrastructure Layer) 
+↓ depends on Core &amp; Application 
+Robolink<span class="hljs-selector-class">.WebApp</span> / Robolink<span class="hljs-selector-class">.API</span> (Presentation Layer) 
+↓ depends on all
+</code></pre><h3 id="core-responsibilities">Core Responsibilities</h3>
+<ul>
+<li>✅ Define <strong>domain entities</strong> and aggregate roots</li>
+<li>✅ Define <strong>value types</strong> (enums, structs)</li>
+<li>✅ Define <strong>repository interfaces</strong> (no implementations)</li>
+<li>✅ Define <strong>domain events</strong> and rules</li>
+<li>✅ <strong>ZERO dependencies</strong> on external libraries (except System)</li>
+<li>❌ NO Entity Framework, NO Data Access</li>
+<li>❌ NO Business Logic (that goes in Application layer)</li>
+</ul>
+<hr>
+<h2 id="architecture-ddd">Architecture &amp; DDD</h2>
+<h3 id="ddd-domain-driven-design-principles">DDD (Domain-Driven Design) Principles</h3>
+<table>
+<thead>
+<tr>
+<th>Principle</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ubiquitous Language</strong></td>
+<td>Entity names match business domain (Project, PhaseTask, WorkLog)</td>
+</tr>
+<tr>
+<td><strong>Bounded Contexts</strong></td>
+<td>Project, Staff, and Client are separate aggregates</td>
+</tr>
+<tr>
+<td><strong>Aggregate Roots</strong></td>
+<td>Client, Project, Staff own their child entities</td>
+</tr>
+<tr>
+<td><strong>Value Objects</strong></td>
+<td>Enums for status/state (ProjectStatus, LogStatus, etc.)</td>
+</tr>
+<tr>
+<td><strong>Entities vs Value Objects</strong></td>
+<td>Entities have identity (ID), VOs don&#39;t</td>
+</tr>
+<tr>
+<td><strong>Repository Pattern</strong></td>
+<td>Persist/retrieve aggregates as units</td>
+</tr>
+<tr>
+<td><strong>Domain Events</strong></td>
+<td>ProjectCreatedEvent, ProjectCompletedEvent (if needed)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="clean-architecture-layers">Clean Architecture Layers</h3>
+<pre><code>┌─────────────────────────────────────────────┐ 
+│ Robolink<span class="hljs-selector-class">.WebApp</span> / Robolink<span class="hljs-selector-class">.API</span>              │ ← UI Layer 
+├─────────────────────────────────────────────┤ 
+│ Robolink<span class="hljs-selector-class">.Application</span>                        │ ← Use Cases / CQRS 
+├─────────────────────────────────────────────┤ 
+│ Robolink<span class="hljs-selector-class">.Infrastructure</span>                     │ ← Data Access / Services 
+├─────────────────────────────────────────────┤ 
+│ Robolink<span class="hljs-selector-class">.Core</span> (This project)                │ ← Domain Model 
+└─────────────────────────────────────────────┘
+</code></pre><p><strong>Dependency Rule:</strong> Only inward (outer layers depend on inner)</p>
+<hr>
+<h2 id="entity-model">Entity Model</h2>
+<h3 id="complete-entity-hierarchy">Complete Entity Hierarchy</h3>
+<pre><code>EntityBase (All entities inherit from this) 
+├── Id (Guid) - Unique identifier 
+├── CreatedAt (DateTime) - Audit 
+├── CreatedBy (string) - Audit 
+├── UpdatedAt (DateTime?) - Audit 
+├── UpdatedBy (string) - Audit 
+└── IsDeleted (bool) - Soft <span class="hljs-keyword">delete</span> flag
+  ↓
+
+EntityRootBase (extends EntityBase) 
+
+├── RowVersion (<span class="hljs-keyword">byte</span>[]) - Concurrency control via <span class="hljs-keyword">timestamp</span> 
+└── Used <span class="hljs-keyword">by</span>: <span class="hljs-keyword">Client</span>, <span class="hljs-keyword">Project</span>, Staff, SystemPhase 
+└── Reason: These <span class="hljs-keyword">are</span> <span class="hljs-keyword">AGGREGATE</span> ROOTS (own other entities)
+  ↓
+<span class="hljs-keyword">Child</span> Entities (inherit EntityBase <span class="hljs-keyword">only</span>, <span class="hljs-keyword">no</span> RowVersion)
+
+├── PhaseTask - <span class="hljs-keyword">Child</span> <span class="hljs-keyword">of</span> <span class="hljs-keyword">Project</span> <span class="hljs-keyword">aggregate</span> 
+├── WorkLog - <span class="hljs-keyword">Child</span> <span class="hljs-keyword">of</span> <span class="hljs-keyword">Project</span> <span class="hljs-keyword">aggregate</span> 
+├── ProjectSystemPhaseConfig - Configuration, <span class="hljs-keyword">child</span> <span class="hljs-keyword">of</span> <span class="hljs-keyword">Project</span> 
+└── Reason: These <span class="hljs-keyword">are</span> owned <span class="hljs-keyword">by</span> aggregates, <span class="hljs-keyword">not</span> independent
+</code></pre><hr>
+<h2 id="key-concepts-dynamic-workflow">Key Concepts: Dynamic Workflow</h2>
+<h3 id="-the-problem-we-solved">⚡ The Problem We Solved</h3>
+<p><strong>Before (Hard-coded):</strong></p>
+<pre><code>public <span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">ProjectPhase</span> </span>
+{ 
+Initialize, 
+Engineering, 
+Fabrication, 
+CNCCutting, Assembly 
+} 
+/<span class="hljs-regexp">/ ❌ To add a phase, you must: 
+/</span><span class="hljs-regexp">/ 1. Edit this enum 
+/</span><span class="hljs-regexp">/ 2. Rebuild the application 
+/</span><span class="hljs-regexp">/ 3. Deploy new version 
+/</span><span class="hljs-regexp">/ 4. Users have downtime
+
+/</span><span class="hljs-regexp">/ ❌ Different projects MUST use the same phases 
+/</span><span class="hljs-regexp">/ ❌ Can't rename phases per project</span>
+</code></pre><p><strong>After (Dynamic with SystemPhase + ProjectSystemPhaseConfig):</strong></p>
+<p>// ✅ Add new phase at runtime via admin panel </p>
+<p>// ✅ Each project can have its own phases </p>
+<p>// ✅ Each project can rename/customize phases </p>
+<p>// ✅ No code changes needed </p>
+<p>// ✅ Zero downtime</p>
+<h3 id="-how-it-works-three-layer-system">🎯 How It Works: Three-Layer System</h3>
+<h4 id="layer-1-global-master-data-systemphase-">Layer 1: Global Master Data (<code>SystemPhase</code>)</h4>
+<p><strong>What it is:</strong> Repository of ALL possible phases the company does.</p>
+<p><strong>Example data:</strong></p>
+<pre><code><span class="hljs-string">ID:</span> <span class="hljs-number">11111111.</span>.. | <span class="hljs-string">Name:</span> Initialize    | <span class="hljs-string">Active:</span> <span class="hljs-literal">true</span>  | <span class="hljs-string">DefaultSeq:</span> <span class="hljs-number">1</span> |
+<span class="hljs-string">ID:</span> <span class="hljs-number">22222222.</span>.. | <span class="hljs-string">Name:</span> Engineering   | <span class="hljs-string">Active:</span> <span class="hljs-literal">true</span>  | <span class="hljs-string">DefaultSeq:</span> <span class="hljs-number">2</span> |
+<span class="hljs-string">ID:</span> <span class="hljs-number">33333333.</span>.. | <span class="hljs-string">Name:</span> Fabrication   | <span class="hljs-string">Active:</span> <span class="hljs-literal">true</span>  | <span class="hljs-string">DefaultSeq:</span> <span class="hljs-number">3</span> |
+<span class="hljs-string">ID:</span> <span class="hljs-number">44444444.</span>.. | <span class="hljs-string">Name:</span> CNC Cutting   | <span class="hljs-string">Active:</span> <span class="hljs-literal">true</span>  | <span class="hljs-string">DefaultSeq:</span> <span class="hljs-number">4</span> |
+<span class="hljs-string">ID:</span> <span class="hljs-number">55555555.</span>.. | <span class="hljs-string">Name:</span> Assembly      | <span class="hljs-string">Active:</span> <span class="hljs-literal">true</span>  | <span class="hljs-string">DefaultSeq:</span> <span class="hljs-number">5</span> |
+<span class="hljs-string">ID:</span> <span class="hljs-number">66666666.</span>.. | <span class="hljs-string">Name:</span> Quality Check | <span class="hljs-string">Active:</span> <span class="hljs-literal">true</span>  | <span class="hljs-string">DefaultSeq:</span> <span class="hljs-number">6</span> |
+<span class="hljs-string">ID:</span> <span class="hljs-number">77777777.</span>.. | <span class="hljs-string">Name:</span> Packaging     | <span class="hljs-string">Active:</span> <span class="hljs-literal">true</span>  | <span class="hljs-string">DefaultSeq:</span> <span class="hljs-number">7</span> |
+</code></pre><p><strong>Characteristics:</strong></p>
+<ul>
+<li>✅ Created ONCE during system setup (seeded in migration)</li>
+<li>✅ Can add new phases anytime via admin</li>
+<li>✅ Can deactivate phases (soft disable)</li>
+<li>✅ Global reference for all projects</li>
+<li>✅ <strong>Business owns this data</strong></li>
+</ul>
+<p><strong>Database Table:</strong></p>
+<p>SystemPhases </p>
+<pre><code>├── <span class="hljs-selector-tag">Id</span> (PK, Guid) 
+├── <span class="hljs-selector-tag">Name</span> (nvarchar(<span class="hljs-number">100</span>), unique) 
+├── <span class="hljs-selector-tag">Description</span> (nvarchar(max)) 
+├── <span class="hljs-selector-tag">DefaultSequence</span> (int) 
+├── <span class="hljs-selector-tag">IsActive</span> (bit) 
+├── <span class="hljs-selector-tag">CreatedAt</span>, <span class="hljs-selector-tag">CreatedBy</span>, <span class="hljs-selector-tag">UpdatedAt</span>, <span class="hljs-selector-tag">UpdatedBy</span>, <span class="hljs-selector-tag">IsDeleted</span> (audit) 
+└── <span class="hljs-selector-tag">Indexes</span>: <span class="hljs-selector-tag">Name</span> (unique)
+</code></pre><hr>
+<h4 id="layer-2-project-specific-configuration-projectsystemphaseconfig-">Layer 2: Project-Specific Configuration (<code>ProjectSystemPhaseConfig</code>)</h4>
+<p><strong>What it is:</strong> &quot;Which phases does THIS project use, and in what order?&quot;</p>
+<p><strong>Example: Project A (Robot Assembly)</strong></p>
+<p>Config 1: Project A </p>
+<ul>
+<li>Initialize   (Sequence: 1, Enabled: true) </li>
+</ul>
+<p>Config 2: Project A </p>
+<ul>
+<li>Engineering  (Sequence: 2, Enabled: true, CustomName: &quot;Design Robot&quot;) </li>
+</ul>
+<p>Config 3: Project A </p>
+<ul>
+<li>Assembly     (Sequence: 3, Enabled: true) (Note: No Fabrication or CNC Cutting for this project)</li>
+</ul>
+<p><strong>Example: Project B (Team Building)</strong></p>
+<p>Config 1: Project B </p>
+<ul>
+<li>Initialize   (Sequence: 1, Enabled: true) </li>
+</ul>
+<p>Config 2: Project B </p>
+<ul>
+<li>Other_Check  (Sequence: 2, Enabled: true, CustomName: &quot;Team Assessment&quot;) (Note: Very different process!)</li>
+</ul>
+<p><strong>Characteristics:</strong></p>
+<ul>
+<li>✅ Created when project is created or configured</li>
+<li>✅ Many-to-Many junction between Project and SystemPhase</li>
+<li>✅ Per-project customization (different name, different sequence)</li>
+<li>✅ Can enable/disable phases per project</li>
+<li>✅ Can change order (sequence) per project</li>
+<li>✅ <strong>Bridge between global and project-specific</strong></li>
+</ul>
+<p><strong>Database Table:</strong></p>
+<p>ProjectSystemPhaseConfigs </p>
+<pre><code>├── <span class="hljs-selector-tag">Id</span> (PK, Guid) 
+├── <span class="hljs-selector-tag">ProjectId</span> (FK to Projects) 
+├── <span class="hljs-selector-tag">SystemPhaseId</span> (FK to SystemPhases) 
+├── <span class="hljs-selector-tag">Sequence</span> (int) <span class="hljs-selector-tag">-</span> <span class="hljs-selector-tag">Order</span> <span class="hljs-selector-tag">in</span> <span class="hljs-selector-tag">this</span> <span class="hljs-selector-tag">project</span> (<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>...) 
+├── <span class="hljs-selector-tag">IsEnabled</span> (bit) <span class="hljs-selector-tag">-</span> <span class="hljs-selector-tag">Is</span> <span class="hljs-selector-tag">this</span> <span class="hljs-selector-tag">phase</span> <span class="hljs-selector-tag">active</span> <span class="hljs-selector-tag">for</span> <span class="hljs-selector-tag">this</span> <span class="hljs-selector-tag">project</span>? 
+├── <span class="hljs-selector-tag">CustomPhaseName</span> (nvarchar(<span class="hljs-number">100</span>)) <span class="hljs-selector-tag">-</span> <span class="hljs-selector-tag">Override</span> <span class="hljs-selector-tag">system</span> <span class="hljs-selector-tag">phase</span> <span class="hljs-selector-tag">name</span> 
+├── <span class="hljs-selector-tag">CustomDescription</span> (nvarchar(max)) <span class="hljs-selector-tag">-</span> <span class="hljs-selector-tag">Project-specific</span> <span class="hljs-selector-tag">description</span> 
+├── <span class="hljs-selector-tag">CreatedAt</span>, <span class="hljs-selector-tag">CreatedBy</span>, <span class="hljs-selector-tag">UpdatedAt</span>, <span class="hljs-selector-tag">UpdatedBy</span>, <span class="hljs-selector-tag">IsDeleted</span> (audit) 
+├── <span class="hljs-selector-tag">Unique</span> <span class="hljs-selector-tag">Index</span>: (ProjectId, SystemPhaseId) <span class="hljs-selector-tag">-</span> <span class="hljs-selector-tag">One</span> <span class="hljs-selector-tag">config</span> <span class="hljs-selector-tag">per</span> <span class="hljs-selector-tag">project</span> <span class="hljs-selector-tag">per</span> <span class="hljs-selector-tag">phase</span> 
+└── <span class="hljs-selector-tag">Foreign</span> <span class="hljs-selector-tag">Keys</span>: <span class="hljs-selector-tag">Project</span> (cascade), <span class="hljs-selector-tag">SystemPhase</span> (restrict)
+</code></pre><hr>
+<h4 id="layer-3-work-items-phasetask-">Layer 3: Work Items (<code>PhaseTask</code>)</h4>
+<p><strong>What it is:</strong> Individual tasks within a specific phase of a project.</p>
+<p><strong>Example: Project A, Engineering Phase</strong></p>
+<p>Task 1: &quot;Create CAD drawings&quot;     (assigned to Engineer1, due 2026-02-15)</p>
+<p>Task 2: &quot;Review design&quot;            (assigned to Engineer2, due 2026-02-20) </p>
+<p>Task 3: &quot;Approve for production&quot;   (assigned to Manager,  due 2026-02-25)</p>
+<p><strong>Characteristics:</strong></p>
+<ul>
+<li>✅ Created by users after config is set up</li>
+<li>✅ Belongs to BOTH a Project AND a ProjectSystemPhaseConfig</li>
+<li>✅ Individual work items with assignments</li>
+<li>✅ Track progress, due dates, status</li>
+<li>✅ <strong>Where actual work happens</strong></li>
+</ul>
+<p><strong>Database Table:</strong></p>
+<p>PhaseTasks </p>
+<pre><code>├── <span class="hljs-selector-tag">Id</span> (PK, Guid) 
+├── <span class="hljs-selector-tag">ProjectId</span> (FK to Projects) <span class="hljs-selector-tag">-</span> <span class="hljs-selector-tag">Which</span> <span class="hljs-selector-tag">project</span>? 
+├── <span class="hljs-selector-tag">ProjectSystemPhaseConfigId</span> (FK) <span class="hljs-selector-tag">-</span> <span class="hljs-selector-tag">Which</span> <span class="hljs-selector-tag">phase</span> <span class="hljs-selector-tag">in</span> <span class="hljs-selector-tag">this</span> <span class="hljs-selector-tag">project</span>? 
+├── <span class="hljs-selector-tag">Description</span> (nvarchar(max)) 
+├── <span class="hljs-selector-tag">AssignedStaffId</span> (FK to Staffs) 
+├── <span class="hljs-selector-tag">ProcessRate</span> (int) <span class="hljs-selector-tag">-</span> <span class="hljs-selector-tag">0-100%</span> 
+├── <span class="hljs-selector-tag">DueDate</span> (datetime2) 
+├── <span class="hljs-selector-tag">Status</span> (int) <span class="hljs-selector-tag">-</span> <span class="hljs-selector-tag">Pending</span>, <span class="hljs-selector-tag">InProgress</span>, <span class="hljs-selector-tag">Review</span>, <span class="hljs-selector-tag">Done</span> 
+├── <span class="hljs-selector-tag">ParentPhaseTaskId</span> (FK) <span class="hljs-selector-tag">-</span> <span class="hljs-selector-tag">For</span> <span class="hljs-selector-tag">subtasks</span> (self-referencing) 
+├── <span class="hljs-selector-tag">CreatedAt</span>, <span class="hljs-selector-tag">CreatedBy</span>, <span class="hljs-selector-tag">UpdatedAt</span>, <span class="hljs-selector-tag">UpdatedBy</span>, <span class="hljs-selector-tag">IsDeleted</span> (audit) 
+└── <span class="hljs-selector-tag">Foreign</span> <span class="hljs-selector-tag">Keys</span>: <span class="hljs-selector-tag">Project</span> (cascade), <span class="hljs-selector-tag">Config</span> (restrict), <span class="hljs-selector-tag">Staff</span> (restrict)
+</code></pre><hr>
+<h3 id="-visual-data-flow">📊 Visual Data Flow</h3>
+<pre><code>SystemPhase (Global) 
+↓ 
+referenced by ProjectSystemPhaseConfig (<span class="hljs-keyword">Project</span> Config) 
+├─ ProjectId → <span class="hljs-keyword">Project</span> 
+├─ SystemPhaseId → SystemPhase 
+├─ Sequence → Order in <span class="hljs-keyword">project</span> 
+├─ CustomPhaseName → <span class="hljs-keyword">Project</span> override 
+└─ IsEnabled → <span class="hljs-keyword">Exclude</span> <span class="hljs-keyword">this</span> phase <span class="hljs-keyword">from</span> <span class="hljs-keyword">project</span>? 
+↓ 
+used by PhaseTask (Work Item) 
+├─ ProjectId → Which <span class="hljs-keyword">project</span>? 
+├─ ProjectSystemPhaseConfigId → Which config? (implies which phase)
+├─ <span class="hljs-keyword">Description</span> → What to <span class="hljs-keyword">do</span>? 
+├─ AssignedStaffId → Who does it? 
+├─ DueDate → When? 
+└─ Status → Progress?
+</code></pre><hr>
+<h3 id="-real-world-scenario">🎬 Real-World Scenario</h3>
+<p><strong>Scenario: Robot Manufacturing vs Team Building</strong></p>
+<p><strong>Setup Step 1: Global Phases (Database Seed)</strong></p>
+<pre><code>await db.SystemPhases.AddAsync(new SystemPhase 
+{ 
+<span class="hljs-attr">Id</span> = Guid.Parse(<span class="hljs-string">"11111111-..."</span>), 
+<span class="hljs-attr">Name</span> = <span class="hljs-string">"Initialize"</span>, 
+<span class="hljs-attr">Description</span> = <span class="hljs-string">"Project initialization"</span>, 
+<span class="hljs-attr">DefaultSequence</span> = <span class="hljs-number">1</span>, <span class="hljs-attr">IsActive</span> = <span class="hljs-literal">true</span> 
+}); // ... <span class="hljs-number">5</span> more phases
+
+await db.SaveChangesAsync();
+</code></pre><p><strong>Setup Step 2: Create Robot Project</strong></p>
+<pre><code>var <span class="hljs-attr">robotProject</span> = new Project { 
+<span class="hljs-attr">Name</span> = <span class="hljs-string">"Build Robot Arm"</span>, 
+<span class="hljs-attr">ClientId</span> = samsungClientId, 
+<span class="hljs-attr">ManagerId</span> = engineerManagerId 
+};
+// Config which phases to use var <span class="hljs-attr">configs</span> = new[] { 
+new ProjectSystemPhaseConfig { 
+<span class="hljs-attr">ProjectId</span> = robotProject.Id, 
+<span class="hljs-attr">SystemPhaseId</span> = engineeringPhaseId, 
+<span class="hljs-attr">Sequence</span> = <span class="hljs-number">1</span>, <span class="hljs-attr">CustomPhaseName</span> = <span class="hljs-string">"Design Robot Arm"</span> 
+}, 
+new ProjectSystemPhaseConfig { 
+<span class="hljs-attr">ProjectId</span> = robotProject.Id, 
+<span class="hljs-attr">SystemPhaseId</span> = fabricationPhaseId, 
+<span class="hljs-attr">Sequence</span> = <span class="hljs-number">2</span> 
+}, 
+new ProjectSystemPhaseConfig { 
+<span class="hljs-attr">ProjectId</span> = robotProject.Id, 
+<span class="hljs-attr">SystemPhaseId</span> = assemblyPhaseId, 
+<span class="hljs-attr">Sequence</span> = <span class="hljs-number">3</span> 
+} // Note: CNC Cutting excluded 
+};
+</code></pre><p><strong>Setup Step 3: Create Team Building Project</strong></p>
+<pre><code>var <span class="hljs-attr">hrProject</span> = new Project { 
+<span class="hljs-attr">Name</span> = <span class="hljs-string">"Recruit Engineers 2026"</span>, 
+<span class="hljs-attr">ClientId</span> = companyClientId, 
+<span class="hljs-attr">ManagerId</span> = hrManagerId 
+};
+// Completely different phases! var <span class="hljs-attr">hrConfigs</span> = new[] { 
+new ProjectSystemPhaseConfig { 
+<span class="hljs-attr">ProjectId</span> = hrProject.Id, 
+<span class="hljs-attr">SystemPhaseId</span> = initializePhaseId, 
+<span class="hljs-attr">Sequence</span> = <span class="hljs-number">1</span>, 
+<span class="hljs-attr">CustomPhaseName</span> = <span class="hljs-string">"Job Posting"</span> 
+}, 
+new ProjectSystemPhaseConfig { 
+<span class="hljs-attr">ProjectId</span> = hrProject.Id, 
+<span class="hljs-attr">SystemPhaseId</span> = qualityCheckPhaseId,  // Repurposed! 
+<span class="hljs-attr">Sequence</span> = <span class="hljs-number">2</span>, 
+<span class="hljs-attr">CustomPhaseName</span> = <span class="hljs-string">"CV Screening"</span> 
+} };
+</code></pre><p><strong>Result:</strong></p>
+<ul>
+<li>✅ Same database, same system</li>
+<li>✅ Robot project shows: Initialize → Design Robot Arm → Fabrication → Assembly</li>
+<li>✅ HR project shows: Job Posting → CV Screening</li>
+<li>✅ No code changes, no redeployment</li>
+</ul>
+<hr>
+<h2 id="aggregate-roots-boundaries">Aggregate Roots &amp; Boundaries</h2>
+<h3 id="what-is-an-aggregate-root-">What is an Aggregate Root?</h3>
+<p>An <strong>aggregate root</strong> is an entity that:</p>
+<ol>
+<li>✅ Has its own identity (<code>Id</code>)</li>
+<li>✅ Owns child entities</li>
+<li>✅ Enforces business rules</li>
+<li>✅ Is a transaction boundary (updated as a unit)</li>
+</ol>
+<h3 id="robolink-s-aggregate-roots">Robolink&#39;s Aggregate Roots</h3>
+<h4 id="1-client-aggregate-">1. <strong>Client Aggregate</strong> ✅</h4>
+<pre><code><span class="hljs-selector-tag">Client</span> (Root) 
+├── <span class="hljs-selector-tag">Id</span>, <span class="hljs-selector-tag">Name</span>, <span class="hljs-selector-tag">Industry</span>, <span class="hljs-selector-tag">ContactEmail</span> 
+└── <span class="hljs-selector-tag">Children</span>: <span class="hljs-selector-tag">Projects</span> (collection)
+</code></pre><p>Rule: When you delete a Client, all its Projects should be restricted (use DeleteBehavior.Restrict in migrations)</p>
+<h4 id="2-project-aggregate-">2. <strong>Project Aggregate</strong> ✅</h4>
+<pre><code><span class="hljs-selector-tag">Project</span> (Root) 
+├── <span class="hljs-selector-tag">Id</span>, <span class="hljs-selector-tag">Name</span>, <span class="hljs-selector-tag">ProjectCode</span>, <span class="hljs-selector-tag">StartDate</span>, <span class="hljs-selector-tag">Deadline</span>, <span class="hljs-selector-tag">Status</span>, <span class="hljs-selector-tag">Priority</span> 
+├── <span class="hljs-selector-tag">Children</span>: <span class="hljs-selector-tag">PhaseTask</span> (collection) 
+├── <span class="hljs-selector-tag">Children</span>: <span class="hljs-selector-tag">WorkLog</span> (collection) 
+├── <span class="hljs-selector-tag">Children</span>: <span class="hljs-selector-tag">ProjectSystemPhaseConfig</span> (collection) 
+├── <span class="hljs-selector-tag">Navigation</span>: <span class="hljs-selector-tag">Client</span>, <span class="hljs-selector-tag">Manager</span> (Staff)
+</code></pre><p>Rule: When you delete a Project, </p>
+<p>cascade-delete its PhaseTask and WorkLog</p>
+<p>(use DeleteBehavior.Cascade in migrations)</p>
+<p>Rule: You can only create PhaseTask if Project exists and config exists</p>
+<h4 id="3-staff-aggregate-">3. <strong>Staff Aggregate</strong> ✅</h4>
+<pre><code><span class="hljs-selector-tag">Staff</span> (Root) 
+├── <span class="hljs-selector-tag">Id</span>, <span class="hljs-selector-tag">FullName</span>, <span class="hljs-selector-tag">Username</span>, <span class="hljs-selector-tag">PasswordHash</span>, <span class="hljs-selector-tag">Department</span>, <span class="hljs-selector-tag">Role</span>, <span class="hljs-selector-tag">Status</span>
+├── <span class="hljs-selector-tag">Navigation</span>: <span class="hljs-selector-tag">ManagedProjects</span> (collection) 
+├── <span class="hljs-selector-tag">Navigation</span>: <span class="hljs-selector-tag">AssignedTasks</span> (collection) 
+├── <span class="hljs-selector-tag">Navigation</span>: <span class="hljs-selector-tag">WorkLogs</span> (collection)
+</code></pre><p>Rule: When you delete a Staff, reassign their tasks/logs or prevent delete (use DeleteBehavior.Restrict in migrations)</p>
+<h4 id="4-systemphase-aggregate-">4. <strong>SystemPhase Aggregate</strong> ✅</h4>
+<pre><code><span class="hljs-selector-tag">SystemPhase</span> (Root) 
+├── <span class="hljs-selector-tag">Id</span>, <span class="hljs-selector-tag">Name</span>, <span class="hljs-selector-tag">Description</span>, <span class="hljs-selector-tag">DefaultSequence</span>, <span class="hljs-selector-tag">IsActive</span> 
+├── <span class="hljs-selector-tag">Children</span>: <span class="hljs-selector-tag">ProjectConfigs</span> (collection)
+</code></pre><p>Rule: Once created, rarely changes Reference data — business owns this</p>
+<h3 id="child-entities-no-rowversion-">Child Entities (No RowVersion)</h3>
+<h4 id="-phasetask-child-of-project-"><strong>PhaseTask</strong> (Child of Project)</h4>
+<pre><code>PhaseTask 
+├── Belongs <span class="hljs-built_in">to</span> exactly <span class="hljs-literal">ONE</span> Project 
+├── Belongs <span class="hljs-built_in">to</span> exactly <span class="hljs-literal">ONE</span> ProjectSystemPhaseConfig 
+├── Cannot exist <span class="hljs-keyword">without</span> Project 
+├── Inherits EntityBase (no RowVersion - <span class="hljs-keyword">not</span> critical <span class="hljs-keyword">for</span> concurrency)
+</code></pre><h4 id="-projectsystemphaseconfig-child-of-project-"><strong>ProjectSystemPhaseConfig</strong> (Child of Project)</h4>
+<pre><code>ProjectSystemPhaseConfig 
+├── Belongs <span class="hljs-keyword">to</span> exactly ONE Project 
+├── References exactly ONE SystemPhase (<span class="hljs-keyword">but</span> doesn't own <span class="hljs-keyword">it</span>) 
+├── Cannot exist <span class="hljs-keyword">without</span> Project 
+├── Inherits EntityBase (no RowVersion - configuration, <span class="hljs-keyword">not</span> operational data)
+</code></pre><h4 id="-worklog-child-of-project-"><strong>WorkLog</strong> (Child of Project)</h4>
+<pre><code>WorkLog 
+├── Belongs <span class="hljs-built_in">to</span> exactly <span class="hljs-literal">ONE</span> Project 
+├── Belongs <span class="hljs-built_in">to</span> exactly <span class="hljs-literal">ONE</span> PhaseTask 
+├── References exactly <span class="hljs-literal">ONE</span> Operator (Staff) 
+├── Includes <span class="hljs-keyword">numeric</span> slots (V1-V10) <span class="hljs-keyword">and</span> JSON data 
+├── Inherits EntityRootBase (has RowVersion <span class="hljs-keyword">for</span> concurrency)
+</code></pre><p>Reason: Work logs are mission-critical, prevent overwrites</p>
+<hr>
+<h2 id="data-flow-examples">Data Flow Examples</h2>
+<h3 id="example-1-create-a-new-project-with-phases">Example 1: Create a New Project with Phases</h3>
+<pre><code><span class="hljs-comment">// Step 1: Application layer receives request </span>
+<span class="hljs-keyword">var</span> command = <span class="hljs-keyword">new</span> CreateProjectCommand { 
+Request = <span class="hljs-keyword">new</span> CreateProjectRequest { 
+Name = <span class="hljs-string">"Build Robot"</span>, 
+ClientId = clientId, 
+ManagerId = managerId 
+} };
+
+<span class="hljs-comment">// Step 2: Handler validates and creates project </span>
+<span class="hljs-keyword">var</span> project = <span class="hljs-keyword">new</span> Project { 
+Name = <span class="hljs-string">"Build Robot"</span>, 
+ClientId = clientId, 
+ManagerId = managerId, 
+Status = ProjectStatus.Draft 
+}; 
+<span class="hljs-keyword">await</span> projectRepo.AddAsync(project); 
+<span class="hljs-keyword">await</span> projectRepo.SaveChangesAsync();
+
+<span class="hljs-comment">// Step 3: Create phase configs </span>
+<span class="hljs-keyword">var</span> configs = <span class="hljs-keyword">new</span> List&lt;ProjectSystemPhaseConfig&gt;(); 
+<span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">var</span> phase <span class="hljs-keyword">in</span> selectedPhases) { 
+configs.Add(<span class="hljs-keyword">new</span> ProjectSystemPhaseConfig { 
+ProjectId = project.Id, 
+SystemPhaseId = phase.Id, 
+Sequence = sequence++, 
+IsEnabled = <span class="hljs-literal">true</span> 
+}); } 
+<span class="hljs-keyword">await</span> configRepo.AddRangeAsync(configs); 
+<span class="hljs-keyword">await</span> configRepo.SaveChangesAsync();
+<span class="hljs-comment">// Result: Database now has: </span>
+<span class="hljs-comment">// - 1 Project row </span>
+<span class="hljs-comment">// - 3-5 ProjectSystemPhaseConfig rows </span>
+<span class="hljs-comment">// - Ready to create PhaseTasks</span>
+</code></pre><h3 id="example-2-create-a-task-in-a-phase">Example 2: Create a Task in a Phase</h3>
+<pre><code><span class="hljs-comment">// Step 1: Get project with its phases </span>
+<span class="hljs-keyword">var</span> project = <span class="hljs-keyword">await</span> projectRepo.GetByIdAsync(projectId); 
+<span class="hljs-keyword">var</span> configs = <span class="hljs-keyword">await</span> configRepo.GetByProjectIdAsync(projectId);
+</code></pre><p>// Step 2: User selects a phase </p>
+<pre><code><span class="hljs-keyword">var</span> selectedConfig = configs.First(<span class="hljs-function"><span class="hljs-params">c</span> =&gt;</span> c.Sequence == <span class="hljs-number">1</span>);
+</code></pre><p>// Step 3: Create task </p>
+<pre><code>var task = new PhaseTask { 
+ProjectId = projectId, 
+ProjectSystemPhaseConfigId = selectedConfig.Id,  <span class="hljs-comment">// ← Key link! </span>
+Description = <span class="hljs-string">"Create CAD design"</span>, 
+AssignedStaffId = staffId, 
+DueDate = DateTime.Now.AddDays(<span class="hljs-number">14</span>), 
+Status = Task_Status.Pending }; 
+await taskRepo.AddAsync(task); 
+await taskRepo.SaveChangesAsync();
+
+<span class="hljs-comment">// Result: Database now has: </span>
+<span class="hljs-comment">// - 1 PhaseTask row </span>
+<span class="hljs-comment">// - Can query: "Show all tasks in Engineering phase for Project X"</span>
+</code></pre><h3 id="example-3-disable-a-phase-for-a-project">Example 3: Disable a Phase for a Project</h3>
+<pre><code><span class="hljs-comment">// Project A has 5 phases, </span>
+but today they need to skip <span class="hljs-string">"Fabrication"</span> 
+<span class="hljs-keyword">var</span> fabricationConfig = <span class="hljs-keyword">await</span> configRepo .GetByProjectAndPhaseAsync(
+projectAId, 
+fabricationPhaseId
+);
+fabricationConfig.IsEnabled = <span class="hljs-literal">false</span>; 
+<span class="hljs-keyword">await</span> configRepo.UpdateAsync(fabricationConfig); 
+<span class="hljs-keyword">await</span> configRepo.SaveChangesAsync();
+
+<span class="hljs-comment">// Result: </span>
+<span class="hljs-comment">// ✅ Blazor component no longer shows "Fabrication" phase </span>
+<span class="hljs-comment">// ✅ Users can't create tasks in that phase </span>
+<span class="hljs-comment">// ✅ No code change, no downtime</span>
+</code></pre><hr>
+<h2 id="enums-value-types">Enums &amp; Value Types</h2>
+<p>All enums are in <code>Robolink.Core/Enums/</code> folder for easy import:</p>
+<h3 id="status-enums">Status Enums</h3>
+<table>
+<thead>
+<tr>
+<th>Enum</th>
+<th>Values</th>
+<th>Used By</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ProjectStatus</code></td>
+<td>Draft, InProgress, Completed, OnHold</td>
+<td>Project</td>
+</tr>
+<tr>
+<td><code>ProjectPriority</code></td>
+<td>Low, Medium, High, Critical</td>
+<td>Project</td>
+</tr>
+<tr>
+<td><code>Task_Status</code></td>
+<td>Pending, InProgress, Review, Done</td>
+<td>PhaseTask</td>
+</tr>
+<tr>
+<td><code>StaffStatus</code></td>
+<td>Active, Inactive, Terminated</td>
+<td>Staff</td>
+</tr>
+<tr>
+<td><code>LogStatus</code></td>
+<td>Success, Warning, Error, Processing, SystemLog</td>
+<td>WorkLog</td>
+</tr>
+<tr>
+<td><code>LogType</code></td>
+<td>Manufacturing, Admin, HumanResource, Sales, Accounting</td>
+<td>WorkLog</td>
+</tr>
+</tbody>
+</table>
+<h3 id="classification-enums">Classification Enums</h3>
+<table>
+<thead>
+<tr>
+<th>Enum</th>
+<th>Values</th>
+<th>Used By</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ProjectDepartment</code></td>
+<td>Engineering, Production, Planning, QC</td>
+<td>Staff</td>
+</tr>
+<tr>
+<td><code>ProjectRole</code></td>
+<td>Admin, Manager, Lead, Operator</td>
+<td>Staff</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="repository-interfaces">Repository Interfaces</h2>
+<p>All repository interfaces are in <code>Robolink.Core/Interfaces/</code>:</p>
+<h3 id="generic-repository">Generic Repository</h3>
+<pre><code><span class="hljs-symbol">IGenericRepository</span>&lt;TEntity&gt; 
+├── GetByIdAsync(Guid id) 
+├── GetAllAsync() 
+├── FindAsync(Expression&lt;Func&lt;TEntity, <span class="hljs-keyword">bool&gt;&gt; </span>predicate) 
+├── FirstOrDefaultAsync(Expression&lt;Func&lt;TEntity, <span class="hljs-keyword">bool&gt;&gt; </span>predicate) 
+├── <span class="hljs-keyword">AddAsync(TEntity </span>entity) 
+├── UpdateAsync(TEntity entity) 
+├── SoftDeleteAsync(Guid id) 
+├── SaveChangesAsync() 
+└── Used <span class="hljs-keyword">by: </span>All entities via dependency injection
+</code></pre><h3 id="specialized-repositories">Specialized Repositories</h3>
+<pre><code><span class="hljs-selector-tag">IProjectSystemPhaseConfigRepository</span> 
+├── <span class="hljs-selector-tag">GetByProjectIdAsync</span>(Guid projectId) 
+├── <span class="hljs-selector-tag">GetByProjectAndPhaseAsync</span>(Guid projectId, Guid systemPhaseId) 
+├── <span class="hljs-selector-tag">GetEnabledPhasesWithTasksAsync</span>(Guid projectId) 
+├── <span class="hljs-selector-tag">ProjectHasPhaseAsync</span>(Guid projectId, Guid systemPhaseId) 
+└── <span class="hljs-selector-tag">Prevents</span> <span class="hljs-selector-tag">duplicate</span> <span class="hljs-selector-tag">configurations</span>
+</code></pre><p>IWorkLogRepository </p>
+<pre><code>├── <span class="hljs-selector-tag">GetByProjectIdAsync</span>(Guid projectId) 
+├── <span class="hljs-selector-tag">GetByPhaseTaskIdAsync</span>(Guid phaseTaskId)
+├── <span class="hljs-selector-tag">GetTotalValueByProjectAsync</span>(Guid projectId)
+├── <span class="hljs-selector-tag">GetPhaseTaskStatsAsync</span>(Guid phaseTaskId)
+└── <span class="hljs-selector-tag">Advanced</span> <span class="hljs-selector-tag">querying</span> <span class="hljs-selector-tag">and</span> <span class="hljs-selector-tag">statistics</span>
+</code></pre><hr>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="-do">✅ DO</h3>
+<ol>
+<li><strong>Use aggregate roots as boundaries</strong></li>
+</ol>
+<pre><code>// ✅ Good: <span class="hljs-keyword">Load</span> entire <span class="hljs-keyword">Project</span> <span class="hljs-keyword">with</span> children 
+<span class="hljs-keyword">var</span> <span class="hljs-keyword">project</span> = await projectRepo.GetByIdAsync(projectId); 
+var tasks = project.Tasks;  // Navigate through aggregate
+</code></pre><ol>
+<li><strong>Use repository interfaces, never DbContext directly</strong><pre><code><span class="hljs-comment">// ✅ Good </span>
+<span class="hljs-keyword">var</span> project = <span class="hljs-keyword">await</span> _projectRepo.GetByIdAsync(id);
+<span class="hljs-comment">// ❌ Bad </span>
+<span class="hljs-keyword">var</span> project = <span class="hljs-keyword">await</span> _dbContext.Projects.FirstOrDefaultAsync(<span class="hljs-function"><span class="hljs-params">p</span> =&gt;</span> p.Id == id);
+</code></pre></li>
+<li><strong>Validate business rules in handlers</strong><pre><code><span class="hljs-comment">// ✅ Good: Handler validates </span>
+<span class="hljs-keyword">if</span> (!<span class="hljs-keyword">await</span> phaseConfigRepo.ProjectHasPhaseAsync(projectId, phaseId)) 
+<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">"Phase already configured"</span>);
+</code></pre></li>
+<li><strong>Use soft delete consistently</strong><pre><code><span class="hljs-comment">// ✅ Good: All queries exclude soft-deleted </span>
+<span class="hljs-keyword">var</span> projects = <span class="hljs-keyword">await</span> projectRepo.GetAllAsync();  <span class="hljs-comment">// IsDeleted = false</span>
+</code></pre></li>
+</ol>
+<h3 id="-don-t">❌ DON&#39;T</h3>
+<ol>
+<li><p><strong>Don&#39;t mix repository and DbContext</strong></p>
+<pre><code><span class="hljs-comment">// ❌ Bad </span>
+<span class="hljs-keyword">var</span> repo = <span class="hljs-keyword">new</span> GenericRepository&lt;Project&gt;(<span class="hljs-keyword">context</span>); 
+<span class="hljs-keyword">var</span> project = <span class="hljs-keyword">context</span><span class="hljs-variable">.Projects</span><span class="hljs-variable">.Find</span>(id);  <span class="hljs-comment">// Bypass repository!</span>
+</code></pre></li>
+<li><p><strong>Don&#39;t create dependencies outside domain</strong></p>
+<pre><code><span class="hljs-comment">// ❌ Bad: Core shouldn't reference Infrastructure</span>
+<span class="hljs-keyword">using</span> Robolink.Infrastructure.Data;
+</code></pre></li>
+<li><p><strong>Don&#39;t put business logic in entities</strong></p>
+</li>
+</ol>
+<pre><code><span class="hljs-comment">// ❌ Bad: Logic should be in handlers or services </span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Project</span> { 
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">CreateTask</span>(<span class="hljs-params"></span>) </span>{ }  
+<span class="hljs-comment">// NO! }</span>
+</code></pre><ol>
+<li><strong>Don&#39;t use DbContext in tests</strong><pre><code><span class="hljs-comment">// ✅ Good: Mock repositories </span>
+<span class="hljs-keyword">var</span> mockRepo = <span class="hljs-keyword">new</span> <span class="hljs-type">Mock</span>&lt;IGenericRepository&lt;Project&gt;&gt;();
+<span class="hljs-comment">// ❌ Bad: Depend on real database </span>
+<span class="hljs-keyword">var</span> context = <span class="hljs-keyword">new</span> <span class="hljs-type">AppDBContext</span>();
+</code></pre></li>
+</ol>
+<hr>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="q-how-do-i-know-if-something-should-be-in-core-">Q: &quot;How do I know if something should be in Core?&quot;</h3>
+<p><strong>A:</strong> If it:</p>
+<ul>
+<li>✅ Represents a domain concept (Entity, Enum, Interface)</li>
+<li>✅ Has NO external dependencies</li>
+<li>✅ Is referenced by multiple layers</li>
+</ul>
+<p>Then it belongs in Core.</p>
+<hr>
+<h3 id="q-when-should-i-use-entityrootbase-vs-entitybase-">Q: &quot;When should I use EntityRootBase vs EntityBase?&quot;</h3>
+<p><strong>A:</strong> </p>
+<ul>
+<li><p><strong>EntityRootBase</strong> (with RowVersion): Aggregate roots that need concurrency control</p>
+<ul>
+<li><code>Client</code>, <code>Project</code>, <code>Staff</code>, <code>SystemPhase</code>, <code>WorkLog</code></li>
+</ul>
+</li>
+<li><p><strong>EntityBase</strong> (no RowVersion): Child entities or reference data</p>
+<ul>
+<li><code>PhaseTask</code>, <code>ProjectSystemPhaseConfig</code></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="q-can-i-query-systemphase-like-a-normal-entity-">Q: &quot;Can I query SystemPhase like a normal entity?&quot;</h3>
+<p><strong>A:</strong> Yes, via repository:</p>
+<pre><code><span class="hljs-keyword">var</span> phases = <span class="hljs-keyword">await</span> systemPhaseRepo.GetAllAsync(); 
+<span class="hljs-keyword">var</span> activePhases = <span class="hljs-keyword">await</span> systemPhaseRepo.FindAsync(<span class="hljs-function"><span class="hljs-params">p</span> =&gt;</span> p.IsActive);
+</code></pre><hr>
+<h3 id="q-what-s-the-difference-between-projectsystemphaseconfig-and-phasetask-">Q: &quot;What&#39;s the difference between ProjectSystemPhaseConfig and PhaseTask?&quot;</h3>
+<p><strong>A:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>ProjectSystemPhaseConfig</th>
+<th>PhaseTask</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>What</strong></td>
+<td>&quot;Project uses this phase&quot;</td>
+<td>&quot;Do this task in this phase&quot;</td>
+</tr>
+<tr>
+<td><strong>Created by</strong></td>
+<td>Project setup</td>
+<td>Users/Team</td>
+</tr>
+<tr>
+<td><strong>When</strong></td>
+<td>Once per project per phase</td>
+<td>Many times</td>
+</tr>
+<tr>
+<td><strong>Has assignments?</strong></td>
+<td>No</td>
+<td>Yes (AssignedStaffId)</td>
+</tr>
+<tr>
+<td><strong>Tracks progress?</strong></td>
+<td>No</td>
+<td>Yes (Status, ProcessRate)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="q-how-do-i-prevent-duplicate-phase-configs-">Q: &quot;How do I prevent duplicate phase configs?&quot;</h3>
+<p><strong>A:</strong> Use the unique index:</p>
+<pre><code><span class="hljs-comment">// Unique constraint: (ProjectId, SystemPhaseId) </span>
+<span class="hljs-keyword">bool</span> <span class="hljs-built_in">exists</span> = await configRepo.ProjectHasPhaseAsync(projectId, phaseId); 
+<span class="hljs-built_in">if</span> (<span class="hljs-built_in">exists</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InvalidOperationException(<span class="hljs-string">"Phase already configured"</span>);
+</code></pre><hr>
+<h2 id="summary">Summary</h2>
+<p>Robolink.Core provides:</p>
+<ol>
+<li><strong>Domain Entities</strong> — Strongly-typed business objects</li>
+<li><strong>Aggregate Roots</strong> — Owned hierarchies (Client → Projects, Project → Tasks)</li>
+<li><strong>Dynamic Workflow</strong> — SystemPhase + ProjectSystemPhaseConfig = flexible processes</li>
+<li><strong>Repository Interfaces</strong> — Data access contracts (implementations in Infrastructure)</li>
+<li><strong>Enums &amp; Value Types</strong> — Type-safe status and classification</li>
+<li><strong>DDD &amp; Clean Architecture</strong> — Maintainable, testable, business-aligned code</li>
+</ol>
+<p><strong>Next Step:</strong> Implement business logic in <strong>Robolink.Application</strong> layer using CQRS (Commands/Queries) via MediatR.</p>
+<hr>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="./README2.md">README2.md</a> — Recent updates and checkpoint</li>
+<li><a href="./Entities/Dynamic_Workflow_Design.md">Dynamic_Workflow_Design.md</a> — Detailed workflow explanation</li>
+<li><a href="./Interfaces/RepositoryPattern_UnitOfWork.md">RepositoryPattern_UnitOfWork.md</a> — Repository pattern details</li>
+<li><a href="./Entities/ParentID_SubID.md">ParentID_SubID.md</a> — Hierarchical relationships</li>
+</ul>
+<p>This comprehensive README now clearly explains:</p>
+<p>•    ✅ The three-layer workflow system (SystemPhase → Config → Task)</p>
+<p>•    ✅ Why ProjectSystemPhaseConfig is needed</p>
+<p>•    ✅ Aggregate boundaries and DDD</p>
+<p>•    ✅ Real-world scenarios</p>
+<p>•    ✅ Best practices</p>
+<p>•    ✅ Troubleshooting guide</p>
+<p>Perfect for onboarding new developers! 🚀</p>

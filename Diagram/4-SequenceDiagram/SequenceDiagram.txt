@@ -1,0 +1,20 @@
+Với một hệ thống như IndusHub Engine v5.0, có 3 quy trình được coi là "khó nhằn" và quan trọng nhất về mặt logic:
+- Advanced Import & Resource Mapping: Quy trình biến dữ liệu Excel hỗn loạn thành dữ liệu có cấu trúc.
+- Dynamic Formula Calculation: Quy trình tính toán thời gian thực dựa trên công thức người dùng tự định nghĩa.
+- AI Insights Generation: Quy trình gửi dữ liệu máy móc cho Gemini và nhận phân tích.
+
+Dưới đây là 3 bản Sequence Diagram chi tiết:
+1. Sequence Diagram: Quy trình Import Excel & Ánh xạ cột (Resource Mapping)
+Đây là tính năng phức tạp nhất, xử lý việc "ép" các cột từ Excel vào 10 Slot của hệ thống.
+
+2. Sequence Diagram: Quy trình Tính toán Công thức Động (Dynamic Formula)
+Sơ đồ này giải thích cách hệ thống dùng Regex để thay thế các biến v1, v2... thành con số thực tế và tính ra kết quả.
+
+3. Sequence Diagram: Quy trình Phân tích AI với Gemini
+Sơ đồ này mô tả luồng dữ liệu từ Nhật ký sản xuất đi qua AI để trả về cảnh báo/khuyến nghị.
+
+Tại sao 3 bản này lại quan trọng cho hồ sơ dự án?
+- Bản 1 (Import): Cho thấy bạn giải quyết được vấn đề Data Integration (Tích hợp dữ liệu từ nguồn bên ngoài).
+- Bản 2 (Formula): Cho thấy bạn làm chủ được Dynamic Logic (Logic động), ứng dụng không bị fix cứng code.
+- Bản 3 (AI): Cho thấy khả năng AI Integration (Tích hợp trí tuệ nhân tạo) vào quy trình công nghiệp thực tế.
+Bạn có thể đưa các sơ đồ này vào tài liệu đặc tả (SRS) hoặc slide thuyết trình để tăng tính thuyết phục về mặt kỹ thuật!

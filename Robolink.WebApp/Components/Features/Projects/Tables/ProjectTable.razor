@@ -1,0 +1,273 @@
+﻿@using Robolink.Application.DTOs
+@using Robolink.WebApp.Components.Features.Projects.Shared
+
+<div class="table-responsive">
+    <table class="table table-hover table-striped table-sm">
+        <thead class="table-dark">
+            <tr>
+                <th style="width: 50px;"></th>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Client</th>
+                <th>Manager</th>
+                <th>Start Date</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Budget</th>
+                <th style="width: 180px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var project in Projects)
+            {
+                <!-- ✅ MAIN PROJECT ROW -->
+                <tr class="project-row">
+                    <!-- ✅ CHEVRON EXPAND/COLLAPSE BUTTON (FIXED) -->
+                    <td class="text-center">
+                        @if (project.SubProjects?.Any() == true)
+                        {
+                            <button class="btn btn-sm btn-outline-primary chevron-btn" 
+                                    @onclick="() => HandleToggleExpand(project.Id)"
+                                    style="padding: 2px 8px; min-width: 40px;">
+                                @if (IsExpanded(project.Id))
+                                {
+                                    <i class="bi bi-chevron-down"></i>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-chevron-right"></i>
+                                }
+                            </button>
+                        }
+                        else
+                        {
+                            <span style="display: inline-block; width: 40px;"></span>
+                        }
+                    </td>
+
+                    <td>
+                        <span class="badge bg-info">@project.ProjectCode</span>
+                    </td>
+
+                    <td>
+                        <strong>@project.Name</strong>
+                    </td>
+
+                    <td>
+                        @project.ClientName
+                    </td>
+
+                    <td>
+                        @project.ManagerName
+                    </td>
+
+                    <!-- ✅ NEW: Start Date Column -->
+                    <td>
+                        <small>@project.StartDate.ToString("yyyy-MM-dd")</small>
+                    </td>
+
+                    <!-- ✅ NEW: Deadline Column -->
+                    <td>
+                        <small>@project.Deadline.ToString("yyyy-MM-dd")</small>
+                    </td>
+
+                    <td>
+                        <ProjectStatusBadge Status="project.Status" />
+                    </td>
+
+                    <td>
+                        <ProjectPriorityBadge Priority="project.Priority" />
+                    </td>
+
+                    <td>
+                        <strong>$@(project.InternalBudget?.ToString("F0") ?? "-")</strong>
+                    </td>
+
+                    <td>
+                        <!-- Action Buttons (FIXED LAMBDA) -->
+                        <div class="btn-group" role="group">
+                            <!-- Edit Button -->
+                            <button class="btn btn-sm btn-primary" 
+                                    @onclick="() => HandleEdit(project.Id)"
+                                    title="Edit Project">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            <!-- Add Sub Button -->
+                            <button class="btn btn-sm btn-warning" 
+                                    @onclick="() => HandleAddSub(project.Id)"
+                                    title="Add sub-project">
+                                <i class="bi bi-plus-circle"></i>
+                            </button>
+
+                            <!-- Delete Button -->
+                            <button class="btn btn-sm btn-danger" 
+                                    @onclick="() => HandleDelete(project.Id)"
+                                    title="Delete Project">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- ✅ SUB-PROJECTS ROWS (Expandable) -->
+                @if (project.SubProjects?.Any() == true && IsExpanded(project.Id))
+                {
+                    @foreach (var subProject in project.SubProjects)
+                    {
+                        <tr class="sub-project-row">
+                            <td></td>
+                            <td>
+                                <span class="badge bg-secondary">@subProject.ProjectCode</span>
+                            </td>
+                            <td>
+                                <i class="bi bi-diagram-3"></i> <em>@subProject.Name</em>
+                            </td>
+                            <td>
+                                @subProject.ClientName
+                            </td>
+                            <td>
+                                @subProject.ManagerName
+                            </td>
+                            <!-- ✅ Sub-Project Start Date -->
+                            <td>
+                                <small>@subProject.StartDate.ToString("yyyy-MM-dd")</small>
+                            </td>
+                            <!-- ✅ Sub-Project Deadline -->
+                            <td>
+                                <small>@subProject.Deadline.ToString("yyyy-MM-dd")</small>
+                            </td>
+                            <td>
+                                <ProjectStatusBadge Status="subProject.Status" />
+                            </td>
+                            <td>
+                                <ProjectPriorityBadge Priority="subProject.Priority" />
+                            </td>
+                            <td>
+                                <strong>$@(subProject.InternalBudget?.ToString("F0") ?? "-")</strong>
+                            </td>
+                            <td>
+                                <!-- Sub-Project Actions (FIXED LAMBDA) -->
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-sm btn-primary" 
+                                            @onclick="() => HandleEdit(subProject.Id)"
+                                            title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" 
+                                            @onclick="() => HandleDelete(subProject.Id)"
+                                            title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .project-row {
+        background-color: #ffffff;
+    }
+
+    .project-row:hover {
+        background-color: #f8f9fa;
+    }
+
+    .sub-project-row {
+        background-color: #f8f9fa;
+        font-style: italic;
+    }
+
+    .sub-project-row:hover {
+        background-color: #e9ecef;
+    }
+
+    .sub-project-row td {
+        border-left: 4px solid #0d6efd;
+        padding-left: 15px !important;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .chevron-btn {
+        font-weight: bold;
+        transition: all 0.2s ease;
+    }
+
+    .chevron-btn:hover {
+        background-color: #0d6efd !important;
+        color: white !important;
+    }
+
+    .chevron-btn i {
+        font-size: 18px;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public List<ProjectDto> Projects { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<Guid> OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnDelete { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnAddSubProject { get; set; }
+
+    [Parameter]
+    public EventCallback OnRefresh { get; set; }
+
+    // ✅ Track which projects are expanded
+    private HashSet<Guid> ExpandedProjects = new();
+
+    /// <summary>Check if a project is expanded</summary>
+    private bool IsExpanded(Guid projectId) => ExpandedProjects.Contains(projectId);
+
+    /// <summary>Handle chevron click - toggle expand/collapse (FIXED)</summary>
+    private void HandleToggleExpand(Guid projectId)
+    {
+        if (ExpandedProjects.Contains(projectId))
+        {
+            ExpandedProjects.Remove(projectId);
+            System.Diagnostics.Debug.WriteLine($"❌ Collapsed: {projectId}");
+        }
+        else
+        {
+            ExpandedProjects.Add(projectId);
+            System.Diagnostics.Debug.WriteLine($"✅ Expanded: {projectId}");
+        }
+
+        StateHasChanged();
+    }
+
+    /// <summary>Handle Edit button click</summary>
+    private void HandleEdit(Guid projectId)
+    {
+        OnEdit.InvokeAsync(projectId);
+    }
+
+    /// <summary>Handle Add Sub button click</summary>
+    private void HandleAddSub(Guid projectId)
+    {
+        OnAddSubProject.InvokeAsync(projectId);
+    }
+
+    /// <summary>Handle Delete button click</summary>
+    private void HandleDelete(Guid projectId)
+    {
+        OnDelete.InvokeAsync(projectId);
+    }
+}

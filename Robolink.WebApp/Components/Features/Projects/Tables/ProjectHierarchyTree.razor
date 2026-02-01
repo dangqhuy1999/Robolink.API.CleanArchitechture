@@ -1,0 +1,114 @@
+﻿@using Robolink.Application.DTOs
+
+<div class="project-tree-container">
+    <div class="tree-header mb-3">
+        <h5><i class="bi bi-diagram-2"></i> Project Hierarchy</h5>
+        <small class="text-muted">Use dropdown button to show/hide sub-projects</small>
+    </div>
+
+    @if (!MainProjects.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No projects found
+        </div>
+    }
+    else
+    {
+        <div class="project-tree">
+            @foreach (var mainProject in MainProjects)
+            {
+                <RenderTreeNode 
+                    Project="mainProject"
+                    IsExpanded="IsExpanded(mainProject.Id)"
+                    ExpandedNodes="ExpandedNodes"
+                    OnToggle="ToggleNode"
+                    OnSelectProject="OnSelectProject"
+                    OnAddSubProject="OnAddSubProject"
+                    OnDelete="OnDelete"
+                    Level="0" />
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .project-tree-container {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 15px;
+        max-height: 800px;
+        overflow-y: auto;
+    }
+
+    .tree-header {
+        border-bottom: 2px solid #dee2e6;
+        padding-bottom: 10px;
+    }
+
+    .tree-header h5 {
+        margin: 0;
+        color: #0d6efd;
+    }
+
+    .project-tree {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    /* Scrollbar styling */
+    .project-tree-container::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .project-tree-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .project-tree-container::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+
+    .project-tree-container::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public List<ProjectDto> AllProjects { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<Guid> OnSelectProject { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnAddSubProject { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnDelete { get; set; }
+
+    private List<ProjectDto> MainProjects = new();
+    private HashSet<Guid> ExpandedNodes = new();
+
+    protected override void OnParametersSet()
+    {
+        MainProjects = AllProjects?.Where(p => !p.ParentProjectId.HasValue).ToList() ?? new();
+    }
+
+    /// <summary>Toggle expand/collapse state for nested children</summary>
+    private async Task ToggleNode(Guid projectId)
+    {
+        if (ExpandedNodes.Contains(projectId))
+            ExpandedNodes.Remove(projectId);
+        else
+            ExpandedNodes.Add(projectId);
+
+        StateHasChanged();
+        await Task.CompletedTask;
+    }
+
+    /// <summary>Check if node is expanded for nested display</summary>
+    private bool IsExpanded(Guid projectId) => ExpandedNodes.Contains(projectId);
+}

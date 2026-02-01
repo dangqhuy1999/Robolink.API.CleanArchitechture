@@ -1,0 +1,11 @@
+﻿@* Clock.razor *@
+<span>@DateTime.Now.ToString("HH:mm:ss")</span>
+
+@code {
+    protected override void OnInitialized()
+    {
+        var timer = new System.Timers.Timer(1000);
+        timer.Elapsed += (s, e) => InvokeAsync(StateHasChanged);
+        timer.Start();
+    }
+}

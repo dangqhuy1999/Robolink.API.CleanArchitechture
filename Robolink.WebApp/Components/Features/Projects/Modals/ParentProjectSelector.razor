@@ -1,0 +1,70 @@
+@using Robolink.Application.DTOs
+@using Robolink.Application.Queries.Projects
+@using MediatR
+
+<div class="mb-3">
+    <label class="form-label">
+        <i class="bi bi-diagram-2"></i> Parent Project (Optional)
+    </label>
+    <div class="input-group">
+        <InputSelect class="form-control" @bind-Value="SelectedParentId">
+            <option value="">-- None (Main Project) --</option>
+            @if (AvailableProjects != null && AvailableProjects.Any())
+            {
+                @foreach (var proj in AvailableProjects.OrderBy(p => p.Name))
+                {
+                    <option value="@proj.Id" disabled="@(proj.Id == ExcludeProjectId)">
+                        @proj.ProjectCode - @proj.Name
+                    </option>
+                }
+            }
+        </InputSelect>
+        <button type="button" class="btn btn-outline-secondary" @onclick="RefreshProjects" 
+                title="Refresh available projects">
+            <i class="bi bi-arrow-clockwise"></i>
+        </button>
+    </div>
+    @if (!string.IsNullOrEmpty(CurrentParentName))
+    {
+        <small class="text-info">
+            <i class="bi bi-info-circle"></i> Current parent: <strong>@CurrentParentName</strong>
+        </small>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid? SelectedParentId { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid?> SelectedParentIdChanged { get; set; }
+
+    [Parameter]
+    public Guid? ExcludeProjectId { get; set; }
+
+    [Parameter]
+    public string? CurrentParentName { get; set; }
+
+    [Inject]
+    private IMediator Mediator { get; set; } = null!;
+
+    private List<ProjectDto> AvailableProjects = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshProjects();
+    }
+
+    private async Task RefreshProjects()
+    {
+        try
+        {
+            var result = await Mediator.Send(new GetAllProjectsQuery());
+            AvailableProjects = result?.ToList() ?? new();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading projects: {ex.Message}");
+        }
+    }
+}

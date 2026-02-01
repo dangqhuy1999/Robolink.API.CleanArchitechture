@@ -1,0 +1,17 @@
+đây là Layer Diagram (Sơ đồ phân lớp) của hệ thống IndusHub Engine v5.0. Sơ đồ này thể hiện cách kiến trúc phần mềm được chia thành các tầng trách nhiệm riêng biệt, từ giao diện người dùng đến xử lý logic và lưu trữ dữ liệu.
+
+Phân tích chi tiết các tầng:
+- Presentation Layer (Tầng Giao diện):
+	+ Đây là nơi người dùng tương tác trực tiếp. Các component như StatCard, Charts, và DataTable chịu trách nhiệm hiển thị dữ liệu một cách trực quan.
+	+ Modals: Chứa các "Wizard" (trình hướng dẫn) phức tạp cho việc cấu hình 10 Slot và ánh xạ Excel.
+- Business Logic Layer (Tầng Logic Nghiệp vụ):
+	+ Formula Evaluator: Bộ máy tính toán "vạn năng" cho phép người dùng tự nhập công thức (ví dụ: v1 * v2).
+	+ Import Mapper: Chịu trách nhiệm lấy dữ liệu thô từ Excel và "ép" nó vào đúng các Slot đã định nghĩa hoặc đẩy vào extraFields.
+	+ State Management: Sử dụng useState và useMemo để đảm bảo ứng dụng chạy mượt mà dù dữ liệu có hàng ngàn dòng.
+- Service Layer (Tầng Dịch vụ):
+	+ Gemini Service: Kết nối với AI của Google để phân tích xu hướng sản xuất.
+	+ XLSX Engine: Xử lý việc đọc các tệp nhị phân từ Excel để chuyển thành mảng JSON mà hệ thống có thể hiểu được.
+- Data Layer (Tầng Dữ liệu):
+	+ LocalStorage: Vì đây là ứng dụng Web thuần túy (không cần Server backend phức tạp), dữ liệu được "cắm" trực tiếp vào bộ nhớ trình duyệt, giúp người dùng không bị mất dữ liệu khi F5.
+	+ types.ts: Đóng vai trò là "Blueprint" (Bản thiết kế) chung cho toàn bộ ứng dụng, đảm bảo mọi tầng đều dùng chung một cấu trúc dữ liệu.
+Sơ đồ này giúp bạn chứng minh rằng code được tổ chức bài bản, dễ bảo trì và dễ dàng mở rộng (ví dụ sau này bạn muốn thay LocalStorage bằng một Database thực thụ như MongoDB/PostgreSQL thì chỉ cần sửa ở tầng Data).

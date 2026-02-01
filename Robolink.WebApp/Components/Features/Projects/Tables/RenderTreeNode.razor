@@ -1,0 +1,191 @@
+﻿@using Robolink.Application.DTOs
+
+<div class="tree-node">
+    <!-- ✅ MAIN PROJECT ROW -->
+    <div class="tree-row">
+        <!-- Chevron for nested hierarchy -->
+        @if (Project.SubProjects?.Any() == true)
+        {
+            <button class="btn btn-sm btn-link tree-toggle" 
+                    @onclick="() => OnToggle.InvokeAsync(Project.Id)"
+                    style="width: 30px; padding: 0; margin-right: 5px;">
+                @if (IsExpanded)
+                {
+                    <i class="bi bi-chevron-down"></i>
+                }
+                else
+                {
+                    <i class="bi bi-chevron-right"></i>
+                }
+            </button>
+        }
+        else
+        {
+            <span style="width: 30px; display: inline-block;"></span>
+        }
+
+        <!-- Project Badge & Name -->
+        <span class="badge bg-info me-2">@Project.ProjectCode</span>
+        <strong style="flex: 1;">@Project.Name</strong>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <!-- Edit Button -->
+            <button class="btn btn-sm btn-primary" 
+                    @onclick="() => OnSelectProject.InvokeAsync(Project.Id)"
+                    title="Edit Project">
+                <i class="bi bi-pencil"></i> Edit
+            </button>
+
+            <!-- Quick Add Sub-Project Button -->
+            <button class="btn btn-sm btn-warning" 
+                    @onclick="() => OnAddSubProject.InvokeAsync(Project.Id)"
+                    title="Quick add sub-project">
+                <i class="bi bi-plus-circle"></i> Add Sub
+            </button>
+
+            <!-- Delete Button -->
+            <button class="btn btn-sm btn-danger" 
+                    @onclick="() => OnDelete.InvokeAsync(Project.Id)"
+                    title="Delete Project">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+
+            <!-- ✅ NEW: Dropdown Toggle Button for Sub-Projects -->
+            @if (Project.SubProjects?.Any() == true)
+            {
+                <button class="btn btn-sm btn-outline-secondary" 
+                        @onclick="() => ShowSubProjects = !ShowSubProjects"
+                        title="Show/Hide sub-projects">
+                    @if (ShowSubProjects)
+                    {
+                        <i class="bi bi-chevron-up">Hide</i>
+                    }
+                    else
+                    {
+                        <i class="bi bi-chevron-down">Show</i>
+                    }
+                </button>
+            }
+        </div>
+    </div>
+
+    <!-- ✅ NEW: Sub-Projects Dropdown (Inline List) -->
+    @if (Project.SubProjects?.Any() == true && ShowSubProjects)
+    {
+        <div class="sub-projects-dropdown">
+            @foreach (var subProject in Project.SubProjects)
+            {
+                <RenderTreeNode 
+                    Project="subProject"
+                    IsExpanded="ExpandedNodes.Contains(subProject.Id)"
+                    ExpandedNodes="ExpandedNodes"
+                    OnToggle="OnToggle"
+                    OnSelectProject="OnSelectProject"
+                    OnAddSubProject="OnAddSubProject"
+                    OnDelete="OnDelete"
+                    Level="Level + 1" />
+            }
+        </div>
+    }
+
+    <!-- ✅ Nested children when chevron is expanded -->
+    @if (Project.SubProjects?.Any() == true && IsExpanded && !ShowSubProjects)
+    {
+        <div class="tree-children">
+            @foreach (var subProject in Project.SubProjects)
+            {
+                <RenderTreeNode 
+                    Project="subProject"
+                    IsExpanded="ExpandedNodes.Contains(subProject.Id)"
+                    ExpandedNodes="ExpandedNodes"
+                    OnToggle="OnToggle"
+                    OnSelectProject="OnSelectProject"
+                    OnAddSubProject="OnAddSubProject"
+                    OnDelete="OnDelete"
+                    Level="Level + 1" />
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .tree-node {
+        margin-bottom: 5px;
+    }
+
+    .tree-row {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        margin-left: @($"{Level * 20}px");
+        gap: 10px;
+    }
+
+    .tree-row:hover {
+        background-color: #f8f9fa;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 5px;
+        margin-left: auto;
+    }
+
+    .tree-toggle {
+        color: #495057;
+        font-weight: bold;
+    }
+
+    .tree-toggle:hover {
+        background-color: #f8f9fa;
+    }
+
+    .sub-projects-dropdown {
+        background-color: #f8f9fa;
+        border-left: 3px solid #0d6efd;
+        padding: 10px;
+        margin: 5px 0 5px 10px;
+        border-radius: 4px;
+    }
+
+    .tree-children {
+        margin-left: 20px;
+        border-left: 2px dashed #dee2e6;
+        padding-left: 10px;
+        margin-top: 5px;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public ProjectDto Project { get; set; } = null!;
+
+    [Parameter]
+    public bool IsExpanded { get; set; } = false;
+
+    [Parameter]
+    public HashSet<Guid> ExpandedNodes { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<Guid> OnToggle { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnSelectProject { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnAddSubProject { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnDelete { get; set; }
+
+    [Parameter]
+    public int Level { get; set; } = 0;
+
+    // ✅ NEW: Track dropdown visibility per node
+    private bool ShowSubProjects = false;
+}

@@ -1,0 +1,21 @@
+Đây là mã Mermaid cho Use Case Diagram chi tiết của hệ thống IndusHub Engine v5.0. Sơ đồ này giúp bạn hình dung rõ các vai trò (Actors) và những chức năng cụ thể mà họ có thể thực hiện trên hệ thống.
+Phân tích chi tiết các vai trò (Actors):
+- Quản trị viên / Admin (Cấp cao nhất):
+	+ Người duy nhất có quyền vào UC2 (Thiết lập 10-Slot & Công thức). Đây là chức năng quan trọng nhất để "tùy biến tương lai" mà không cần Dev.
+	+ Thực hiện các thiết lập nền tảng cho dự án.
+- Trưởng nhóm / Kỹ thuật viên (Lead/Planning):
+	+ Sử dụng UC5 (Advanced Import) để đẩy dữ liệu từ phòng Planning xuống xưởng.
+	+ Thực hiện UC6 (Ánh xạ cột) để đảm bảo cột "Đơn giá" trong Excel khớp đúng với v2 trong hệ thống.
+	+ Theo dõi UC8 (Báo cáo) để kiểm soát tiến độ và chi phí.
+- Người vận hành (Operator):
+	+ Thực hiện UC4 (Nhập liệu số liệu Máy): Điền các thông số thực tế tại hiện trường vào các Slot đã được dán nhãn.
+	+ Sử dụng UC7 để xem các hướng dẫn kỹ thuật hoặc thông tin "thừa" từ Excel mà Admin đã nhập vào.
+- Hệ thống AI & Excel (Supporting Actors):
+	+ Excel: Cung cấp dữ liệu thô cho bộ máy Mapper.
+	+ Gemini AI: Tự động quét dữ liệu từ các bản ghi để đưa ra UC9 (Phân tích & Cảnh báo) nếu phát hiện nhiệt độ máy quá cao hoặc sản lượng bất thường.
+
+Tại sao sơ đồ này quan trọng với bạn?
+Sơ đồ này chứng minh rằng hệ thống của bạn không chỉ là một trang web nhập liệu đơn giản, mà là một Nền tảng (Platform) có khả năng:
+Tách biệt logic cấu hình (Admin) và logic nhập liệu (User).
+Xử lý dữ liệu không cấu trúc (thông qua ExtraFields).
+Tự động hóa tính toán dựa trên công thức người dùng tự định nghĩa.
