@@ -12,8 +12,8 @@ using Robolink.Infrastructure.Data;
 namespace Robolink.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20260201173119_InitialProductionSeed")]
-    partial class InitialProductionSeed
+    [Migration("20260201184303_InitialS")]
+    partial class InitialS
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -54,7 +54,8 @@ namespace Robolink.Infrastructure.Migrations
                         .IsConcurrencyToken()
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("bytea")
+                        .HasDefaultValue(new byte[0]);
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -199,7 +200,8 @@ namespace Robolink.Infrastructure.Migrations
                         .IsConcurrencyToken()
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("bytea")
+                        .HasDefaultValue(new byte[0]);
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
@@ -309,7 +311,8 @@ namespace Robolink.Infrastructure.Migrations
                         .IsConcurrencyToken()
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("bytea")
+                        .HasDefaultValue(new byte[0]);
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -372,6 +375,13 @@ namespace Robolink.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea")
+                        .HasDefaultValue(new byte[0]);
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -394,7 +404,8 @@ namespace Robolink.Infrastructure.Migrations
                             Description = "Project initialization and setup",
                             IsActive = true,
                             IsDeleted = false,
-                            Name = "Initialize"
+                            Name = "Initialize",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
@@ -404,7 +415,8 @@ namespace Robolink.Infrastructure.Migrations
                             Description = "Design and engineering phase",
                             IsActive = true,
                             IsDeleted = false,
-                            Name = "Engineering"
+                            Name = "Engineering",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
@@ -414,7 +426,8 @@ namespace Robolink.Infrastructure.Migrations
                             Description = "Manufacturing and fabrication",
                             IsActive = true,
                             IsDeleted = false,
-                            Name = "Fabrication"
+                            Name = "Fabrication",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
@@ -424,7 +437,8 @@ namespace Robolink.Infrastructure.Migrations
                             Description = "CNC cutting operations",
                             IsActive = true,
                             IsDeleted = false,
-                            Name = "CNC Cutting"
+                            Name = "CNC Cutting",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
@@ -434,7 +448,8 @@ namespace Robolink.Infrastructure.Migrations
                             Description = "Product assembly phase",
                             IsActive = true,
                             IsDeleted = false,
-                            Name = "Assembly"
+                            Name = "Assembly",
+                            RowVersion = new byte[0]
                         });
                 });
 
@@ -469,7 +484,8 @@ namespace Robolink.Infrastructure.Migrations
                         .IsConcurrencyToken()
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("bytea")
+                        .HasDefaultValue(new byte[0]);
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");

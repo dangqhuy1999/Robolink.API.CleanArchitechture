@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Robolink.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialProductionSeed : Migration
+    public partial class InitialS : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -26,7 +26,7 @@ namespace Robolink.Infrastructure.Migrations
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -49,7 +49,7 @@ namespace Robolink.Infrastructure.Migrations
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -69,7 +69,8 @@ namespace Robolink.Infrastructure.Migrations
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -100,7 +101,7 @@ namespace Robolink.Infrastructure.Migrations
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -241,7 +242,7 @@ namespace Robolink.Infrastructure.Migrations
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {

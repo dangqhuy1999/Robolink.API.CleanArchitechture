@@ -9,7 +9,7 @@ namespace Robolink.Core.Entities
     /// This is reference data that never changes — initialized once.
     /// Example: Initialize, Engineering, Fabrication, CNC Cutting, Assembly
     /// </summary>
-    public class SystemPhase : EntityBase
+    public class SystemPhase : EntityRootBase
     {
         /// <summary>Phase name (e.g., "Engineering", "Fabrication")</summary>
         public required string Name { get; set; }
