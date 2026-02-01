@@ -1,3 +1,5 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Robolink.Infrastructure.Data;
 using Robolink.WebApp;
 using Robolink.WebApp.Components;
 
@@ -10,6 +12,28 @@ builder.Services.AddRazorComponents()
 builder.Services.AddAppDI(builder.Configuration);
 
 var app = builder.Build();
+
+// --- ĐOẠN CODE TỰ ĐỘNG CHẠY MIGRATION ---
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDBContext>();
+
+        // Kiểm tra nếu là Postgres (Npgsql) thì mới chạy Migrate
+        if (context.Database.IsNpgsql())
+        {
+            context.Database.Migrate();
+            Console.WriteLine("-----> Auto Migration: SUCCESS!");
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

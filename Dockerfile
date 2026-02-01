@@ -1,5 +1,5 @@
 # Sử dụng SDK để build
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy tất cả file .csproj và restore (để tận dụng cache)
@@ -16,7 +16,7 @@ WORKDIR "/src/Robolink.WebApp"
 RUN dotnet publish "Robolink.WebApp.csproj" -c Release -o /app/publish
 
 # Runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "Robolink.WebApp.dll"]

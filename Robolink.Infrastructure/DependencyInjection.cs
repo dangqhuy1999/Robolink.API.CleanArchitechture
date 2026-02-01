@@ -31,6 +31,7 @@ namespace Robolink.Application
             services.AddScoped<IProjectSystemPhaseConfigRepository, ProjectSystemPhaseConfigRepository>();
             services.AddScoped<IWorkLogRepository, WorkLogRepository>();
 
+
             return services;
         }
     }
