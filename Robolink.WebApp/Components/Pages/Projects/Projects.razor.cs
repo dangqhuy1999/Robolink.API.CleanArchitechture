@@ -78,29 +78,38 @@ public partial class Projects
     // ✅ QUICK ADD PROJECT
     private async Task IncrementCount()
     {
-        var result = await Mediator.Send(new CreateProjectCommand()
+        try
         {
-            CreatedBy = "Huy Dang",
-            Request = new CreateProjectRequest()
+            var result = await Mediator.Send(new CreateProjectCommand()
             {
-                ProjectCode = "APTX-" + Guid.NewGuid().ToString().Substring(0, 5).ToUpper(),
-                Name = $"Project {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
-                Description = "Auto created project",
-                ClientId = Guid.Parse("188cd869-567e-4cd2-870a-48bdb04af5cd"),
-                ManagerId = Guid.Parse("1b8c3dbf-63bb-4207-b108-9b28706185a7"),
-                StartDate = DateTime.UtcNow,
-                Deadline = DateTime.Today.AddDays(30),
-                Priority = 1,
-                InternalBudget = 1000,
-                CustomerBudget = 2000
-            }
-        });
+                CreatedBy = "Huy Dang",
+                Request = new CreateProjectRequest()
+                {
+                    ProjectCode = "APTX-" + Guid.NewGuid().ToString().Substring(0, 5).ToUpper(),
+                    Name = $"Project {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
+                    Description = "Auto created project",
+                    ClientId = Guid.Parse("188cd869-567e-4cd2-870a-48bdb04af5cd"),
+                    ManagerId = Guid.Parse("1b8c3dbf-63bb-4207-b108-9b28706185a7"),
+                    StartDate = DateTime.UtcNow,
+                    Deadline = DateTime.Today.AddDays(30),
+                    Priority = 1,
+                    InternalBudget = 1000,
+                    CustomerBudget = 2000
+                }
+            });
 
-        if (result != null)
-        {
-            currentPage = 1;
-            await LoadProjects();
+            if (result != null)
+            {
+                currentPage = 1;
+                await LoadProjects();
+            }
         }
+
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error create new project: {ex.Message}"); 
+        }
+        
     }
 
     // ✅ QUICK ADD SUB-PROJECT
