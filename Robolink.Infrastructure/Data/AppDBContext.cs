@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Robolink.Core.Entities;
+using Robolink.Core.Enums;
 
 namespace Robolink.Infrastructure.Data
 {
@@ -17,6 +18,38 @@ namespace Robolink.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            //sample data
+            // Seed Client - Khớp với thuộc tính Name là 'required'
+            var clientId = Guid.Parse("188cd869-567e-4cd2-870a-48bdb04af5cd");
+            modelBuilder.Entity<Client>().HasData(new Client
+            {
+                Id = clientId,
+                Name = "Samsung Vina", // Bắt buộc phải có
+                Industry = "Electronics",
+                ContactEmail = "contact@samsung.com",
+                IsDeleted = false,
+                CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                // ✅ THÊM DÒNG NÀY ĐỂ HẾT LỖI GẠCH ĐỎ
+                RowVersion = Array.Empty<byte>()
+            });
+
+            // Seed Staff - Đảm bảo các thuộc tính Login và Enum
+            var staffId = Guid.Parse("1b8c3dbf-63bb-4207-b108-9b28706185a7");
+            modelBuilder.Entity<Staff>().HasData(new Staff
+            {
+                Id = staffId,
+                FullName = "Huy Dang",
+                Username = "huydang.admin",
+                PasswordHash = "AQAAAAEAACcQAAAAE...", // Một chuỗi hash giả lập
+                Department = ProjectDepartment.Production, // Khớp với Class Staff
+                Role = ProjectRole.Manager, // Để khớp với logic quản lý Project
+                Status = StaffStatus.Active,
+                IsDeleted = false,
+                CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                // ✅ THÊM DÒNG NÀY ĐỂ HẾT LỖI GẠCH ĐỎ
+                RowVersion = Array.Empty<byte>()
+            });
+
 
             // Chỉ áp dụng Converter nếu đang dùng Postgres
             if (Database.IsNpgsql())

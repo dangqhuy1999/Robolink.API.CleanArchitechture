@@ -12,8 +12,8 @@ using Robolink.Infrastructure.Data;
 namespace Robolink.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20260201145414_initnewUTC")]
-    partial class initnewUTC
+    [Migration("20260201171316_InitialCreatePublish")]
+    partial class InitialCreatePublish
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -65,6 +65,18 @@ namespace Robolink.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Clients");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("188cd869-567e-4cd2-870a-48bdb04af5cd"),
+                            ContactEmail = "contact@samsung.com",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Industry = "Electronics",
+                            IsDeleted = false,
+                            Name = "Samsung Vina",
+                            RowVersion = new byte[0]
+                        });
                 });
 
             modelBuilder.Entity("Robolink.Core.Entities.PhaseTask", b =>
@@ -314,6 +326,21 @@ namespace Robolink.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Staffs");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("1b8c3dbf-63bb-4207-b108-9b28706185a7"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Department = 1,
+                            FullName = "Huy Dang",
+                            IsDeleted = false,
+                            PasswordHash = "AQAAAAEAACcQAAAAE...",
+                            Role = 1,
+                            RowVersion = new byte[0],
+                            Status = 0,
+                            Username = "huydang.admin"
+                        });
                 });
 
             modelBuilder.Entity("Robolink.Core.Entities.SystemPhase", b =>

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Robolink.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class initnewUTC : Migration
+    public partial class InitialCreatePublish : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -265,6 +265,16 @@ namespace Robolink.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.InsertData(
+                table: "Clients",
+                columns: new[] { "Id", "ContactEmail", "CreatedAt", "CreatedBy", "Industry", "IsDeleted", "Name", "UpdatedAt", "UpdatedBy" },
+                values: new object[] { new Guid("188cd869-567e-4cd2-870a-48bdb04af5cd"), "contact@samsung.com", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, "Electronics", false, "Samsung Vina", null, null });
+
+            migrationBuilder.InsertData(
+                table: "Staffs",
+                columns: new[] { "Id", "CreatedAt", "CreatedBy", "Department", "FullName", "IsDeleted", "PasswordHash", "Role", "Status", "UpdatedAt", "UpdatedBy", "Username" },
+                values: new object[] { new Guid("1b8c3dbf-63bb-4207-b108-9b28706185a7"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, 1, "Huy Dang", false, "AQAAAAEAACcQAAAAE...", 1, 0, null, null, "huydang.admin" });
 
             migrationBuilder.InsertData(
                 table: "SystemPhases",
