@@ -90,5 +90,13 @@ namespace Robolink.Infrastructure.Repositories
                 .Include(pc => pc.SystemPhase) // ✅ Quan trọng nhất là dòng này
                 .FirstOrDefaultAsync(pc => pc.Id == id && !pc.IsDeleted);
         }
+
+        // Thêm method này
+        public async Task<IEnumerable<ProjectSystemPhaseConfig>> GetBySystemPhaseIdAsync(Guid systemPhaseId)
+        {
+            return await _dbSet
+                .Where(pc => pc.SystemPhaseId == systemPhaseId && !pc.IsDeleted)
+                .ToListAsync();
+        }
     }
 }

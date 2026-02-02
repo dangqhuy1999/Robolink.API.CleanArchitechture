@@ -1,0 +1,16 @@
+graph TD
+    A["Click Project in List"] -->|Navigate| B["ProjectManagement Page"]
+    B -->|Load Project Details| C["GetProjectByIdQuery"]
+    B -->|Load Phases| D["GetProjectPhasesQuery"]
+    C --> E["Project DTO<br/>with details"]
+    D --> F["List of ProjectPhaseConfigDto<br/>with SystemPhase info"]
+    E --> G["Display Project Overview"]
+    F --> H["Render 5 Phase Buttons<br/>Level 2 UI"]
+    I["Click Add New Phase"] --> J["Show System Phases Modal"]
+    J -->|Select Phase| K["AssignPhaseToProjectCommand"]
+    K --> L["Create ProjectSystemPhaseConfig"]
+    L --> M["Refresh Phase List"]
+    M --> H
+    N["Click Add Task"] -->|In Phase| O["CreatePhaseTaskCommand"]
+    O --> P["Create PhaseTask"]
+    P --> M
