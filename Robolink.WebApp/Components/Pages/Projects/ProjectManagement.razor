@@ -87,30 +87,30 @@
             @if (IsLoading)
             {
                 <div class="text-center py-5">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-3 text-muted">Loading phases, please wait...</p>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(PhasesErrorMessage))
+            {
+                @if (ProjectPhases == null || ProjectPhases.Count == 0)
+                {
+                    <div class="alert alert-danger shadow-sm">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Error:</strong> @PhasesErrorMessage
+                        <button class="btn btn-sm btn-outline-danger ms-3" @onclick="RefreshPhases">Try Again</button>
                     </div>
-                    <p class="mt-3">Loading phases...</p>
-                </div>
+                }
             }
-            <!-- ERROR STATE (Only show if PhasesErrorMessage is not null AND phases are empty) -->
-            else if (!string.IsNullOrEmpty(PhasesErrorMessage) && (ProjectPhases == null || ProjectPhases.Count == 0))
+
+            @if (!IsLoading && (ProjectPhases == null || ProjectPhases.Count == 0) && string.IsNullOrEmpty(PhasesErrorMessage))
             {
-                <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <strong>Error Loading Phases:</strong> @PhasesErrorMessage
-                </div>
-            }
-            <!-- NO PHASES STATE -->
-            else if (ProjectPhases == null || ProjectPhases.Count == 0)
-            {
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i>
+                <div class="alert alert-info shadow-sm">
+                    <i class="bi bi-info-circle-fill me-2"></i>
                     <strong>No phases assigned yet.</strong> Click "Add New Phase" to configure the first phase.
                 </div>
             }
-            <!-- PHASES GRID (LEVEL 2 - 5 BIG BUTTONS) -->
-            @if (ProjectPhases.Count > 0)
+            else if (!IsLoading && ProjectPhases?.Count > 0)
             {
                 <div class="row g-4">
                     @foreach (var phase in ProjectPhases)
@@ -289,34 +289,29 @@
         {
             try
             {
-                PhasesErrorMessage = null;
-            
-                System.Diagnostics.Debug.WriteLine($"🔍 [ProjectManagement] Loading phases for project {ProjectId}");
-            
+                IsLoading = true; // Bắt đầu tải
+                PhasesErrorMessage = null; // Xóa lỗi cũ
+                StateHasChanged(); // Thông báo UI hiển thị Spinner
+
                 var phasesQuery = new GetProjectPhasesQuery(ProjectId);
                 var result = await Mediator.Send(phasesQuery);
-            
+
+                // Cập nhật danh sách
                 ProjectPhases = result?.ToList() ?? new List<ProjectPhaseConfigDto>();
-            
-                System.Diagnostics.Debug.WriteLine($"✅ [ProjectManagement] Result count: {ProjectPhases.Count}");
-                System.Diagnostics.Debug.WriteLine($"   Result is null: {result == null}");
-                System.Diagnostics.Debug.WriteLine($"   Result type: {result?.GetType().Name}");
-            
-                if (result != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"   Result enumerate count: {result.Count()}");
-                }
-            
-                foreach (var phase in ProjectPhases)
-                {
-                    System.Diagnostics.Debug.WriteLine($"   Phase {phase.Sequence}: {phase.SystemPhase?.Name ?? "NULL"}, TaskCount: {phase.TaskCount}");
-                }
+
+                // Debug Log của bạn giữ nguyên
+                System.Diagnostics.Debug.WriteLine($"✅ Loaded {ProjectPhases.Count} phases");
             }
             catch (Exception ex)
             {
-                PhasesErrorMessage = ex.Message;
-                System.Diagnostics.Debug.WriteLine($"❌ Error loading phases: {ex}");
+                PhasesErrorMessage = ex.Message; // Ghi nhận lỗi nếu có
                 ProjectPhases = new List<ProjectPhaseConfigDto>();
+                System.Diagnostics.Debug.WriteLine($"❌ Error: {ex}");
+            }
+            finally
+            {
+                IsLoading = false; // Tắt trạng thái tải
+                StateHasChanged(); // Ép UI cập nhật lại lần cuối
             }
         }
 
