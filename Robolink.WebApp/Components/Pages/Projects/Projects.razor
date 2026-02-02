@@ -37,12 +37,13 @@
     }
     else
     {
-        <!-- ✅ SINGLE TABLE VIEW -->
+        <!-- ✅ SINGLE TABLE VIEW WITH EVENT HANDLERS -->
         <ProjectTable 
             Projects="projects" 
             OnEdit="ShowEditModal" 
             OnDelete="DeleteProject"
             OnAddSubProject="ShowQuickAddSubModal"
+            OnViewProject="NavigateToProjectManagement"
             OnRefresh="LoadProjects" />
 
         <!-- PAGINATION -->

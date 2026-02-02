@@ -1,6 +1,9 @@
 ﻿@page "/projects/{ProjectId:guid}"
 @using Robolink.Application.Queries.Projects
 @using Robolink.Application.Queries.ProjectPhases
+@using Robolink.Application.Queries.SystemPhases
+@using Robolink.Application.Commands.ProjectPhases
+@using Robolink.Application.Commands.PhaseTasks
 @using Robolink.Application.DTOs
 @using MediatR
 @inject IMediator Mediator
@@ -9,17 +12,26 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <a href="/projects" class="btn btn-outline-secondary btn-sm">← Back to Projects</a>
-            <h1 class="mt-3">@CurrentProject?.Name</h1>
-            <p class="text-muted">@CurrentProject?.Description</p>
+            <a href="/projects" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Back to Projects
+            </a>
+            @if (CurrentProject != null)
+            {
+                <h1 class="mt-3">@CurrentProject.Name</h1>
+                <p class="text-muted">@CurrentProject.Description</p>
+            }
         </div>
-        <div>
-            <button class="btn btn-primary" @onclick="ShowAddPhaseModal">
-                + Add New Phase
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" @onclick="ShowAddPhaseModal" disabled="@(showAddPhaseModal)">
+                <i class="bi bi-plus-circle"></i> Add New Phase
+            </button>
+            <button class="btn btn-secondary" @onclick="RefreshPhases">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
             </button>
         </div>
     </div>
 
+    <!-- PROJECT OVERVIEW CARDS -->
     @if (CurrentProject != null)
     {
         <div class="row mb-4">
@@ -43,7 +55,7 @@
                 <div class="card">
                     <div class="card-body">
                         <small class="text-muted">Budget</small>
-                        <h6>$@CurrentProject.CustomerBudget?.ToString("N0")</h6>
+                        <h6>$@(CurrentProject.CustomerBudget?.ToString("N0") ?? "N/A")</h6>
                     </div>
                 </div>
             </div>
@@ -60,62 +72,99 @@
 
     <hr />
 
-    <h3 class="mb-4">Project Phases</h3>
+    <h3 class="mb-4">
+        <i class="bi bi-diagram-3"></i> Project Phases
+        <span class="badge bg-secondary">@(ProjectPhases?.Count ?? 0)</span>
+    </h3>
 
-    @if (ProjectPhases == null)
+    <!-- LOADING STATE -->
+    @if (IsLoading)
     {
         <div class="text-center py-5">
             <div class="spinner-border" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
+            <p class="mt-3">Loading phases...</p>
         </div>
     }
-    else if (ProjectPhases.Count == 0)
+    <!-- NO PHASES STATE -->
+    else if (ProjectPhases == null || ProjectPhases.Count == 0)
     {
         <div class="alert alert-info">
-            <strong>No phases assigned yet.</strong> Click "Add New Phase" to get started.
+            <i class="bi bi-info-circle"></i>
+            <strong>No phases assigned yet.</strong> Click "Add New Phase" to configure the first phase.
         </div>
     }
+    <!-- PHASES GRID (LEVEL 2 - 5 BIG BUTTONS) -->
     else
     {
         <div class="row g-4">
             @foreach (var phase in ProjectPhases)
             {
                 <div class="col-lg-4 col-md-6">
-                    <div class="card phase-card h-100 cursor-pointer" @onclick="() => ExpandPhase(phase.Id)">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="card phase-card h-100" @onclick="() => SelectPhase(phase.Id)">
+                        <div class="card-header bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h5 class="card-title mb-1">
-                                        <span class="badge bg-primary me-2">@phase.Sequence</span>
-                                        @(phase.CustomPhaseName ?? phase.SystemPhase.Name)
-                                    </h5>
-                                    <p class="text-muted small">@phase.SystemPhase.Description</p>
+                                    <span class="badge bg-primary me-2" style="font-size: 14px;">@phase.Sequence</span>
+                                    <strong>@(phase.CustomPhaseName ?? phase.SystemPhase.Name)</strong>
                                 </div>
+                                @if (phase.IsEnabled)
+                                {
+                                    <span class="badge bg-success">✅ Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">⭕ Inactive</span>
+                                }
                             </div>
+                        </div>
 
-                            <div class="phase-stats">
-                                <div class="stat-item">
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">@phase.SystemPhase.Description</p>
+
+                            <div class="phase-stats mb-4">
+                                <div class="stat-item mb-2">
                                     <span class="stat-label">Tasks:</span>
                                     <span class="stat-value badge bg-info">@phase.TaskCount</span>
                                 </div>
-                                <div class="stat-item mt-2">
-                                    <span class="stat-label">Status:</span>
-                                    @if (phase.IsEnabled)
-                                    {
-                                        <span class="badge bg-success">✅ Active</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">⭕ Inactive</span>
-                                    }
+                                <div class="stat-item">
+                                    <span class="stat-label">Sequence:</span>
+                                    <span class="stat-value">@phase.Sequence</span>
                                 </div>
                             </div>
 
-                            <button class="btn btn-sm btn-outline-primary mt-3 w-100" 
+                            @if (phase.Tasks != null && phase.Tasks.Count > 0)
+                            {
+                                <div class="tasks-preview mb-3">
+                                    <small class="text-muted d-block mb-2"><strong>Recent Tasks:</strong></small>
+                                    <ul class="list-unstyled small">
+                                        @foreach (var task in phase.Tasks.Take(3))
+                                        {
+                                            <li class="mb-1">
+                                                <i class="bi bi-check-circle-fill text-success"></i>
+                                                @task.Description
+                                            </li>
+                                        }
+                                    </ul>
+                                    @if (phase.Tasks.Count > 3)
+                                    {
+                                        <small class="text-muted">+@(phase.Tasks.Count - 3) more tasks...</small>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <div class="card-footer bg-light">
+                            <button class="btn btn-sm btn-outline-primary w-100 mb-2" 
                                     @onclick:stopPropagation="true"
                                     @onclick="() => ShowCreateTaskModal(phase.Id)">
-                                + Add Task
+                                <i class="bi bi-plus-circle"></i> Add Task
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary w-100" 
+                                    @onclick:stopPropagation="true"
+                                    @onclick="() => EditPhase(phase.Id)">
+                                <i class="bi bi-pencil"></i> Edit Phase
                             </button>
                         </div>
                     </div>
@@ -125,12 +174,55 @@
     }
 </div>
 
+<!-- MODALS -->
+<!-- Add Phase Modal -->
+<div class="modal @(showAddPhaseModal ? "show d-block" : "")" style="background-color: @(showAddPhaseModal ? "rgba(0,0,0,0.5)" : "transparent")">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Phase</h5>
+                <button type="button" class="btn-close" @onclick="() => showAddPhaseModal = false"></button>
+            </div>
+            <div class="modal-body">
+                @if (AvailablePhases == null)
+                {
+                    <div class="text-center">
+                        <div class="spinner-border" role="status"></div>
+                    </div>
+                }
+                else if (AvailablePhases.Count == 0)
+                {
+                    <div class="alert alert-warning">No available phases</div>
+                }
+                else
+                {
+                    <div class="list-group">
+                        @foreach (var phase in AvailablePhases)
+                        {
+                            <button type="button" class="list-group-item list-group-item-action" 
+                                    @onclick="() => AssignPhase(phase.Id)">
+                                <strong>@phase.Name</strong>
+                                <br />
+                                <small class="text-muted">@phase.Description</small>
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
 @code {
     [Parameter]
     public Guid ProjectId { get; set; }
 
     private ProjectDto? CurrentProject;
     private List<ProjectPhaseConfigDto> ProjectPhases = new();
+    private List<SystemPhaseDto> AvailablePhases = new();
+    private bool IsLoading = true;
+    private bool showAddPhaseModal = false;
+    private Guid selectedPhaseId = Guid.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -141,31 +233,92 @@
             CurrentProject = await Mediator.Send(projectQuery);
 
             // Load phases for this project
-            var phasesQuery = new GetProjectPhasesQuery(ProjectId);
-            ProjectPhases = (await Mediator.Send(phasesQuery)).ToList();
+            await LoadProjectPhases();
+
+            IsLoading = false;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading project: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"❌ Error loading project: {ex.Message}");
+            IsLoading = false;
         }
     }
 
-    private void ShowAddPhaseModal()
+    private async Task LoadProjectPhases()
     {
-        // TODO: Trigger modal to select from available SystemPhases
-        Console.WriteLine("Show Add Phase Modal");
+        try
+        {
+            var phasesQuery = new GetProjectPhasesQuery(ProjectId);
+            ProjectPhases = (await Mediator.Send(phasesQuery))?.ToList() ?? new List<ProjectPhaseConfigDto>();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"❌ Error loading phases: {ex.Message}");
+        }
     }
 
-    private void ShowCreateTaskModal(Guid phaseConfigId)
+    private async Task LoadAvailablePhases()
     {
-        // TODO: Trigger modal to create new task
-        Console.WriteLine($"Show Create Task Modal for phase: {phaseConfigId}");
+        try
+        {
+            var query = new GetAllSystemPhasesQuery();
+            var allPhases = (await Mediator.Send(query))?.ToList() ?? new List<SystemPhaseDto>();
+            
+            // Filter out already assigned phases
+            var assignedPhaseIds = ProjectPhases.Select(p => p.SystemPhaseId).ToHashSet();
+            AvailablePhases = allPhases.Where(p => !assignedPhaseIds.Contains(p.Id)).ToList();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"❌ Error loading available phases: {ex.Message}");
+        }
     }
 
-    private void ExpandPhase(Guid phaseConfigId)
+    private async Task ShowAddPhaseModal()
     {
-        // TODO: Expand to show tasks or navigate to phase detail view
-        Console.WriteLine($"Expand phase: {phaseConfigId}");
+        await LoadAvailablePhases();
+        showAddPhaseModal = true;
+    }
+
+    private async Task AssignPhase(Guid systemPhaseId)
+    {
+        try
+        {
+            var command = new AssignPhaseToProjectCommand(ProjectId, systemPhaseId);
+            await Mediator.Send(command);
+            
+            showAddPhaseModal = false;
+            await LoadProjectPhases();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"❌ Error assigning phase: {ex.Message}");
+        }
+    }
+
+    private void SelectPhase(Guid phaseId)
+    {
+        selectedPhaseId = phaseId;
+        // Can add additional logic here (e.g., navigate to phase detail page)
+    }
+
+    private void EditPhase(Guid phaseId)
+    {
+        // TODO: Implement phase editing
+        System.Diagnostics.Debug.WriteLine($"Edit phase: {phaseId}");
+    }
+
+    private async Task ShowCreateTaskModal(Guid phaseConfigId)
+    {
+        // TODO: Implement task creation modal
+        System.Diagnostics.Debug.WriteLine($"Create task for phase: {phaseConfigId}");
+    }
+
+    private async Task RefreshPhases()
+    {
+        IsLoading = true;
+        await LoadProjectPhases();
+        IsLoading = false;
     }
 }
 
@@ -173,18 +326,22 @@
     .phase-card {
         transition: all 0.3s ease;
         border: 2px solid #e0e0e0;
+        cursor: pointer;
     }
 
     .phase-card:hover {
         border-color: #0d6efd;
-        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
-        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(13, 110, 253, 0.2);
+        transform: translateY(-4px);
     }
 
     .phase-stats {
         display: flex;
         flex-direction: column;
         gap: 8px;
+        padding: 12px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
     }
 
     .stat-item {
@@ -196,6 +353,17 @@
 
     .stat-label {
         color: #666;
-        font-weight: 500;
+        font-weight: 600;
+    }
+
+    .tasks-preview {
+        padding: 12px;
+        background-color: #f0f7ff;
+        border-radius: 6px;
+        border-left: 4px solid #0d6efd;
+    }
+
+    .modal.show {
+        display: block !important;
     }
 </style>

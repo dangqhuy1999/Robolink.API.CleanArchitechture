@@ -11,6 +11,7 @@ public partial class Projects
 {
     [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!; // ✅ NEW
 
     // ✅ VARIABLES
     private List<ProjectDto>? projects;
@@ -73,6 +74,12 @@ public partial class Projects
             currentPage = page;
             await LoadProjects();
         }
+    }
+
+    // ✅ NEW: NAVIGATE TO PROJECT MANAGEMENT (LEVEL 2)
+    private void NavigateToProjectManagement(Guid projectId)
+    {
+        NavigationManager.NavigateTo($"/projects/{projectId}");
     }
 
     // ✅ QUICK ADD PROJECT
@@ -149,8 +156,7 @@ public partial class Projects
     // ✅ DELETE PROJECT
     private async Task DeleteProject(Guid projectId)
     {
-        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
-        if (confirmed)
+        if (await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this project?"))
         {
             try
             {
@@ -159,7 +165,7 @@ public partial class Projects
             }
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+                await JSRuntime.InvokeVoidAsync("alert", $"Error deleting project: {ex.Message}");
             }
         }
     }

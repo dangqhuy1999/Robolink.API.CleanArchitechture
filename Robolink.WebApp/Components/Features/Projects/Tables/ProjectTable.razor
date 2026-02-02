@@ -21,10 +21,10 @@
         <tbody>
             @foreach (var project in Projects)
             {
-                <!-- ✅ MAIN PROJECT ROW -->
-                <tr class="project-row">
+                <!-- ✅ MAIN PROJECT ROW - CLICKABLE FOR NAVIGATION -->
+                <tr class="project-row cursor-pointer" @onclick="() => HandleViewProject(project.Id)" style="cursor: pointer;">
                     <!-- ✅ CHEVRON EXPAND/COLLAPSE BUTTON (FIXED) -->
-                    <td class="text-center">
+                    <td class="text-center" @onclick:stopPropagation="true">
                         @if (project.SubProjects?.Any() == true)
                         {
                             <button class="btn btn-sm btn-outline-primary chevron-btn" 
@@ -84,9 +84,16 @@
                         <strong>$@(project.InternalBudget?.ToString("F0") ?? "-")</strong>
                     </td>
 
-                    <td>
+                    <td @onclick:stopPropagation="true">
                         <!-- Action Buttons (FIXED LAMBDA) -->
                         <div class="btn-group" role="group">
+                            <!-- View/Manage Button -->
+                            <button class="btn btn-sm btn-info" 
+                                    @onclick="() => HandleViewProject(project.Id)"
+                                    title="Manage Project Phases">
+                                <i class="bi bi-diagram-3"></i>
+                            </button>
+
                             <!-- Edit Button -->
                             <button class="btn btn-sm btn-primary" 
                                     @onclick="() => HandleEdit(project.Id)"
@@ -116,48 +123,36 @@
                 {
                     @foreach (var subProject in project.SubProjects)
                     {
-                        <tr class="sub-project-row">
+                        <tr class="sub-project-row cursor-pointer" @onclick="() => HandleViewProject(subProject.Id)" style="cursor: pointer;">
                             <td></td>
                             <td>
                                 <span class="badge bg-secondary">@subProject.ProjectCode</span>
                             </td>
                             <td>
-                                <i class="bi bi-diagram-3"></i> <em>@subProject.Name</em>
+                                <strong style="margin-left: 20px;">↳ @subProject.Name</strong>
                             </td>
-                            <td>
-                                @subProject.ClientName
-                            </td>
-                            <td>
-                                @subProject.ManagerName
-                            </td>
-                            <!-- ✅ Sub-Project Start Date -->
-                            <td>
-                                <small>@subProject.StartDate.ToString("yyyy-MM-dd")</small>
-                            </td>
-                            <!-- ✅ Sub-Project Deadline -->
-                            <td>
-                                <small>@subProject.Deadline.ToString("yyyy-MM-dd")</small>
-                            </td>
-                            <td>
-                                <ProjectStatusBadge Status="subProject.Status" />
-                            </td>
-                            <td>
-                                <ProjectPriorityBadge Priority="subProject.Priority" />
-                            </td>
-                            <td>
-                                <strong>$@(subProject.InternalBudget?.ToString("F0") ?? "-")</strong>
-                            </td>
-                            <td>
-                                <!-- Sub-Project Actions (FIXED LAMBDA) -->
+                            <td>@subProject.ClientName</td>
+                            <td>@subProject.ManagerName</td>
+                            <td><small>@subProject.StartDate.ToString("yyyy-MM-dd")</small></td>
+                            <td><small>@subProject.Deadline.ToString("yyyy-MM-dd")</small></td>
+                            <td><ProjectStatusBadge Status="subProject.Status" /></td>
+                            <td><ProjectPriorityBadge Priority="subProject.Priority" /></td>
+                            <td><strong>$@(subProject.InternalBudget?.ToString("F0") ?? "-")</strong></td>
+                            <td @onclick:stopPropagation="true">
                                 <div class="btn-group" role="group">
+                                    <button class="btn btn-sm btn-info" 
+                                            @onclick="() => HandleViewProject(subProject.Id)"
+                                            title="Manage Project Phases">
+                                        <i class="bi bi-diagram-3"></i>
+                                    </button>
                                     <button class="btn btn-sm btn-primary" 
                                             @onclick="() => HandleEdit(subProject.Id)"
-                                            title="Edit">
+                                            title="Edit Project">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <button class="btn btn-sm btn-danger" 
                                             @onclick="() => HandleDelete(subProject.Id)"
-                                            title="Delete">
+                                            title="Delete Project">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
@@ -169,50 +164,6 @@
         </tbody>
     </table>
 </div>
-
-<style>
-    .project-row {
-        background-color: #ffffff;
-    }
-
-    .project-row:hover {
-        background-color: #f8f9fa;
-    }
-
-    .sub-project-row {
-        background-color: #f8f9fa;
-        font-style: italic;
-    }
-
-    .sub-project-row:hover {
-        background-color: #e9ecef;
-    }
-
-    .sub-project-row td {
-        border-left: 4px solid #0d6efd;
-        padding-left: 15px !important;
-    }
-
-    .btn-group {
-        display: flex;
-        gap: 5px;
-        flex-wrap: wrap;
-    }
-
-    .chevron-btn {
-        font-weight: bold;
-        transition: all 0.2s ease;
-    }
-
-    .chevron-btn:hover {
-        background-color: #0d6efd !important;
-        color: white !important;
-    }
-
-    .chevron-btn i {
-        font-size: 18px;
-    }
-</style>
 
 @code {
     [Parameter]
@@ -228,46 +179,60 @@
     public EventCallback<Guid> OnAddSubProject { get; set; }
 
     [Parameter]
+    public EventCallback<Guid> OnViewProject { get; set; } // ✅ NEW: Event for viewing project
+
+    [Parameter]
     public EventCallback OnRefresh { get; set; }
 
-    // ✅ Track which projects are expanded
-    private HashSet<Guid> ExpandedProjects = new();
+    private HashSet<Guid> expandedProjects = new();
 
-    /// <summary>Check if a project is expanded</summary>
-    private bool IsExpanded(Guid projectId) => ExpandedProjects.Contains(projectId);
+    // ✅ NEW: Handle View/Navigate to Project Management
+    private async Task HandleViewProject(Guid projectId)
+    {
+        await OnViewProject.InvokeAsync(projectId);
+    }
 
-    /// <summary>Handle chevron click - toggle expand/collapse (FIXED)</summary>
+    private async Task HandleEdit(Guid projectId)
+    {
+        await OnEdit.InvokeAsync(projectId);
+    }
+
+    private async Task HandleDelete(Guid projectId)
+    {
+        await OnDelete.InvokeAsync(projectId);
+    }
+
+    private async Task HandleAddSub(Guid projectId)
+    {
+        await OnAddSubProject.InvokeAsync(projectId);
+    }
+
     private void HandleToggleExpand(Guid projectId)
     {
-        if (ExpandedProjects.Contains(projectId))
+        if (expandedProjects.Contains(projectId))
         {
-            ExpandedProjects.Remove(projectId);
-            System.Diagnostics.Debug.WriteLine($"❌ Collapsed: {projectId}");
+            expandedProjects.Remove(projectId);
         }
         else
         {
-            ExpandedProjects.Add(projectId);
-            System.Diagnostics.Debug.WriteLine($"✅ Expanded: {projectId}");
+            expandedProjects.Add(projectId);
         }
-
-        StateHasChanged();
     }
 
-    /// <summary>Handle Edit button click</summary>
-    private void HandleEdit(Guid projectId)
-    {
-        OnEdit.InvokeAsync(projectId);
-    }
-
-    /// <summary>Handle Add Sub button click</summary>
-    private void HandleAddSub(Guid projectId)
-    {
-        OnAddSubProject.InvokeAsync(projectId);
-    }
-
-    /// <summary>Handle Delete button click</summary>
-    private void HandleDelete(Guid projectId)
-    {
-        OnDelete.InvokeAsync(projectId);
-    }
+    private bool IsExpanded(Guid projectId) => expandedProjects.Contains(projectId);
 }
+
+<style>
+    .cursor-pointer {
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .project-row:hover {
+        background-color: #f8f9fa;
+    }
+
+    .sub-project-row:hover {
+        background-color: #fff3cd;
+    }
+</style>
