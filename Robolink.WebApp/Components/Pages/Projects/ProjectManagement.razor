@@ -268,7 +268,8 @@
         try
         {
             System.Diagnostics.Debug.WriteLine($"🔍 Loading project {ProjectId}");
-            
+            System.Diagnostics.Debug.WriteLine($"PhasesErrorMessage = '{PhasesErrorMessage}'");
+            System.Diagnostics.Debug.WriteLine($"ProjectPhases.Count = {ProjectPhases.Count}");
             // Load project details
             var projectQuery = new GetProjectByIdQuery(ProjectId);
             CurrentProject = await Mediator.Send(projectQuery);
