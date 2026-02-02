@@ -1,0 +1,201 @@
+﻿@page "/projects/{ProjectId:guid}"
+@using Robolink.Application.Queries.Projects
+@using Robolink.Application.Queries.ProjectPhases
+@using Robolink.Application.DTOs
+@using MediatR
+@inject IMediator Mediator
+@inject NavigationManager NavigationManager
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="/projects" class="btn btn-outline-secondary btn-sm">← Back to Projects</a>
+            <h1 class="mt-3">@CurrentProject?.Name</h1>
+            <p class="text-muted">@CurrentProject?.Description</p>
+        </div>
+        <div>
+            <button class="btn btn-primary" @onclick="ShowAddPhaseModal">
+                + Add New Phase
+            </button>
+        </div>
+    </div>
+
+    @if (CurrentProject != null)
+    {
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <small class="text-muted">Manager</small>
+                        <h6>@CurrentProject.ManagerName</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <small class="text-muted">Client</small>
+                        <h6>@CurrentProject.ClientName</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <small class="text-muted">Budget</small>
+                        <h6>$@CurrentProject.CustomerBudget?.ToString("N0")</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <small class="text-muted">Deadline</small>
+                        <h6>@CurrentProject.Deadline.ToString("MMM dd, yyyy")</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <hr />
+
+    <h3 class="mb-4">Project Phases</h3>
+
+    @if (ProjectPhases == null)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (ProjectPhases.Count == 0)
+    {
+        <div class="alert alert-info">
+            <strong>No phases assigned yet.</strong> Click "Add New Phase" to get started.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var phase in ProjectPhases)
+            {
+                <div class="col-lg-4 col-md-6">
+                    <div class="card phase-card h-100 cursor-pointer" @onclick="() => ExpandPhase(phase.Id)">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="card-title mb-1">
+                                        <span class="badge bg-primary me-2">@phase.Sequence</span>
+                                        @(phase.CustomPhaseName ?? phase.SystemPhase.Name)
+                                    </h5>
+                                    <p class="text-muted small">@phase.SystemPhase.Description</p>
+                                </div>
+                            </div>
+
+                            <div class="phase-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Tasks:</span>
+                                    <span class="stat-value badge bg-info">@phase.TaskCount</span>
+                                </div>
+                                <div class="stat-item mt-2">
+                                    <span class="stat-label">Status:</span>
+                                    @if (phase.IsEnabled)
+                                    {
+                                        <span class="badge bg-success">✅ Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">⭕ Inactive</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <button class="btn btn-sm btn-outline-primary mt-3 w-100" 
+                                    @onclick:stopPropagation="true"
+                                    @onclick="() => ShowCreateTaskModal(phase.Id)">
+                                + Add Task
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid ProjectId { get; set; }
+
+    private ProjectDto? CurrentProject;
+    private List<ProjectPhaseConfigDto> ProjectPhases = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Load project details
+            var projectQuery = new GetProjectByIdQuery(ProjectId);
+            CurrentProject = await Mediator.Send(projectQuery);
+
+            // Load phases for this project
+            var phasesQuery = new GetProjectPhasesQuery(ProjectId);
+            ProjectPhases = (await Mediator.Send(phasesQuery)).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading project: {ex.Message}");
+        }
+    }
+
+    private void ShowAddPhaseModal()
+    {
+        // TODO: Trigger modal to select from available SystemPhases
+        Console.WriteLine("Show Add Phase Modal");
+    }
+
+    private void ShowCreateTaskModal(Guid phaseConfigId)
+    {
+        // TODO: Trigger modal to create new task
+        Console.WriteLine($"Show Create Task Modal for phase: {phaseConfigId}");
+    }
+
+    private void ExpandPhase(Guid phaseConfigId)
+    {
+        // TODO: Expand to show tasks or navigate to phase detail view
+        Console.WriteLine($"Expand phase: {phaseConfigId}");
+    }
+}
+
+<style>
+    .phase-card {
+        transition: all 0.3s ease;
+        border: 2px solid #e0e0e0;
+    }
+
+    .phase-card:hover {
+        border-color: #0d6efd;
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .phase-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+    }
+
+    .stat-label {
+        color: #666;
+        font-weight: 500;
+    }
+</style>

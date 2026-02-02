@@ -55,6 +55,16 @@ namespace Robolink.Application.Mappers
             // UpdateRequest → Entity (Update - partial)
             CreateMap<UpdateProjectRequest, Project>()
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<SystemPhase, SystemPhaseDto>();
+
+            CreateMap<ProjectSystemPhaseConfig, ProjectPhaseConfigDto>()
+                .ForMember(dest => dest.SystemPhase, 
+                    opt => opt.MapFrom(src => src.SystemPhase))
+                .ForMember(dest => dest.TaskCount,
+                    opt => opt.MapFrom(src => src.PhaseTasks != null ? src.PhaseTasks.Count : 0))
+                .ForMember(dest => dest.Tasks,
+                    opt => opt.MapFrom(src => src.PhaseTasks != null ? src.PhaseTasks : new List<PhaseTask>()));
         }
     }
 }
