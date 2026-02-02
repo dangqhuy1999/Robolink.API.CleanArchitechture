@@ -21,12 +21,23 @@ namespace Robolink.Infrastructure.Repositories
         /// <summary>Get all phase configs for a specific project (ordered by sequence)</summary>
         public async Task<IEnumerable<ProjectSystemPhaseConfig>> GetByProjectIdAsync(Guid projectId)
         {
-            return await _dbSet
+            System.Diagnostics.Debug.WriteLine($"🔍 Repository.GetByProjectIdAsync: projectId = {projectId}");
+            
+            var result = await _dbSet
                 .Where(pc => pc.ProjectId == projectId && !pc.IsDeleted)
                 .Include(pc => pc.SystemPhase)
                 .Include(pc => pc.PhaseTasks)
                 .OrderBy(pc => pc.Sequence)
                 .ToListAsync();
+            
+            System.Diagnostics.Debug.WriteLine($"✅ Repository found {result.Count} records");
+            
+            foreach (var item in result)
+            {
+                System.Diagnostics.Debug.WriteLine($"   - {item.Id}: SystemPhaseId={item.SystemPhaseId}, IsDeleted={item.IsDeleted}");
+            }
+            
+            return result;
         }
 
         /// <summary>Get specific phase config by project and system phase</summary>

@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using AutoMapper;
 using Robolink.Application.DTOs;
 using Robolink.Core.Interfaces;
@@ -21,27 +21,48 @@ namespace Robolink.Application.Queries.ProjectPhases
 
         public async Task<IEnumerable<ProjectPhaseConfigDto>> Handle(GetProjectPhasesQuery request, CancellationToken cancellationToken)
         {
-            var configs = await _phaseConfigRepo.GetByProjectIdAsync(request.ProjectId);
+            System.Diagnostics.Debug.WriteLine($"🔍 GetProjectPhasesQueryHandler: Loading phases for project {request.ProjectId}");
             
-            var dtos = new List<ProjectPhaseConfigDto>();
-            foreach (var config in configs)
+            try
             {
-                var dto = new ProjectPhaseConfigDto
+                var configs = await _phaseConfigRepo.GetByProjectIdAsync(request.ProjectId);
+                
+                System.Diagnostics.Debug.WriteLine($"✅ Repository returned {configs?.Count() ?? 0} phase configs");
+                
+                if (configs == null || !configs.Any())
                 {
-                    Id = config.Id,
-                    ProjectId = config.ProjectId,
-                    SystemPhaseId = config.SystemPhaseId,
-                    SystemPhase = _mapper.Map<SystemPhaseDto>(config.SystemPhase),
-                    CustomPhaseName = config.CustomPhaseName,
-                    Sequence = config.Sequence,
-                    IsEnabled = config.IsEnabled,
-                    TaskCount = config.PhaseTasks?.Count ?? 0,
-                    Tasks = _mapper.Map<List<PhaseTaskDto>>(config.PhaseTasks ?? new List<PhaseTask>())
-                };
-                dtos.Add(dto);
+                    System.Diagnostics.Debug.WriteLine($"⚠️ No phases found for project {request.ProjectId}");
+                    return new List<ProjectPhaseConfigDto>();
+                }
+
+                var dtos = new List<ProjectPhaseConfigDto>();
+                foreach (var config in configs)
+                {
+                    System.Diagnostics.Debug.WriteLine($"   Processing phase: {config.Id}, SystemPhaseId: {config.SystemPhaseId}, Sequence: {config.Sequence}");
+                    
+                    var dto = new ProjectPhaseConfigDto
+                    {
+                        Id = config.Id,
+                        ProjectId = config.ProjectId,
+                        SystemPhaseId = config.SystemPhaseId,
+                        SystemPhase = _mapper.Map<SystemPhaseDto>(config.SystemPhase),
+                        CustomPhaseName = config.CustomPhaseName,
+                        Sequence = config.Sequence,
+                        IsEnabled = config.IsEnabled,
+                        TaskCount = config.PhaseTasks?.Count ?? 0,
+                        Tasks = _mapper.Map<List<PhaseTaskDto>>(config.PhaseTasks ?? new List<PhaseTask>())
+                    };
+                    dtos.Add(dto);
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"✅ Returning {dtos.Count} DTOs");
+                return dtos.OrderBy(d => d.Sequence);
             }
-            
-            return dtos.OrderBy(d => d.Sequence);
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in GetProjectPhasesQueryHandler: {ex}");
+                throw;
+            }
         }
     }
 }
