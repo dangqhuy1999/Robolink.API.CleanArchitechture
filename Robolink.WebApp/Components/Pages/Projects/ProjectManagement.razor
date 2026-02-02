@@ -20,9 +20,15 @@
                 <h1 class="mt-3">@CurrentProject.Name</h1>
                 <p class="text-muted">@CurrentProject.Description</p>
             }
+            else if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-danger mt-3">
+                    <strong>Error:</strong> @ErrorMessage
+                </div>
+            }
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-primary" @onclick="ShowAddPhaseModal" disabled="@(showAddPhaseModal)">
+            <button class="btn btn-primary" @onclick="ShowAddPhaseModal" disabled="@(showAddPhaseModal || IsLoading)">
                 <i class="bi bi-plus-circle"></i> Add New Phase
             </button>
             <button class="btn btn-secondary" @onclick="RefreshPhases">
@@ -87,6 +93,14 @@
             <p class="mt-3">Loading phases...</p>
         </div>
     }
+    <!-- ERROR STATE -->
+    else if (!string.IsNullOrEmpty(PhasesErrorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Error Loading Phases:</strong> @PhasesErrorMessage
+        </div>
+    }
     <!-- NO PHASES STATE -->
     else if (ProjectPhases == null || ProjectPhases.Count == 0)
     {
@@ -107,7 +121,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <span class="badge bg-primary me-2" style="font-size: 14px;">@phase.Sequence</span>
-                                    <strong>@(phase.CustomPhaseName ?? phase.SystemPhase.Name)</strong>
+                                    <strong>@(phase.CustomPhaseName ?? phase.SystemPhase?.Name ?? "Unknown")</strong>
                                 </div>
                                 @if (phase.IsEnabled)
                                 {
@@ -121,7 +135,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="text-muted small mb-3">@phase.SystemPhase.Description</p>
+                            <p class="text-muted small mb-3">@phase.SystemPhase?.Description</p>
 
                             <div class="phase-stats mb-4">
                                 <div class="stat-item mb-2">
@@ -188,11 +202,18 @@
                 {
                     <div class="text-center">
                         <div class="spinner-border" role="status"></div>
+                        <p class="mt-2">Loading available phases...</p>
+                    </div>
+                }
+                else if (!string.IsNullOrEmpty(AvailablePhasesErrorMessage))
+                {
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> @AvailablePhasesErrorMessage
                     </div>
                 }
                 else if (AvailablePhases.Count == 0)
                 {
-                    <div class="alert alert-warning">No available phases</div>
+                    <div class="alert alert-warning">All phases are already assigned to this project</div>
                 }
                 else
                 {
@@ -223,6 +244,11 @@
     private bool IsLoading = true;
     private bool showAddPhaseModal = false;
     private Guid selectedPhaseId = Guid.Empty;
+    
+    // ✅ NEW: Error messages
+    private string? ErrorMessage;
+    private string? PhasesErrorMessage;
+    private string? AvailablePhasesErrorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -232,14 +258,21 @@
             var projectQuery = new GetProjectByIdQuery(ProjectId);
             CurrentProject = await Mediator.Send(projectQuery);
 
+            if (CurrentProject == null)
+            {
+                ErrorMessage = $"Project with ID {ProjectId} not found";
+                IsLoading = false;
+                return;
+            }
+
             // Load phases for this project
             await LoadProjectPhases();
-
             IsLoading = false;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"❌ Error loading project: {ex.Message}");
+            ErrorMessage = $"Error loading project: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"❌ Error loading project: {ex}");
             IsLoading = false;
         }
     }
@@ -248,12 +281,18 @@
     {
         try
         {
+            PhasesErrorMessage = null;
             var phasesQuery = new GetProjectPhasesQuery(ProjectId);
-            ProjectPhases = (await Mediator.Send(phasesQuery))?.ToList() ?? new List<ProjectPhaseConfigDto>();
+            var result = await Mediator.Send(phasesQuery);
+            ProjectPhases = result?.ToList() ?? new List<ProjectPhaseConfigDto>();
+            
+            System.Diagnostics.Debug.WriteLine($"✅ Loaded {ProjectPhases.Count} phases for project {ProjectId}");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"❌ Error loading phases: {ex.Message}");
+            PhasesErrorMessage = ex.Message;
+            System.Diagnostics.Debug.WriteLine($"❌ Error loading phases: {ex}");
+            ProjectPhases = new List<ProjectPhaseConfigDto>();
         }
     }
 
@@ -261,16 +300,21 @@
     {
         try
         {
+            AvailablePhasesErrorMessage = null;
             var query = new GetAllSystemPhasesQuery();
             var allPhases = (await Mediator.Send(query))?.ToList() ?? new List<SystemPhaseDto>();
             
             // Filter out already assigned phases
             var assignedPhaseIds = ProjectPhases.Select(p => p.SystemPhaseId).ToHashSet();
             AvailablePhases = allPhases.Where(p => !assignedPhaseIds.Contains(p.Id)).ToList();
+            
+            System.Diagnostics.Debug.WriteLine($"✅ Loaded {AvailablePhases.Count} available phases");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"❌ Error loading available phases: {ex.Message}");
+            AvailablePhasesErrorMessage = ex.Message;
+            System.Diagnostics.Debug.WriteLine($"❌ Error loading available phases: {ex}");
+            AvailablePhases = new List<SystemPhaseDto>();
         }
     }
 
@@ -289,28 +333,29 @@
             
             showAddPhaseModal = false;
             await LoadProjectPhases();
+            
+            System.Diagnostics.Debug.WriteLine($"✅ Phase {systemPhaseId} assigned successfully");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"❌ Error assigning phase: {ex.Message}");
+            AvailablePhasesErrorMessage = $"Error assigning phase: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"❌ Error assigning phase: {ex}");
         }
     }
 
     private void SelectPhase(Guid phaseId)
     {
         selectedPhaseId = phaseId;
-        // Can add additional logic here (e.g., navigate to phase detail page)
+        System.Diagnostics.Debug.WriteLine($"Selected phase: {phaseId}");
     }
 
     private void EditPhase(Guid phaseId)
     {
-        // TODO: Implement phase editing
         System.Diagnostics.Debug.WriteLine($"Edit phase: {phaseId}");
     }
 
     private async Task ShowCreateTaskModal(Guid phaseConfigId)
     {
-        // TODO: Implement task creation modal
         System.Diagnostics.Debug.WriteLine($"Create task for phase: {phaseConfigId}");
     }
 
