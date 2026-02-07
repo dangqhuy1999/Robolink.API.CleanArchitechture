@@ -1,0 +1,74 @@
+﻿@page "/projects/{ProjectId:guid}/phases/{PhaseId:guid}"
+@using MediatR
+@using Robolink.Application.DTOs
+@using Robolink.Application.Commands.PhaseTasks
+@using Robolink.Application.Queries.ProjectPhases
+@using Robolink.WebApp.Components.Features.PhaseTasks.Shared
+@using Microsoft.JSInterop
+
+
+<div class="container-fluid py-4">
+    <!-- HEADER (Tách thành component) -->
+    <PhaseHeader 
+        PhaseConfig="phaseConfig"
+        IsLoading="isLoading"
+        OnBack="GoBack"
+        OnAddTask="ShowCreateTaskModal"
+        OnRefresh="RefreshTasks" />
+
+    <!-- PHASE INFO CARD (Tách thành component) -->
+    <PhaseInfoCard PhaseConfig="phaseConfig" />
+
+    <!-- TASKS TABLE -->
+    <h3 class="mb-3">📋 Phase Tasks (Hierarchical)</h3>
+
+    @if (isLoading)
+    {
+        <div class="alert alert-info">
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Loading tasks...
+        </div>
+    }
+    else if (phaseConfig?.Tasks == null || !phaseConfig.Tasks.Any())
+    {
+        <div class="alert alert-warning">
+            No tasks in this phase. <button class="btn btn-link" @onclick="ShowCreateTaskModal">Create one</button>
+        </div>
+    }
+    else
+    {
+        <PhaseTaskTable 
+            Tasks="phaseConfig.Tasks"
+            PhaseId="PhaseId"
+            OnEdit="ShowEditTaskModal"
+            OnDelete="DeleteTask"
+            OnViewSubTasks="ViewSubTasks"
+            OnAddSubTask="ShowCreateSubTaskModal" />
+    }
+</div>
+
+<!-- MODALS -->
+<CreatePhaseTaskModal 
+    ShowModal="showCreateTaskModal"
+    ProjectId="ProjectId"
+    PhaseId="PhaseId"
+    ParentTaskId="null"
+    OnClose="HideCreateTaskModal"
+    OnSaved="LoadPhaseData" />
+
+<  
+    ShowModal="showCreateSubTaskModal"
+    ProjectId="ProjectId"
+    PhaseId="PhaseId"
+    ParentTaskId="selectedTaskId"
+    ParentTaskName="GetTaskName(selectedTaskId)"
+    OnClose="HideCreateSubTaskModal"
+    OnSaved="LoadPhaseData" />
+
+<EditPhaseTaskModal 
+    ShowModal="showEditModal"
+    TaskId="selectedTaskId"
+    ProjectId="ProjectId"
+    PhaseId="PhaseId"
+    OnClose="HideEditTaskModal"
+    OnSaved="LoadPhaseData" />

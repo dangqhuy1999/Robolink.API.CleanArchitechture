@@ -30,7 +30,7 @@ namespace Robolink.Application.Commands.PhaseTasks
             if (phaseConfig == null)
                 throw new InvalidOperationException("Phase configuration not found");
 
-            // ✅ Create task
+            // ✅ Create task with ALL properties
             var task = new PhaseTask
             {
                 ProjectId = request.Request.ProjectId,
@@ -39,16 +39,21 @@ namespace Robolink.Application.Commands.PhaseTasks
                 AssignedStaffId = request.Request.AssignedStaffId,
                 DueDate = request.Request.DueDate,
                 Status = Task_Status.Pending,
-                CreatedBy = request.CreatedBy
+                Priority = request.Request.Priority,              // ✅ ADDED
+                EstimatedHours = request.Request.EstimatedHours,  // ✅ ADDED
+                ParentPhaseTaskId = request.Request.ParentPhaseTaskId,  // ✅ ADDED
+                CreatedBy = request.CreatedBy ?? "System",
+                RowVersion = Array.Empty<byte>()  // ✅ Initialize for concurrency
             };
 
             // ✅ Save
             await _taskRepo.AddAsync(task);
             await _taskRepo.SaveChangesAsync();
 
-            // ✅ Return DTO
+            // ✅ Return DTO with mapping
             var dto = _mapper.Map<PhaseTaskDto>(task);
             dto.PhaseName = phaseConfig.CustomPhaseName ?? phaseConfig.SystemPhase?.Name;
+            // AssignedStaffName nếu cần, có thể load từ Staff table
 
             return dto;
         }

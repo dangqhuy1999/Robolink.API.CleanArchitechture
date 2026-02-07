@@ -1,42 +1,30 @@
 ﻿using Robolink.Core.Common;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 using Robolink.Core.Enums;
+using System;
 
 namespace Robolink.Core.Entities
 {
-    public class PhaseTask : EntityBase
+    public class PhaseTask : EntityRootBase
     {
-        public Guid ProjectId { get; set; } // Khóa ngoại tới Project
-        [ForeignKey("ProjectId")] // Chỉ định rõ cho EF Core
-        public virtual Project? Project { get; set; }
-
-        // ✅ NEW: Parent subtask (optional - for hierarchical subtasks)
-        public Guid? ParentPhaseTaskId { get; set; }
-        [ForeignKey("ParentPhaseTaskId")]
-        public virtual PhaseTask? ParentPhaseTask { get; set; }
-
-        // Child subtasks
-        public virtual ICollection<PhaseTask> SubPhaseTasksItems { get; set; } = new List<PhaseTask>();
-
-        // ✅ NEW: Reference to project-specific phase config (not just PhaseId)
+        public Guid ProjectId { get; set; }
         public Guid ProjectSystemPhaseConfigId { get; set; }
-        [ForeignKey("ProjectSystemPhaseConfigId")]
-        public virtual ProjectSystemPhaseConfig? PhaseConfig { get; set; }
-
-        public string? Description { get; set; }
+        public string Description { get; set; } = null!;
         public Guid AssignedStaffId { get; set; }
-        // [THÊM MỚI] Để EF Core biết AssignedStaffId trỏ sang bảng Staff
-        [ForeignKey("AssignedStaffId")] // Chỉ định rõ cho EF Core
-        public virtual Staff? AssignedStaff { get; set; }
-        public int ProcessRate { get; set; } // 0-100
         public DateTime DueDate { get; set; }
-        public Task_Status Status { get; set; }
-
-        // Để từ 1 Task, em xem được ngay danh sách tất cả các lần gáp ốc của Robot
+        public Task_Status Status { get; set; } = Task_Status.Pending;
+        public int Priority { get; set; } = 0; // ✅ NEW: 0=Low, 1=Medium, 2=High, 3=Critical    
+        // ✅ NEW: Add these properties for progress tracking
+        public int ProcessRate { get; set; } = 0;  // 0-100%
+        public DateTime? CompletedAt { get; set; }
+        public decimal EstimatedHours { get; set; } = 0;
+        
+        public Guid? ParentPhaseTaskId { get; set; }
+        // Foreign Keys & Navigation
+        public virtual Project? Project { get; set; }
+        public virtual ProjectSystemPhaseConfig? PhaseConfig { get; set; }
+        public virtual Staff? AssignedStaff { get; set; }
+        public virtual PhaseTask? ParentPhaseTask { get; set; }
+        public virtual ICollection<PhaseTask> SubPhaseTasksItems { get; set; } = new List<PhaseTask>();
         public virtual ICollection<WorkLog> WorkLogs { get; set; } = new List<WorkLog>();
     }
-    
 }

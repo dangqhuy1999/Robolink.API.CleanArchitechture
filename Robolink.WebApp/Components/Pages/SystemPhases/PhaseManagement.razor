@@ -1,13 +1,13 @@
 ﻿@page "/projects/{ProjectId:guid}"
+@using MediatR
+@using Robolink.Application.DTOs
+@using Robolink.Application.Commands.ProjectPhases
 @using Robolink.Application.Queries.Projects
 @using Robolink.Application.Queries.ProjectPhases
 @using Robolink.Application.Queries.SystemPhases
-@using Robolink.Application.Commands.ProjectPhases
-@using Robolink.Application.Commands.PhaseTasks
-@using Robolink.Application.DTOs
-@using MediatR
 @inject IMediator Mediator
 @inject NavigationManager NavigationManager
+
 
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -116,7 +116,7 @@
                 @foreach (var phase in ProjectPhases)
                 {
                 <div class="col-lg-4 col-md-6">
-                    <div class="card phase-card h-100" @onclick="() => SelectPhase(phase.Id)">
+                    <div class="card phase-card h-100" @onclick="() => ViewPhaseTasks(phase.Id)">
                         <div class="card-header bg-light">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
@@ -170,24 +170,6 @@
                                     }
                                 </div>
                             }
-                        </div>
-
-                        <div class="card-footer bg-light">
-                            <button class="btn btn-sm btn-outline-primary w-100 mb-2" 
-                                    @onclick:stopPropagation="true"
-                                    @onclick="() => ShowCreateTaskModal(phase.Id)">
-                                <i class="bi bi-plus-circle"></i> Add Task
-                            </button>
-                            <button class="btn btn-sm btn-outline-info w-100 mb-2" 
-                                    @onclick:stopPropagation="true"
-                                    @onclick="() => ShowEditPhaseConfigModal(phase)">
-                                <i class="bi bi-sliders"></i> Configure Phase
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary w-100" 
-                                    @onclick:stopPropagation="true"
-                                    @onclick="() => EditPhase(phase.Id)">
-                                <i class="bi bi-pencil"></i> Edit Phase
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -389,22 +371,6 @@
         }
     }
 
-    private void SelectPhase(Guid phaseId)
-    {
-        selectedPhaseId = phaseId;
-        System.Diagnostics.Debug.WriteLine($"Selected phase: {phaseId}");
-    }
-
-    private void EditPhase(Guid phaseId)
-    {
-        System.Diagnostics.Debug.WriteLine($"Edit phase: {phaseId}");
-    }
-
-    private async Task ShowCreateTaskModal(Guid phaseConfigId)
-    {
-        System.Diagnostics.Debug.WriteLine($"Create task for phase: {phaseConfigId}");
-    }
-
     private async Task RefreshPhases()
     {
         IsLoading = true;
@@ -412,10 +378,9 @@
         IsLoading = false;
     }
 
-    private void ShowEditPhaseConfigModal(ProjectPhaseConfigDto phase)
+    private void ViewPhaseTasks(Guid phaseId)
     {
-        selectedPhaseConfig = phase;
-        showEditPhaseConfigModal = true;
+        NavigationManager.NavigateTo($"/projects/{ProjectId}/phases/{phaseId}");
     }
 }
 

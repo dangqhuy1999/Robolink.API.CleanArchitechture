@@ -1,4 +1,4 @@
-using Robolink.Core.Entities;
+﻿using Robolink.Core.Entities;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -25,5 +25,8 @@ namespace Robolink.Core.Interfaces
 
         /// <summary>Get next sequence number for project</summary>
         Task<int> GetNextSequenceAsync(Guid projectId);
+
+        /// <summary>✅ NEW: Get all projects using this system phase</summary>
+        Task<IEnumerable<ProjectSystemPhaseConfig>> GetBySystemPhaseIdAsync(Guid systemPhaseId);
     }
 }

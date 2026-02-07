@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Robolink.Core.Entities;
 using Robolink.Core.Interfaces;
 
@@ -23,15 +23,30 @@ namespace Robolink.Application.Commands.SystemPhases
             if (phase == null)
                 throw new InvalidOperationException("System Phase not found");
 
-            // Check if phase is used by any project
-            var usageCount = await _configRepo.GetBySystemPhaseIdAsync(request.SystemPhaseId);
-            if (usageCount.Any())
-                throw new InvalidOperationException("Cannot delete phase that is in use by projects");
+            // ✅ Check if phase is used by any project
+            var usageConfigs = await _configRepo.GetBySystemPhaseIdAsync(request.SystemPhaseId);
+            if (usageConfigs.Any())
+            {
+                var projectCount = usageConfigs.Count();
+                throw new InvalidOperationException(
+                    $"Cannot delete phase that is in use by {projectCount} project(s)");
+            }
 
-            await _phaseRepo.DeleteAsync(phase);
-            await _phaseRepo.SaveChangesAsync();
+            try
+            {
+                // ✅ NEW: Support both hard and soft delete (like Projects)
+                if (request.HardDelete)
+                    await _phaseRepo.DeleteAsync(request.SystemPhaseId);  // Permanent delete
+                else
+                    await _phaseRepo.SoftDeleteAsync(request.SystemPhaseId);  // Soft delete (IsDeleted = true)
 
-            return true;
+                await _phaseRepo.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to delete system phase: {ex.Message}");
+            }
         }
     }
 }

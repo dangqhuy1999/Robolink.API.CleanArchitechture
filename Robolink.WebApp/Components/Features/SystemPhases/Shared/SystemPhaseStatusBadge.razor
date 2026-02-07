@@ -1,0 +1,13 @@
+﻿@if (IsActive)
+{
+    <span class="badge bg-success">✅ Active</span>
+}
+else
+{
+    <span class="badge bg-secondary">⭕ Inactive</span>
+}
+
+@code {
+    [Parameter]
+    public bool IsActive { get; set; }
+}

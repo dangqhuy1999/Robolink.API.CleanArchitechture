@@ -1,0 +1,21 @@
+﻿@if (Priority == 3)
+{
+    <span class="badge bg-danger">🔴 Critical</span>
+}
+else if (Priority == 2)
+{
+    <span class="badge bg-warning">🟠 High</span>
+}
+else if (Priority == 1)
+{
+    <span class="badge bg-info">🔵 Medium</span>
+}
+else
+{
+    <span class="badge bg-secondary">⚪ Low</span>
+}
+
+@code {
+    [Parameter]
+    public int Priority { get; set; }
+}

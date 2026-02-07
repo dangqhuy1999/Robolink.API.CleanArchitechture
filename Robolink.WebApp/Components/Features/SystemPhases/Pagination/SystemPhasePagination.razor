@@ -1,0 +1,46 @@
+@if (TotalPages > 1)
+{
+    <nav aria-label="Phase Pagination">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => OnPageChanged.InvokeAsync(CurrentPage - 1)" disabled="@(CurrentPage == 1)">
+                    Previous
+                </button>
+            </li>
+
+            @for (int i = 1; i <= TotalPages; i++)
+            {
+                int pageNum = i;
+                <li class="page-item @(CurrentPage == pageNum ? "active" : "")">
+                    <button class="page-link" @onclick="() => OnPageChanged.InvokeAsync(pageNum)">
+                        @pageNum
+                    </button>
+                </li>
+            }
+
+            <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => OnPageChanged.InvokeAsync(CurrentPage + 1)" disabled="@(CurrentPage == TotalPages)">
+                    Next
+                </button>
+            </li>
+        </ul>
+    </nav>
+    
+    <div class="text-center text-muted small">
+        Page @CurrentPage of @TotalPages | Total: @TotalPhases phases
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int CurrentPage { get; set; } = 1;
+
+    [Parameter]
+    public int TotalPages { get; set; }
+
+    [Parameter]
+    public int TotalPhases { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnPageChanged { get; set; }
+}

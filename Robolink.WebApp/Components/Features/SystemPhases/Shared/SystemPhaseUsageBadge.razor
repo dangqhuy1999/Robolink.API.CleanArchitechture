@@ -1,0 +1,13 @@
+@if (UsageCount > 0)
+{
+    <span class="badge bg-warning">Used by @UsageCount project(s)</span>
+}
+else
+{
+    <span class="badge bg-secondary">Not in use</span>
+}
+
+@code {
+    [Parameter]
+    public int UsageCount { get; set; }
+}

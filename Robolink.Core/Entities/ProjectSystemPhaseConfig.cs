@@ -10,7 +10,7 @@ namespace Robolink.Core.Entities
     /// This is the junction/mapping between Project and SystemPhase.
     /// Allows each project to enable/disable phases and customize sequence.
     /// </summary>
-    public class ProjectSystemPhaseConfig : EntityBase
+    public class ProjectSystemPhaseConfig : EntityRootBase // ✅ CHANGED
     {
         /// <summary>Which project uses this phase config</summary>
         public Guid ProjectId { get; set; }

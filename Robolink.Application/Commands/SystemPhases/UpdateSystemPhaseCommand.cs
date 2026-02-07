@@ -7,6 +7,7 @@ namespace Robolink.Application.Commands.SystemPhases
         Guid SystemPhaseId,
         string Name,
         string? Description,
+        int DefaultSequence,
         bool IsActive
     ) : IRequest<SystemPhaseDto>;
 }

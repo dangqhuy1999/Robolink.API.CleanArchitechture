@@ -4,6 +4,7 @@ using Robolink.Application.DTOs;
 using Robolink.Application.Queries.Projects;
 using Microsoft.JSInterop;
 using Microsoft.AspNetCore.Components;
+using Robolink.WebApp.Components.Features.PhaseTasks.Shared;
 
 namespace Robolink.WebApp.Components.Pages.Projects;
 
@@ -23,7 +24,7 @@ public partial class Projects
 
     // Pagination
     private int currentPage = 1;
-    private int pageSize = 10;
+    private int pageSize = ProjectConstants.DefaultPageSize;
     private int totalProjects = 0;
     private int totalPages = 0;
 
@@ -57,6 +58,7 @@ public partial class Projects
         }
         catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"Error loading projects: {ex}");
             await JSRuntime.InvokeVoidAsync("alert", $"Error loading projects: {ex.Message}");
             projects = new List<ProjectDto>();
         }
@@ -83,7 +85,7 @@ public partial class Projects
     }
 
     // ✅ QUICK ADD PROJECT
-    private async Task IncrementCount()
+    private async Task QuickAddProject()
     {
         try
         {
@@ -92,16 +94,16 @@ public partial class Projects
                 CreatedBy = "Huy Dang",
                 Request = new CreateProjectRequest()
                 {
-                    ProjectCode = "APTX-" + Guid.NewGuid().ToString().Substring(0, 5).ToUpper(),
+                    ProjectCode = $"{ProjectConstants.ProjectCodePrefix}-{Guid.NewGuid().ToString().Substring(0, 5).ToUpper()}",
                     Name = $"Project {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
                     Description = "Auto created project",
-                    ClientId = Guid.Parse("188cd869-567e-4cd2-870a-48bdb04af5cd"),
-                    ManagerId = Guid.Parse("1b8c3dbf-63bb-4207-b108-9b28706185a7"),
+                    ClientId = ProjectConstants.DefaultClientId,
+                    ManagerId = ProjectConstants.DefaultManagerId,
                     StartDate = DateTime.UtcNow,
-                    Deadline = DateTime.Today.AddDays(30),
-                    Priority = 1,
-                    InternalBudget = 1000,
-                    CustomerBudget = 2000
+                    Deadline = DateTime.Today.AddDays(ProjectConstants.DefaultProjectDurationDays),
+                    Priority = ProjectConstants.DefaultProjectPriority,
+                    InternalBudget = ProjectConstants.DefaultInternalBudget,
+                    CustomerBudget = ProjectConstants.DefaultCustomerBudget
                 }
             });
 
@@ -109,14 +111,14 @@ public partial class Projects
             {
                 currentPage = 1;
                 await LoadProjects();
+                await JSRuntime.InvokeVoidAsync("alert", "Project created successfully!");
             }
         }
-
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error create new project: {ex.Message}"); 
+            System.Diagnostics.Debug.WriteLine($"Error creating quick project: {ex}");
+            await JSRuntime.InvokeVoidAsync("alert", $"Error creating project: {ex.Message}"); 
         }
-        
     }
 
     // ✅ QUICK ADD SUB-PROJECT
@@ -162,17 +164,19 @@ public partial class Projects
             {
                 await Mediator.Send(new DeleteProjectCommand(projectId));
                 await LoadProjects();
+                await JSRuntime.InvokeVoidAsync("alert", "Project deleted successfully!");
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Error deleting project: {ex}");
                 await JSRuntime.InvokeVoidAsync("alert", $"Error deleting project: {ex.Message}");
             }
         }
     }
 
-    // ✅ SETTINGS
-    private void ShowSettings()
+    // ✅ SETTINGS (TODO: Implement in future)
+    private async Task ShowSettings()
     {
-        JSRuntime.InvokeVoidAsync("alert", "Settings not yet implemented");
+        await JSRuntime.InvokeVoidAsync("alert", "Settings feature coming soon!");
     }
 }

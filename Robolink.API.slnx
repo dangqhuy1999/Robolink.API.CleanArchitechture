@@ -3,5 +3,6 @@
   <Project Path="Robolink.Application/Robolink.Application.csproj" />
   <Project Path="Robolink.Core/Robolink.Core.csproj" />
   <Project Path="Robolink.Infrastructure/Robolink.Infrastructure.csproj" />
-  <Project Path="Robolink.WebApp/Robolink.WebApp.csproj" Id="b742e953-8512-4960-b7c1-d40ac283963a" />
+  <Project Path="Robolink.Shared/Robolink.Shared.csproj" />
+  <Project Path="Robolink.WebApp/Robolink.WebApp.csproj" />
 </Solution>

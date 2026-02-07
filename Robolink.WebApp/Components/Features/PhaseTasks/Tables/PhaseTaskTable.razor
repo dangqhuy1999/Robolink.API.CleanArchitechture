@@ -1,0 +1,119 @@
+@using Robolink.Application.DTOs
+@using Robolink.WebApp.Components.Features.PhaseTasks.Shared
+
+<div class="table-responsive">
+    <table class="table table-hover table-striped table-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>Description</th>
+                <th>Assigned To</th>
+                <th>Due Date</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Progress</th>
+                <th style="width: 180px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var task in Tasks ?? new List<PhaseTaskDto>())
+            {
+                <tr class="phase-row">
+                    <td>
+                        <strong>@task.Description</strong>
+                    </td>
+                    <td>
+                        @task.AssignedStaffName
+                    </td>
+                    <td>
+                        @task.DueDate.ToString("MMM dd, yyyy")
+                    </td>
+                    <td>
+                        <TaskPriorityBadge Priority="task.Priority" />
+                    </td>
+                    <td>
+                        <TaskStatusBadge Status="task.Status" />
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar" role="progressbar" style="width: @task.ProcessRate%">
+                                @task.ProcessRate%
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-primary" 
+                                    @onclick="() => HandleEdit(task.Id)"
+                                    title="Edit Task">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-info" 
+                                    @onclick="() => HandleViewSubTasks(task.Id)"
+                                    title="View Sub-Tasks">
+                                <i class="bi bi-diagram-3"></i>
+                            </button>
+                            <button class="btn btn-outline-primary"
+                                    @onclick="() => HandleAddSubTask(task.Id)"
+                                    title="Add Sub-Task">
+                                <i class="bi bi-plus-circle"></i>
+                            </button>
+                            <button class="btn btn-danger" 
+                                    @onclick="() => HandleDelete(task.Id)"
+                                    title="Delete Task">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter]
+    public List<PhaseTaskDto>? Tasks { get; set; }
+
+    [Parameter]
+    public Guid PhaseId { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnDelete { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnViewSubTasks { get; set; }
+    
+    [Parameter]
+    public EventCallback<Guid> OnAddSubTask { get; set; } // Thêm dòng này
+
+    private async Task HandleEdit(Guid taskId)
+    {
+        await OnEdit.InvokeAsync(taskId);
+    }
+
+    private async Task HandleDelete(Guid taskId)
+    {
+        await OnDelete.InvokeAsync(taskId);
+    }
+    private async Task HandleAddSubTask(Guid taskId)
+    {
+        await OnAddSubTask.InvokeAsync(taskId);
+    }
+    private async Task HandleViewSubTasks(Guid taskId)
+    {
+        await OnViewSubTasks.InvokeAsync(taskId);
+    }
+}
+
+<style>
+    .phase-row {
+        transition: background-color 0.2s ease;
+    }
+
+    .phase-row:hover {
+        background-color: #f8f9fa;
+    }
+</style>

@@ -86,6 +86,9 @@ namespace Robolink.Infrastructure.Migrations
                     b.Property<Guid>("AssignedStaffId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -93,10 +96,16 @@ namespace Robolink.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("DueDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("EstimatedHours")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(10,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -104,14 +113,26 @@ namespace Robolink.Infrastructure.Migrations
                     b.Property<Guid?>("ParentPhaseTaskId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("ProcessRate")
+                    b.Property<int>("Priority")
                         .HasColumnType("integer");
+
+                    b.Property<short>("ProcessRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint")
+                        .HasDefaultValue((short)0);
 
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ProjectSystemPhaseConfigId")
                         .HasColumnType("uuid");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea")
+                        .HasDefaultValue(new byte[0]);
 
                     b.Property<Guid?>("StaffId")
                         .HasColumnType("uuid");
@@ -253,6 +274,13 @@ namespace Robolink.Infrastructure.Migrations
 
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uuid");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea")
+                        .HasDefaultValue(new byte[0]);
 
                     b.Property<int>("Sequence")
                         .HasColumnType("integer");

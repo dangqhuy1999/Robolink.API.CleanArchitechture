@@ -1,8 +1,5 @@
 ﻿@page "/projects"
-@using Robolink.Application.DTOs
-@using Robolink.WebApp.Components.Features.Projects.Modals
-@using Robolink.WebApp.Components.Features.Projects.Tables
-@using Robolink.WebApp.Components.Features.Projects.Pagination
+
 
 <div class="container-fluid mt-4">
     <!-- CONTROLS & ACTIONS -->
@@ -12,7 +9,7 @@
             <button class="btn btn-success" @onclick="ShowCreateModal">
                 <i class="bi bi-plus-lg"></i> New Project
             </button>
-            <button class="btn btn-info" @onclick="IncrementCount">
+            <button class="btn btn-info" @onclick="QuickAddProject">
                 <i class="bi bi-lightning-fill"></i> Quick Add
             </button>
             <button class="btn btn-secondary" @onclick="ShowSettings">
@@ -58,7 +55,7 @@
 <!-- MODALS -->
 <CreateProjectModal 
     ShowModal="showCreateModal" 
-    OnClose="HideCreateModal" 
+    OnClose="HideCreateModal"
     OnSaved="LoadProjects" />
 
 <EditProjectModal 

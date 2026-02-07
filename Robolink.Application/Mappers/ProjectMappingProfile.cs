@@ -1,15 +1,16 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Robolink.Application.DTOs;
 using Robolink.Core.Entities;
+using Robolink.Core.Enums;
 
 namespace Robolink.Application.Mappers
 {
-    /// <summary>AutoMapper profile for Project entity</summary>
+    /// <summary>AutoMapper profile for Project entity and related DTOs</summary>
     public class ProjectMappingProfile : Profile
     {
         public ProjectMappingProfile()
         {
-            // ✅ RECURSIVE MAPPING: Project → ProjectDto
+            // ? Project ? ProjectDto (with recursive sub-projects)
             CreateMap<Project, ProjectDto>()
                 .ForMember(dest => dest.ClientName,
                     opt => opt.MapFrom(src => src.Client != null ? src.Client.Name : "Unknown"))
@@ -17,8 +18,6 @@ namespace Robolink.Application.Mappers
                     opt => opt.MapFrom(src => src.Manager != null ? src.Manager.FullName : "Unknown"))
                 .ForMember(dest => dest.ParentProjectName,
                     opt => opt.MapFrom(src => src.ParentProject != null ? src.ParentProject.Name : null))
-                // ✅ FIXED: Map SubProjectsItems (List<Project>) to SubProjects (List<ProjectDto>)
-                // This is RECURSIVE - each sub-project will also be mapped to ProjectDto
                 .ForMember(dest => dest.SubProjects,
                     opt => opt.MapFrom(src => src.SubProjectsItems != null 
                         ? src.SubProjectsItems.Select(sp => new ProjectDto
@@ -42,29 +41,19 @@ namespace Robolink.Application.Mappers
                             CreatedBy = sp.CreatedBy,
                             ParentProjectId = sp.ParentProjectId,
                             ParentProjectName = sp.ParentProject != null ? sp.ParentProject.Name : null,
-                            SubProjects = new List<ProjectDto>() // Empty for subs (no deep nesting)
+                            SubProjects = new List<ProjectDto>()
                         }).ToList()
                         : new List<ProjectDto>()));
 
-            // CreateRequest → Entity (Create)
+            // CreateProjectRequest ? Project
             CreateMap<CreateProjectRequest, Project>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(_ => Guid.NewGuid()))
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => 0)) // Draft status
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => 0))
                 .ForMember(dest => dest.ParentProjectId, opt => opt.MapFrom(src => src.ParentProjectId));
 
-            // UpdateRequest → Entity (Update - partial)
+            // UpdateProjectRequest ? Project
             CreateMap<UpdateProjectRequest, Project>()
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
-
-            CreateMap<SystemPhase, SystemPhaseDto>();
-
-            CreateMap<ProjectSystemPhaseConfig, ProjectPhaseConfigDto>()
-                .ForMember(dest => dest.SystemPhase, 
-                    opt => opt.MapFrom(src => src.SystemPhase))
-                .ForMember(dest => dest.TaskCount,
-                    opt => opt.MapFrom(src => src.PhaseTasks != null ? src.PhaseTasks.Count : 0))
-                .ForMember(dest => dest.Tasks,
-                    opt => opt.MapFrom(src => src.PhaseTasks != null ? src.PhaseTasks : new List<PhaseTask>()));
         }
     }
 }

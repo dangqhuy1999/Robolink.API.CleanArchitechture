@@ -1,4 +1,4 @@
-namespace Robolink.Application.DTOs
+﻿namespace Robolink.Application.DTOs
 {
     public class SystemPhaseDto
     {
@@ -8,6 +8,9 @@ namespace Robolink.Application.DTOs
         public int DefaultSequence { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
+        
+        // ✅ NEW: Add RowVersion for concurrency control
+        public byte[]? RowVersion { get; set; }
     }
 
     public class ProjectPhaseConfigDto
@@ -19,7 +22,10 @@ namespace Robolink.Application.DTOs
         public string? CustomPhaseName { get; set; }
         public int Sequence { get; set; }
         public bool IsEnabled { get; set; }
-        public int TaskCount { get; set; } // Number of tasks in this phase
+        public int TaskCount { get; set; }
         public List<PhaseTaskDto> Tasks { get; set; } = new();
+        
+        // ✅ NEW: Add RowVersion for concurrency control
+        public byte[]? RowVersion { get; set; }
     }
 }

@@ -1,0 +1,222 @@
+﻿@using Robolink.Application.DTOs
+@using Robolink.Application.Queries.Staff
+@using Robolink.Application.Queries.ProjectPhases
+@using Robolink.Application.Commands.PhaseTasks
+@using MediatR
+@inject IMediator Mediator
+@inject IJSRuntime JSRuntime
+
+<div class="modal @(ShowModal ? "show d-block" : "")" style="background-color: @(ShowModal ? "rgba(0,0,0,0.5)" : "transparent")">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square"></i> Edit Task
+                </h5>
+                <button type="button" class="btn-close" @onclick="OnClose"></button>
+            </div>
+            <div class="modal-body">
+                @if (isLoading)
+                {
+                    <div class="text-center">
+                        <div class="spinner-border" role="status"></div>
+                        <p class="mt-2">Loading task...</p>
+                    </div>
+                }
+                else if (task == null)
+                {
+                    <div class="alert alert-danger">Task not found</div>
+                }
+                else
+                {
+                    <form @onsubmit="HandleUpdateTask">
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label class="form-label">Task Description *</label>
+                            <textarea class="form-control" @bind="request.Description" 
+                                      rows="3" required></textarea>
+                        </div>
+
+                        <!-- Assigned Staff -->
+                        <div class="mb-3">
+                            <label class="form-label">Assign To *</label>
+                            <select class="form-control" @bind="request.AssignedStaffId" required>
+                                <option value="">-- Select Staff --</option>
+                                @if (staffList != null)
+                                {
+                                    @foreach (var staff in staffList)
+                                    {
+                                        <option value="@staff.Id">@staff.FullName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-control" @bind="request.Status">
+                                <option value="0">⭕ Pending</option>
+                                <option value="1">⏳ In Progress</option>
+                                <option value="2">✅ Completed</option>
+                            </select>
+                        </div>
+
+                        <!-- Due Date -->
+                        <div class="mb-3">
+                            <label class="form-label">Due Date *</label>
+                            <input type="date" class="form-control" @bind="request.DueDate" required />
+                        </div>
+
+                        <!-- Priority -->
+                        <div class="mb-3">
+                            <label class="form-label">Priority</label>
+                            <select class="form-control" @bind="request.Priority">
+                                <option value="0">⚪ Low</option>
+                                <option value="1">🔵 Medium</option>
+                                <option value="2">🟠 High</option>
+                                <option value="3">🔴 Critical</option>
+                            </select>
+                        </div>
+
+                        <!-- Estimated Hours -->
+                        <div class="mb-3">
+                            <label class="form-label">Estimated Hours</label>
+                            <input type="number" class="form-control" @bind="request.EstimatedHours" 
+                                   step="0.5" min="0" />
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="mb-3">
+                            <label class="form-label">Progress: @request.ProcessRate%</label>
+                            <input type="range" class="form-range" @bind="request.ProcessRate" 
+                                   min="0" max="100" step="10" />
+                        </div>
+
+                        <!-- Error Message -->
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger">@errorMessage</div>
+                        }
+
+                        <!-- Submit -->
+                        <div class="modal-footer px-0 pb-0">
+                            <button type="button" class="btn btn-secondary" @onclick="OnClose">Cancel</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool ShowModal { get; set; }
+
+    [Parameter]
+    public Guid ProjectId { get; set; }
+
+    [Parameter]
+    public Guid PhaseId { get; set; }
+
+    [Parameter]
+    public Guid TaskId { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback OnSaved { get; set; }  // ✅ FIXED: Changed from EventCallback<UpdatePhaseTaskRequest>
+
+    private PhaseTaskDto? task;
+    private UpdatePhaseTaskRequest request = new();
+    private List<StaffDto>? staffList;
+    private bool isLoading = false;
+    private string errorMessage = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ShowModal && TaskId != Guid.Empty)
+        {
+            await LoadTaskAndStaff();
+        }
+    }
+
+    private async Task LoadTaskAndStaff()
+    {
+        isLoading = true;
+        try
+        {
+            // ✅ Load staff
+            var staffQuery = new GetAllStaffQuery();
+            staffList = (await Mediator.Send(staffQuery))?.ToList();
+
+            // ✅ Load phase with tasks
+            var phasesQuery = new GetProjectPhasesQuery(ProjectId);
+            var phases = await Mediator.Send(phasesQuery);
+            var currentPhase = phases?.FirstOrDefault(p => p.Id == PhaseId);
+            
+            task = currentPhase?.Tasks?.FirstOrDefault(t => t.Id == TaskId);
+
+            if (task != null)
+            {
+                request = new UpdatePhaseTaskRequest
+                {
+                    Description = task.Description,
+                    AssignedStaffId = task.AssignedStaffId,
+                    DueDate = task.DueDate,
+                    Priority = task.Priority,
+                    EstimatedHours = task.EstimatedHours,
+                    Status = task.Status,
+                    ProcessRate = task.ProcessRate,
+                    ParentPhaseTaskId = task.ParentPhaseTaskId
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading task: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // ✅ IMPLEMENT: HandleUpdateTask - Submit to parent
+    private async Task HandleUpdateTask()
+    {
+        try
+        {
+            errorMessage = "";
+
+            // ✅ Validation
+            if (string.IsNullOrWhiteSpace(request.Description))
+            {
+                errorMessage = "Task description is required";
+                return;
+            }
+
+            if (request.AssignedStaffId == Guid.Empty)
+            {
+                errorMessage = "Please assign to a staff member";
+                return;
+            }
+
+            // ✅ Call parent callback - NOT executing command here
+            await OnSaved.InvokeAsync();
+            
+            // Reset
+            request = new();
+            await OnClose.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+    }
+}

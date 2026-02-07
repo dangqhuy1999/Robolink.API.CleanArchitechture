@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="Components\Projects\ProjectTable.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -21,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Robolink.Application\Robolink.Application.csproj" />
     <ProjectReference Include="..\Robolink.Infrastructure\Robolink.Infrastructure.csproj" />
+    <ProjectReference Include="..\Robolink.Shared\Robolink.Shared.csproj" />
   </ItemGroup>
 
 </Project>

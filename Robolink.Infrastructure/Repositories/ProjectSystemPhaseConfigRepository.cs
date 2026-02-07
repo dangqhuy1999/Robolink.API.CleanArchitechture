@@ -96,6 +96,8 @@ namespace Robolink.Infrastructure.Repositories
         {
             return await _dbSet
                 .Where(pc => pc.SystemPhaseId == systemPhaseId && !pc.IsDeleted)
+                .Include(pc => pc.Project)
+                .Include(pc => pc.SystemPhase)
                 .ToListAsync();
         }
     }

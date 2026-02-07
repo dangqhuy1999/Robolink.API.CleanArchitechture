@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using AutoMapper;
 using Robolink.Application.DTOs;
 using Robolink.Core.Entities;
@@ -53,7 +53,9 @@ namespace Robolink.Application.Commands.ProjectPhases
                 CustomPhaseName = request.CustomPhaseName,
                 Sequence = nextSequence,
                 IsEnabled = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                // ✅ THÊM DÒNG NÀY ĐỂ HẾT LỖI COMPILER
+                RowVersion = Array.Empty<byte>()
             };
 
             await _configRepo.AddAsync(config);

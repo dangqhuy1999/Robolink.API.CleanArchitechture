@@ -1,6 +1,9 @@
-using MediatR;
+﻿using MediatR;
 
 namespace Robolink.Application.Commands.SystemPhases
 {
-    public record DeleteSystemPhaseCommand(Guid SystemPhaseId) : IRequest<bool>;
+    public record DeleteSystemPhaseCommand(
+        Guid SystemPhaseId,
+        bool HardDelete = false  // ✅ NEW: Default to soft delete
+    ) : IRequest<bool>;
 }

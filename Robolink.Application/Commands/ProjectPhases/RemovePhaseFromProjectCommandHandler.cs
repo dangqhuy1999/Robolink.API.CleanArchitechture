@@ -19,7 +19,7 @@ namespace Robolink.Application.Commands.ProjectPhases
             if (config == null)
                 throw new InvalidOperationException("Phase config not found");
 
-            await _configRepo.DeleteAsync(config);
+            await _configRepo.DeleteAsync(request.PhaseConfigId);
             await _configRepo.SaveChangesAsync();
 
             return true;

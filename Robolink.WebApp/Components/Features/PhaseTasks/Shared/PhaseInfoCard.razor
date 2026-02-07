@@ -1,0 +1,41 @@
+﻿@using Robolink.Application.DTOs
+
+@if (PhaseConfig != null)
+{
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Sequence:</strong> <span class="badge bg-info">@PhaseConfig.Sequence</span>
+                </div>
+                <div class="col-md-3">
+                    <strong>Status:</strong> 
+                    @if (PhaseConfig.IsEnabled)
+                    {
+                        <span class="badge bg-success">✅ Active</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">⭕ Inactive</span>
+                    }
+                </div>
+                <div class="col-md-3">
+                    <strong>Total Tasks:</strong> <span class="badge bg-primary">@(PhaseConfig.Tasks?.Count ?? 0)</span>
+                </div>
+                <div class="col-md-3">
+                    <strong>Completed:</strong> <span class="badge bg-success">@GetCompletedCount()</span>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public ProjectPhaseConfigDto? PhaseConfig { get; set; }
+
+    private int GetCompletedCount()
+    {
+        return PhaseConfig?.Tasks?.Count(t => t.Status == 2) ?? 0;
+    }
+}
