@@ -24,16 +24,15 @@ namespace Robolink.Application.Commands.PhaseTasks
 
         public async Task<PhaseTaskDto> Handle(UpdatePhaseTaskCommand request, CancellationToken cancellationToken)
         {
-            var task = await _taskRepo.GetByIdAsync(request.PhaseTaskId);
+            var task = await _taskRepo.GetByIdAsync(request.Id);
             if (task == null)
                 throw new InvalidOperationException("Phase task not found");
 
             // ✅ Update ALL properties (not just Description, AssignedStaffId, DueDate)
-            task.Description = request.Description;
+            task.Description = request.Description ?? string.Empty;
             task.AssignedStaffId = request.AssignedStaffId;
             task.DueDate = request.DueDate;
             task.Status = request.Status;              // ✅ NEW
-            task.ProcessRate = request.ProcessRate;    // ✅ NEW
             task.Priority = request.Priority;          // ✅ NEW
             task.EstimatedHours = request.EstimatedHours;  // ✅ NEW
             task.ParentPhaseTaskId = request.ParentPhaseTaskId;  // ✅ NEW

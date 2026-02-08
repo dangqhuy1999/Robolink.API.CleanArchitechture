@@ -1,10 +1,10 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Robolink.Application.Commands.Projects;
 using Robolink.Application.DTOs;
 using Robolink.Application.Queries.Projects;
-using Microsoft.JSInterop;
-using Microsoft.AspNetCore.Components;
-using Robolink.WebApp.Components.Features.PhaseTasks.Shared;
+using Robolink.WebApp.Components.Features.Projects.Shared;
 
 namespace Robolink.WebApp.Components.Pages.Projects;
 

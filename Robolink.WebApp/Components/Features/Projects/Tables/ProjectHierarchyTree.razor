@@ -1,15 +1,15 @@
 ﻿@using Robolink.Application.DTOs
 
-<div class="project-tree-container">
+<div class="phaseTask-tree-container">
     <div class="tree-header mb-3">
-        <h5><i class="bi bi-diagram-2"></i> Project Hierarchy</h5>
+        <h5><i class="bi bi-diagram-2"></i> Task Hierarchy</h5>
         <small class="text-muted">Use dropdown button to show/hide sub-projects</small>
     </div>
 
     @if (!MainProjects.Any())
     {
         <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> No projects found
+            <i class="bi bi-info-circle"></i> No project found.
         </div>
     }
     else
@@ -17,8 +17,7 @@
         <div class="project-tree">
             @foreach (var mainProject in MainProjects)
             {
-                <RenderTreeNode 
-                    Project="mainProject"
+                <RenderTreeNode Project="mainProject"
                     IsExpanded="IsExpanded(mainProject.Id)"
                     ExpandedNodes="ExpandedNodes"
                     OnToggle="ToggleNode"

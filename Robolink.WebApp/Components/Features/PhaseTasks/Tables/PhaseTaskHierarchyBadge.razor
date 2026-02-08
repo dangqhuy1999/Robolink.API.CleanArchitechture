@@ -1,0 +1,31 @@
+@if (HasParent)
+{
+    <span class="badge bg-secondary" title="Sub-task">
+        <i class="bi bi-diagram-3"></i> Sub
+    </span>
+}
+
+@if (HasSubTasks)
+{
+    <span class="badge bg-info" title="@($"{SubTaskCount} sub-tasks")">
+        <i class="bi bi-diagram-2"></i> Parent (@SubTaskCount)
+    </span>
+}
+
+@if (!HasParent && !HasSubTasks)
+{
+    <span class="badge bg-light text-dark" title="Main Task">
+        <i class="bi bi-diagram-1"></i> Main
+    </span>
+}
+
+@code {
+    [Parameter]
+    public bool HasParent { get; set; }
+
+    [Parameter]
+    public bool HasSubTasks { get; set; }
+
+    [Parameter]
+    public int SubTaskCount { get; set; } = 0;
+}

@@ -1,0 +1,86 @@
+﻿@using Robolink.Application.DTOs
+@using Robolink.Application.Queries.Projects
+@using MediatR
+
+<div class="mb-3">
+    <label class="form-label">
+        <i class="bi bi-diagram-2"></i> Parent Task (Optional)
+    </label>
+    <div class="input-group">
+        <InputSelect class="form-control"
+                     TValue="Guid ?"
+                     Value="SelectedParentId"
+                     ValueChanged="OnValueChanged"
+                     ValueExpression="@(() => SelectedParentId)">
+            <option value="">-- None (Main Phase Task) --</option>
+            @if (AvailablePhaseTasks != null && AvailablePhaseTasks.Any())
+            {
+                @foreach (var task in AvailablePhaseTasks.OrderBy(t => t.Id))
+                {
+                    <option value="@task.Id.ToString()" disabled=@(task.Id == (ExcludePhaseTaskId ?? Guid.Empty))>
+                        @task.Id - @task.AssignedStaffName
+                    </option>
+                }
+            }
+        </InputSelect>
+        <button type="button" class="btn btn-outline-secondary" @onclick="RefreshPhaseTasks" 
+                title="Refresh available tasks">
+            <i class="bi bi-arrow-clockwise"></i>
+        </button>
+    </div>
+    @if (!string.IsNullOrEmpty(CurrentParentName))
+    {
+        <small class="text-info">
+            <i class="bi bi-info-circle"></i> Current parent: <strong>@CurrentParentName</strong>
+        </small>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid ProjectId { get; set; } // Cha phải truyền cái này vào
+    [Parameter] public Guid ProjectSystemPhaseConfigId { get; set; }   // Và cái này nữa
+
+    [Parameter]
+    public Guid? SelectedParentId { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid?> SelectedParentIdChanged { get; set; }
+
+    [Parameter]
+    public Guid? ExcludePhaseTaskId { get; set; }
+
+    [Parameter]
+    public string? CurrentParentName { get; set; }
+
+    [Inject]
+    private IMediator Mediator { get; set; } = null!;
+
+    private List<PhaseTaskDto> AvailablePhaseTasks = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshPhaseTasks();
+    }
+
+    private async Task OnValueChanged(Guid? value)
+    {
+        SelectedParentId = value; // Cập nhật nội bộ
+        await SelectedParentIdChanged.InvokeAsync(value); // Báo cho cha (Modal) biết để cập nhật updateRequest
+    }
+
+    private async Task RefreshPhaseTasks()
+    {
+        if (ProjectId == Guid.Empty || ProjectSystemPhaseConfigId == Guid.Empty) return;
+
+        try
+        {
+            // Dùng Parameter truyền vào thay vì dùng taskInfo rỗng
+            var result = await Mediator.Send(new GetPhaseTasksQuery(ProjectId, ProjectSystemPhaseConfigId));
+            AvailablePhaseTasks = result?.ToList() ?? new();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading projects: {ex.Message}");
+        }
+    }
+}

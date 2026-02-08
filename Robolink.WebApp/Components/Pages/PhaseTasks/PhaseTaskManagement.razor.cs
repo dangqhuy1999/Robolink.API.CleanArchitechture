@@ -77,7 +77,7 @@ namespace Robolink.WebApp.Components.Pages.PhaseTasks
 
         private int GetCompletedCount()
         {
-            return phaseConfig?.Tasks?.Count(t => t.Status == (int)Task_Status.Completed) ?? 0;
+            return phaseConfig?.Tasks?.Count(t => t.Status == Task_Status.Completed) ?? 0;
         }
 
         // Modal handlers
@@ -146,18 +146,18 @@ namespace Robolink.WebApp.Components.Pages.PhaseTasks
         {
             try
             {
-                var command = new UpdatePhaseTaskCommand(
-                    PhaseTaskId: selectedTaskId,
-                    Description: request.Description,
-                    AssignedStaffId: request.AssignedStaffId,
-                    DueDate: request.DueDate,
-                    Status: (Task_Status)request.Status,
-                    ProcessRate: request.ProcessRate,
-                    Priority: request.Priority,
-                    EstimatedHours: request.EstimatedHours,
-                    ParentPhaseTaskId: request.ParentPhaseTaskId,
-                    CreatedBy: "Huy Dang"  // ✅ FIXED: Use positional parameter or named parameter properly
-                );
+                var command = new UpdatePhaseTaskCommand
+                {
+                    Id = selectedTaskId,
+                    Description = request.Description,
+                    AssignedStaffId = request.AssignedStaffId,
+                    DueDate = request.DueDate,
+                    Status = (Task_Status)request.Status,
+                    Priority = request.Priority,
+                    EstimatedHours = request.EstimatedHours,
+                    ParentPhaseTaskId = request.ParentPhaseTaskId,
+                    CreatedBy = "Huy Dang"
+                };
 
                 var result = await Mediator.Send(command);
 

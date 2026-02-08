@@ -36,6 +36,6 @@
 
     private int GetCompletedCount()
     {
-        return PhaseConfig?.Tasks?.Count(t => t.Status == 2) ?? 0;
+        return PhaseConfig?.Tasks?.Count(t => (int)t.Status == 2) ?? 0;
     }
 }

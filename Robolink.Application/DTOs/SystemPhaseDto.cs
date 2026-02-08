@@ -9,8 +9,6 @@
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         
-        // ✅ NEW: Add RowVersion for concurrency control
-        public byte[]? RowVersion { get; set; }
     }
 
     public class ProjectPhaseConfigDto
@@ -24,8 +22,5 @@
         public bool IsEnabled { get; set; }
         public int TaskCount { get; set; }
         public List<PhaseTaskDto> Tasks { get; set; } = new();
-        
-        // ✅ NEW: Add RowVersion for concurrency control
-        public byte[]? RowVersion { get; set; }
     }
 }

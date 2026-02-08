@@ -1,4 +1,4 @@
-﻿@using MediatR
+@using MediatR
 @using Robolink.Application.Commands.PhaseTasks
 @using Robolink.Application.Queries.PhaseTasks
 @using Robolink.Application.Queries.Clients
@@ -7,25 +7,21 @@
 @inject IMediator Mediator
 @inject IJSRuntime JSRuntime
 
-<div class="modal @(ShowModal ? "show d-block" : "")" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+<div class="modal @(ShowModal ? "show d-block" : "")" tabindex="-1" style="background: @(ShowModal ? "rgba(0,0,0,0.5)" : "");">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="bi bi-plus-circle"></i>
-                    @if (request.ParentPhaseTaskId.HasValue && request.ParentPhaseTaskId != Guid.Empty)
-                    {
-                        <span>Create Sub-Task</span>
-                    }
-                    else
-                    {
-                        <span>Create New Project</span>
-                    }
+                    <i class="bi bi-diagram-3-plus"></i> Quick Add Sub-Task
                 </h5>
                 <button type="button" class="btn-close" @onclick="CloseModal"></button>
             </div>
             <div class="modal-body">
-                @if (isLoading)
+                @if (parentPhaseTask == null)
+                {
+                    <div class="alert alert-danger">Parent task not found</div>
+                }
+                else if (isLoading)
                 {
                     <div class="alert alert-info">
                         <span class="spinner-border spinner-border-sm me-2"></span>
@@ -34,7 +30,11 @@
                 }
                 else
                 {
-                    <form @onsubmit="HandleCreatePhaseTask">
+                    <div class="alert alert-info mb-3">
+                        <strong>Parent Task:</strong> @parentPhaseTask.InternalBudget - @parentPhaseTask.StartDate
+                    </div>
+
+                    <form @onsubmit="HandleCreateSubPhaseTask">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Description: </label>
@@ -70,13 +70,6 @@
                                 </InputSelect>
                             </div>
                         </div>
-
-                        <ParentPhaseTaskSelector  
-                            @bind-SelectedParentId="request.ParentPhaseTaskId"
-                            ProjectId="request.ProjectId"
-                            ProjectSystemPhaseConfigId="request.ProjectSystemPhaseConfigId"
-                            ExcludePhaseTaskId="null" 
-                            CurrentParentName="null" />
 
                         <div class="row">
 
@@ -122,17 +115,18 @@
 
 @code {
     [Parameter] public bool ShowModal { get; set; }
+    [Parameter] public Guid ParentPhaseTaskId { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnSaved { get; set; }
 
     private CreatePhaseTaskRequest request = new();
-    private List<ClientDto> clients = new();
-    private List<StaffDto> staffs = new();
+    private PhaseTaskDto? parentPhaseTask;
+    private List<StaffDto>  staffs = new();
     private bool isLoading = false;
 
     protected override async Task OnParametersSetAsync()
     {
-        if (ShowModal)
+        if (ShowModal && ParentPhaseTaskId != Guid.Empty)
         {
             isLoading = true;
             request = new()
@@ -142,22 +136,28 @@
                 Priority = 1
             };
 
-            await LoadClients();
+            await LoadParentPhaseTask();
             await LoadManagers();
             isLoading = false;
         }
     }
 
-    private async Task LoadClients()
+
+    private async Task LoadParentPhaseTask()
     {
         try
         {
-            var result = await Mediator.Send(new GetAllClientsQuery());
-            clients = result?.ToList() ?? new();
+            parentPhaseTask = await Mediator.Send(new GetPhaseTaskByIdQuery(ParentPhaseTaskId));
+            if (parentPhaseTask != null)
+            {
+                // Inherit client and some settings from parent
+                request.AssignedStaffId = parentPhaseTask.AssignedStaffId;
+                request.ParentPhaseTaskId = ParentPhaseTaskId;
+            }
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error loading clients: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", $"Error loading parent project: {ex.Message}");
         }
     }
 
@@ -174,19 +174,19 @@
         }
     }
 
-    private async Task HandleCreatePhaseTask()
+    private async Task HandleCreateSubPhaseTask()
     {
         try
         {
-            var result = await Mediator.Send(new CreatePhaseTaskCommand 
-            { 
-                Request = request, 
-                CreatedBy = "Huy Dang" 
+            var result = await Mediator.Send(new CreatePhaseTaskCommand
+            {
+                Request = request,
+                CreatedBy = "Huy Dang"
             });
 
             if (result != null)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"The task is created successfully!");
+                await JSRuntime.InvokeVoidAsync("alert", $"Sub-Task created successfully!");
                 await OnSaved.InvokeAsync();
                 await CloseModal();
             }
@@ -200,6 +200,7 @@
     private async Task CloseModal()
     {
         request = new();
+        parentPhaseTask = null;
         await OnClose.InvokeAsync();
     }
-}
+}   

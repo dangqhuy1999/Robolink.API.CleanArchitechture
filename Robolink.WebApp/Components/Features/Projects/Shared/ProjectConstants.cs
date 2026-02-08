@@ -1,4 +1,4 @@
-namespace Robolink.WebApp.Components.Features.PhaseTasks.Shared;
+namespace Robolink.WebApp.Components.Features.Projects.Shared;
 
 public static class ProjectConstants
 {
