@@ -1,0 +1,83 @@
+﻿@page "/projects/{ProjectId:guid}/phases/{ProjectSystemPhaseConfigId:guid}"
+@using MediatR
+@using Robolink.Application.DTOs
+@using Robolink.Application.Commands.PhaseTasks
+@using Robolink.Application.Queries.ProjectPhases
+@using Robolink.WebApp.Components.Features.PhaseTasks.Shared
+@using Robolink.WebApp.Components.Features.PhaseTasks.Pagination
+@using Microsoft.JSInterop
+
+
+<div class="container-fluid mt-4">
+    <!-- CONTROLS & ACTIONS -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-outline-secondary" @onclick="BackToPhases">
+                <i class="bi bi-arrow-left"></i> Back
+            </button>
+            <h2>📋 Tasks for Phase: @ProjectSystemPhaseConfigId</h2>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-success" @onclick="ShowCreateModal">
+                <i class="bi bi-plus-lg"></i> New Task
+            </button>
+            <button class="btn btn-info" @onclick="QuickAddPhaseTask">
+                <i class="bi bi-lightning-fill"></i> Quick Add
+            </button>
+            <button class="btn btn-secondary" @onclick="ShowSettings">
+                <i class="bi bi-gear"></i> Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoading)
+    {
+        <div class="alert alert-info">
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Loading...
+        </div>
+    }
+    else if (phaseTasks == null || !phaseTasks.Any())
+    {
+        <div class="alert alert-warning">
+            No projects found. <button class="btn btn-link" @onclick="ShowCreateModal">Create one</button>
+        </div>
+    }
+    else
+    {
+        <!-- ✅ SINGLE TABLE VIEW WITH EVENT HANDLERS -->
+        <PhaseTaskTable 
+            PhaseTasks="phaseTasks" 
+            OnEdit="ShowEditModal" 
+            OnDelete="DeletePhaseTask"
+            OnAddSubPhaseTask="ShowQuickAddSubModal"
+            OnViewPhaseTask="ShowTaskDetails"
+            OnRefresh="LoadPhaseTasks" />
+
+        <!-- PAGINATION -->
+        <PhaseTaskPagination 
+            CurrentPage="currentPage" 
+            TotalPages="totalPages" 
+            TotalTasks="totalPhaseTasks"
+            OnPageChanged="GoToPage" />
+    }
+</div>      
+
+<!-- MODALS -->
+<CreatePhaseTaskModal 
+    ShowModal="showCreateModal" 
+    OnClose="HideCreateModal"
+    OnSaved="LoadPhaseTasks" />
+
+<EditPhaseTaskModal 
+    ShowModal="showEditModal" 
+    PhaseTaskId="selectedPhaseTaskId" 
+    OnClose="HideEditModal" 
+    OnSaved="LoadPhaseTasks" />
+
+<QuickAddSubPhaseTaskModal
+    ShowModal="showQuickAddSubModal"
+    ParentPhaseTaskId="selectedPhaseTaskId"
+    OnClose="HideQuickAddSubModal"
+    OnSaved="LoadPhaseTasks" />

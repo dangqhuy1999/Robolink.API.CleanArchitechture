@@ -65,12 +65,17 @@
                             </div>
                         </div>
 
-                        <!-- ✅ NEW: Parent Project Selector -->
+                        <!-- ✅ NEW: Parent Project Selector
                         <ParentPhaseTaskSelector 
+                            bind-SelectedParentId="updateRequest.ParentPhaseTaskId"
+                            ExcludePhaseTaskId="phaseTask.Id"
+                            CurrentParentName="phaseTask.ParentPhaseTaskName" /> -->
+                        <ParentPhaseTaskSelector 
+                            ProjectId="phaseTask.ProjectId" 
+                            ProjectSystemPhaseConfigId="phaseTask.ProjectSystemPhaseConfigId"
                             @bind-SelectedParentId="updateRequest.ParentPhaseTaskId"
-                            ExcludeProjectId="phaseTask.Id"
+                            ExcludePhaseTaskId="phaseTask.Id"
                             CurrentParentName="@phaseTask.ParentPhaseTaskName" />
-
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Deadline</label>
@@ -139,13 +144,13 @@
         if (ShowModal && PhaseTaskId != Guid.Empty)
         {
             isLoading = true;
-            await LoasPhaseTask();
+            await LoadPhaseTask();
             await LoadManagers();
             isLoading = false;
         }
     }
 
-    private async Task LoasPhaseTask()
+    private async Task LoadPhaseTask()
     {
         try
         {
@@ -154,6 +159,7 @@
             {
                 updateRequest = new UpdatePhaseTaskRequest
                 {
+                    Id = phaseTask.Id, // <--- THIẾU DÒNG QUAN TRỌNG NÀY
                     Description = phaseTask.Description,
                     AssignedStaffId = phaseTask.AssignedStaffId,
                     DueDate = phaseTask.DueDate,

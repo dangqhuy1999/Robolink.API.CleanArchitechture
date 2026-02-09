@@ -24,7 +24,7 @@ public partial class Projects
 
     // Pagination
     private int currentPage = 1;
-    private int pageSize = ProjectConstants.DefaultPageSize;
+    private int pageSize = PhaseTaskonstants.DefaultPageSize;
     private int totalProjects = 0;
     private int totalPages = 0;
 
@@ -40,7 +40,7 @@ public partial class Projects
         try
         {
             int startIndex = (currentPage - 1) * pageSize;
-            var result = await Mediator.Send(new GetProjectsPagedQuery(startIndex, pageSize));
+            var result = await Mediator.Send(new GetPhaseTasksPagedQuery(startIndex, pageSize));
             
             // ✅ FIX: Filter to show ONLY main projects (ParentProjectId == null)
             projects = result.Items
@@ -94,16 +94,16 @@ public partial class Projects
                 CreatedBy = "Huy Dang",
                 Request = new CreateProjectRequest()
                 {
-                    ProjectCode = $"{ProjectConstants.ProjectCodePrefix}-{Guid.NewGuid().ToString().Substring(0, 5).ToUpper()}",
+                    ProjectCode = $"{PhaseTaskonstants.ProjectCodePrefix}-{Guid.NewGuid().ToString().Substring(0, 5).ToUpper()}",
                     Name = $"Project {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
                     Description = "Auto created project",
-                    ClientId = ProjectConstants.DefaultClientId,
-                    ManagerId = ProjectConstants.DefaultManagerId,
+                    ClientId = PhaseTaskonstants.DefaultClientId,
+                    ManagerId = PhaseTaskonstants.DefaultManagerId,
                     StartDate = DateTime.UtcNow,
-                    Deadline = DateTime.Today.AddDays(ProjectConstants.DefaultProjectDurationDays),
-                    Priority = ProjectConstants.DefaultProjectPriority,
-                    InternalBudget = ProjectConstants.DefaultInternalBudget,
-                    CustomerBudget = ProjectConstants.DefaultCustomerBudget
+                    Deadline = DateTime.Today.AddDays(PhaseTaskonstants.DefaultProjectDurationDays),
+                    Priority = PhaseTaskonstants.DefaultProjectPriority,
+                    InternalBudget = PhaseTaskonstants.DefaultInternalBudget,
+                    CustomerBudget = PhaseTaskonstants.DefaultCustomerBudget
                 }
             });
 

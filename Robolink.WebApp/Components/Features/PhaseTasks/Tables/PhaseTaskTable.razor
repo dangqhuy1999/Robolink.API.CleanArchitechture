@@ -19,142 +19,52 @@
         <tbody>
             @foreach (var phaseTask in PhaseTasks)
             {
-                <!-- ✅ MAIN PROJECT ROW - CLICKABLE FOR NAVIGATION -->
-                <tr class="project-row cursor-pointer" @onclick="() => HandleViewPhaseTask(phaseTask.Id)" style="cursor: pointer;">
-                    <!-- ✅ CHEVRON EXPAND/COLLAPSE BUTTON (FIXED) -->
-                    <td class="text-center" @onclick:stopPropagation="true">
+                <tr class="project-row">
+                    <td class="text-center">
                         @if (phaseTask.SubPhaseTasks?.Any() == true)
                         {
-                            <button class="btn btn-sm btn-outline-primary chevron-btn" 
+                            <button class="btn btn-sm btn-outline-primary"
                                     @onclick="() => HandleToggleExpand(phaseTask.Id)"
-                                    style="padding: 2px 8px; min-width: 40px;">
-                                @if (IsExpanded(phaseTask.Id))
-                                {
-                                    <i class="bi bi-chevron-down"></i>
-                                }
-                                else
-                                {
-                                    <i class="bi bi-chevron-right"></i>
-                                }
+                                    @onclick:stopPropagation="true">
+                                @* Ngăn chặn click vào hàng *@
+                                <i class="bi bi-chevron-@(IsExpanded(phaseTask.Id) ? "down" : "right")"></i>
                             </button>
                         }
-                        else
-                        {
-                            <span style="display: inline-block; width: 40px;"></span>
-                        }
                     </td>
-
+                    <td @onclick="() => HandleViewPhaseTask(phaseTask.Id)" class="cursor-pointer">
+                        <span class="badge bg-info">@phaseTask.Description (Con: @phaseTask.SubPhaseTasks?.Count) </span>
+                    </td>
+                    <td><strong>@phaseTask.AssignedStaffName</strong></td>
+                    <td><small>@phaseTask.DueDate.ToString("yyyy-MM-dd")</small></td>
+                    <td><TaskStatusBadge Status="(int)phaseTask.Status" /></td>
+                    <td><TaskPriorityBadge Priority="phaseTask.Priority" /></td>
                     <td>
-                        <span class="badge bg-info">@phaseTask.Description</span>
-                    </td>
-
-                    <td>
-                        <strong>@phaseTask.AssignedStaffName</strong>
-                    </td>
-
-                    <!-- ✅ NEW: Start Date Column -->
-                    <td>
-                        <small>@phaseTask.DueDate.ToString("yyyy-MM-dd")</small>
-                    </td>
-
-                    <td>
-                        <TaskStatusBadge Status="(int)phaseTask.Status" />
-                    </td>
-
-                    <td>
-                        <TaskPriorityBadge Priority="phaseTask.Priority" />
-                    </td>
-
-                    <td @onclick:stopPropagation="true">
-                        <!-- Action Buttons (FIXED LAMBDA) -->
-                        <div class="btn-group" role="group">
-                            <!-- View/Manage Button -->
-                            <button class="btn btn-sm btn-info" 
-                                    @onclick="() => HandleViewPhaseTask(phaseTask.Id)"
-                                    title="View details">
-                                <i class="bi bi-diagram-3"></i>
-                            </button>
-
-                            <!-- Edit Button -->
-                            <button class="btn btn-sm btn-primary" 
-                                    @onclick="() => HandleEdit(phaseTask.Id)"
-                                    title="Edit Task">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-
-                            <!-- Add Sub Button -->
-                            <button class="btn btn-sm btn-warning" 
-                                    @onclick="() => HandleAddSub(phaseTask.Id)"
-                                    title="Add sub-task">
-                                <i class="bi bi-plus-circle"></i>
-                            </button>
-
-                            <!-- Delete Button -->
-                            <button class="btn btn-sm btn-danger" 
-                                    @onclick="() => HandleDelete(phaseTask.Id)"
-                                    title="Delete Task">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-primary" @onclick="() => HandleEdit(phaseTask.Id)"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-warning" @onclick="() => HandleAddSub(phaseTask.Id)"><i class="bi bi-plus-circle"></i></button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => HandleDelete(phaseTask.Id)"><i class="bi bi-trash"></i></button>
                         </div>
                     </td>
                 </tr>
 
-                <!-- ✅ SUB-PROJECTS ROWS (Expandable) -->
                 @if (phaseTask.SubPhaseTasks?.Any() == true && IsExpanded(phaseTask.Id))
                 {
-                    @foreach (var subPhaseTask in phaseTask.SubPhaseTasks)
+                    @foreach (var sub in phaseTask.SubPhaseTasks)
                     {
-                        <tr class="sub-project-row cursor-pointer" @onclick="() => HandleViewPhaseTask(subPhaseTask.Id)" style="cursor: pointer;">
-                            <td></td>
-                            <td>
-                                <span class="badge bg-secondary">@subPhaseTask.Description</span>
+                        <tr class="sub-project-row bg-light">
+                            <td></td> @* Cột chevron trống *@
+                            <td @onclick="() => HandleViewPhaseTask(sub.Id)" class="cursor-pointer">
+                                <span class="ms-3 text-muted">↳ @sub.Description</span>
                             </td>
+                            <td>@sub.AssignedStaffName</td>
+                            <td><small>@sub.DueDate.ToString("yyyy-MM-dd")</small></td>
+                            <td><TaskStatusBadge Status="(int)sub.Status" /></td> @* Dùng sub *@
+                            <td><TaskPriorityBadge Priority="sub.Priority" /></td> @* Dùng sub *@
                             <td>
-                                <strong style="margin-left: 20px;">↳ @subPhaseTask.AssignedStaffName</strong>
-                            </td>
-                            <!-- ✅ NEW: Start Date Column -->
-                            <td>
-                                <small>@phaseTask.DueDate.ToString("yyyy-MM-dd")</small>
-                            </td>
-
-                            <td>
-                                <TaskStatusBadge Status="(int)phaseTask.Status" />
-                            </td>
-
-                            <td>
-                                <TaskPriorityBadge Priority="phaseTask.Priority" />
-                            </td>
-
-                            <td @onclick:stopPropagation="true">
-                                <!-- Action Buttons (FIXED LAMBDA) -->
-                                <div class="btn-group" role="group">
-                                    <!-- View/Manage Button -->
-                                    <button class="btn btn-sm btn-info"
-                                            @onclick="() => HandleViewPhaseTask(phaseTask.Id)"
-                                            title="View details">
-                                        <i class="bi bi-diagram-3"></i>
-                                    </button>
-
-                                    <!-- Edit Button -->
-                                    <button class="btn btn-sm btn-primary"
-                                            @onclick="() => HandleEdit(phaseTask.Id)"
-                                            title="Edit Task">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-
-                                    <!-- Add Sub Button -->
-                                    <button class="btn btn-sm btn-warning"
-                                            @onclick="() => HandleAddSub(phaseTask.Id)"
-                                            title="Add sub-task">
-                                        <i class="bi bi-plus-circle"></i>
-                                    </button>
-
-                                    <!-- Delete Button -->
-                                    <button class="btn btn-sm btn-danger"
-                                            @onclick="() => HandleDelete(phaseTask.Id)"
-                                            title="Delete Task">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                <div class="btn-group">
+                                    @* Quan trọng: Truyền sub.Id chứ không phải phaseTask.Id *@
+                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => HandleEdit(sub.Id)"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => HandleDelete(sub.Id)"><i class="bi bi-trash"></i></button>
                                 </div>
                             </td>
                         </tr>
@@ -185,6 +95,9 @@
     public EventCallback OnRefresh { get; set; }
 
     private HashSet<Guid> expandedPhaseTasks = new();
+
+
+    
 
     // ✅ NEW: Handle View/Navigate to Project Management
     private async Task HandleViewPhaseTask(Guid phaseTaskId)

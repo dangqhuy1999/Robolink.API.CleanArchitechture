@@ -13,12 +13,13 @@
                      ValueChanged="OnValueChanged"
                      ValueExpression="@(() => SelectedParentId)">
             <option value="">-- None (Main Phase Task) --</option>
-            @if (AvailablePhaseTasks != null && AvailablePhaseTasks.Any())
+            @if (AvailablePhaseTasks != null)
             {
-                @foreach (var task in AvailablePhaseTasks.OrderBy(t => t.Id))
+                @foreach (var task in AvailablePhaseTasks)
                 {
-                    <option value="@task.Id.ToString()" disabled=@(task.Id == (ExcludePhaseTaskId ?? Guid.Empty))>
-                        @task.Id - @task.AssignedStaffName
+                    @* Để Blazor tự hiểu Guid, không cần ToString() *@
+                    <option value="@task.Id" disabled=@(task.Id == ExcludePhaseTaskId)>
+                        @task.InternalBudget - @task.AssignedStaffName @* Hiển thị Name thay vì Id cho dễ nhìn *@
                     </option>
                 }
             }
@@ -57,8 +58,9 @@
 
     private List<PhaseTaskDto> AvailablePhaseTasks = new();
     
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        // Cứ mỗi khi cha truyền Parameter mới vào thì load lại data
         await RefreshPhaseTasks();
     }
 
@@ -67,14 +69,21 @@
         SelectedParentId = value; // Cập nhật nội bộ
         await SelectedParentIdChanged.InvokeAsync(value); // Báo cho cha (Modal) biết để cập nhật updateRequest
     }
+    private Guid _lastProjectId;
+    private Guid _lastPhaseId;
 
     private async Task RefreshPhaseTasks()
     {
+        // Chỉ load lại nếu thực sự có sự thay đổi về ID từ bên ngoài
+        if (ProjectId == _lastProjectId && ProjectSystemPhaseConfigId == _lastPhaseId) return;
+
         if (ProjectId == Guid.Empty || ProjectSystemPhaseConfigId == Guid.Empty) return;
 
         try
         {
-            // Dùng Parameter truyền vào thay vì dùng taskInfo rỗng
+            _lastProjectId = ProjectId;
+            _lastPhaseId = ProjectSystemPhaseConfigId;
+
             var result = await Mediator.Send(new GetPhaseTasksQuery(ProjectId, ProjectSystemPhaseConfigId));
             AvailablePhaseTasks = result?.ToList() ?? new();
         }

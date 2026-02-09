@@ -6,18 +6,18 @@ using Robolink.Core.Interfaces;
 
 namespace Robolink.Application.Queries.Projects
 {
-    public class GetProjectsPagedQueryHandler : IRequestHandler<GetProjectsPagedQuery, PagedResult<ProjectDto>>
+    public class GetPhaseTasksPagedQueryHandler : IRequestHandler<GetPhaseTasksPagedQuery, PagedResult<ProjectDto>>
     {
         private readonly IGenericRepository<Project> _projectRepo;
         private readonly IMapper _mapper;
 
-        public GetProjectsPagedQueryHandler(IGenericRepository<Project> projectRepo, IMapper mapper)
+        public GetPhaseTasksPagedQueryHandler(IGenericRepository<Project> projectRepo, IMapper mapper)
         {
             _projectRepo = projectRepo;
             _mapper = mapper;
         }
 
-        public async Task<PagedResult<ProjectDto>> Handle(GetProjectsPagedQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<ProjectDto>> Handle(GetPhaseTasksPagedQuery request, CancellationToken cancellationToken)
         {
             // ✅ IMPORTANT: Get paged results WITH sub-projects loaded
             (IEnumerable<Project> items, int totalCount) = await _projectRepo.GetPagedAsync(request.StartIndex, request.Count);
