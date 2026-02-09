@@ -37,6 +37,10 @@
                     <form @onsubmit="HandleCreatePhaseTask">
                         <div class="row">
                             <div class="col-md-6 mb-3">
+                                <label class="form-label">Task Name: </label>
+                                <InputText class="form-control" @bind-Value="request.Name" placeholder="Type task name..."></InputText>
+                            </div>
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label">Description: </label>
                                 <InputTextArea class="form-control" @bind-Value="request.Description" rows="2"></InputTextArea>
                             </div>

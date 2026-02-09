@@ -6,6 +6,7 @@ namespace Robolink.Core.Entities
 {
     public class PhaseTask : EntityRootBase
     {
+        public string Name { get; set; } = null!;
         public Guid ProjectId { get; set; }
         public Guid ProjectSystemPhaseConfigId { get; set; }
         public string Description { get; set; } = null!;

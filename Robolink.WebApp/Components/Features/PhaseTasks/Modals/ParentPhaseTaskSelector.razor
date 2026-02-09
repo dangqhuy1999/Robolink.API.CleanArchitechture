@@ -19,7 +19,7 @@
                 {
                     @* Để Blazor tự hiểu Guid, không cần ToString() *@
                     <option value="@task.Id" disabled=@(task.Id == ExcludePhaseTaskId)>
-                        @task.InternalBudget - @task.AssignedStaffName @* Hiển thị Name thay vì Id cho dễ nhìn *@
+                        @task.Name - @task.AssignedStaffName @* Hiển thị Name thay vì Id cho dễ nhìn *@
                     </option>
                 }
             }

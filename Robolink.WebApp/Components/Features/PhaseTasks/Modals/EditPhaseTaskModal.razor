@@ -160,6 +160,7 @@
                 updateRequest = new UpdatePhaseTaskRequest
                 {
                     Id = phaseTask.Id, // <--- THIẾU DÒNG QUAN TRỌNG NÀY
+                    Name = phaseTask.Name,
                     Description = phaseTask.Description,
                     AssignedStaffId = phaseTask.AssignedStaffId,
                     DueDate = phaseTask.DueDate,
@@ -200,6 +201,7 @@
             var result = await Mediator.Send(new UpdatePhaseTaskCommand
             {
                 Id = updateRequest.Id,                                 // ID của Task đang sửa (lấy từ Parameter)
+                Name = updateRequest.Name,                             // Tên Task
                 Description = updateRequest.Description,              // Nội dung mô tả
                 AssignedStaffId = updateRequest.AssignedStaffId,      // Nhân viên thực hiện
                 DueDate = updateRequest.DueDate,                      // Hạn chót

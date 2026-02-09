@@ -116,6 +116,10 @@ namespace Robolink.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<Guid?>("ParentPhaseTaskId")
                         .HasColumnType("uuid");
 

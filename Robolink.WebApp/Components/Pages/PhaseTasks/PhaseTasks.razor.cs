@@ -100,6 +100,7 @@ public partial class PhaseTasks
                 CreatedBy = "Huy Dang",
                 Request = new CreatePhaseTaskRequest()
                 {
+                    Name = "New Auto Task",
                     Description = "Auto created task",
 
                     // Cần truyền đủ ID của Project và Phase (Lấy từ Parameter của component)

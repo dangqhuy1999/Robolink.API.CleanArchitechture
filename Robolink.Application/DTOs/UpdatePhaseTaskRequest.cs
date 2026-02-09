@@ -5,6 +5,7 @@ namespace Robolink.Application.DTOs
     public class UpdatePhaseTaskRequest
     {
         public Guid Id { get; set; }
+        public string Name { get; set; } = null!;
         public decimal? InternalBudget { get; set; }
         public decimal? CustomerBudget { get; set; }
         public string Description { get; set; } = null!;

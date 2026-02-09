@@ -12,7 +12,7 @@ using Robolink.Infrastructure.Data;
 namespace Robolink.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20260209040544_InitialCreate")]
+    [Migration("20260209153725_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -118,6 +118,10 @@ namespace Robolink.Infrastructure.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid?>("ParentPhaseTaskId")
                         .HasColumnType("uuid");

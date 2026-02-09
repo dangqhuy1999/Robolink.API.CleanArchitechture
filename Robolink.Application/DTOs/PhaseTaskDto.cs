@@ -4,6 +4,7 @@ namespace Robolink.Application.DTOs
 {
     public class PhaseTaskDto
     {
+        public string Name { get; set; } = null!;
         public Guid Id { get; set; }
         public Guid ProjectId { get; set; }
         public Guid ProjectSystemPhaseConfigId { get; set; }
@@ -33,6 +34,7 @@ namespace Robolink.Application.DTOs
 
     public class CreatePhaseTaskRequest
     {
+        public string Name { get; set; } = null!;
         public decimal? InternalBudget { get; set; }
         public decimal? CustomerBudget { get; set; }
         public int ProcessRate { get; set; } = 0;  // 0-100%

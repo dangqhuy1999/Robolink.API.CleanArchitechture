@@ -29,6 +29,7 @@ namespace Robolink.Application.Commands.PhaseTasks
                 throw new InvalidOperationException("Phase task not found");
 
             // ✅ Update ALL properties (not just Description, AssignedStaffId, DueDate)
+            task.Name = request.Name ?? task.Name;
             task.Description = request.Description ?? string.Empty;
             task.AssignedStaffId = request.AssignedStaffId;
             task.DueDate = request.DueDate;

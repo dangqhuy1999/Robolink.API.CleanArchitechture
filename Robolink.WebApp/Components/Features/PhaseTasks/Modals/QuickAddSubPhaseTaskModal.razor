@@ -37,6 +37,10 @@
                     <form @onsubmit="HandleCreateSubPhaseTask">
                         <div class="row">
                             <div class="col-md-6 mb-3">
+                                <label class="form-label">Task Name: </label>
+                                <InputText class="form-control" @bind-Value="request.Name" placeholder="Type task name..."></InputText>
+                            </div>
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label">Description: </label>
                                 @* Sửa lại *@
                                 <InputTextArea class="form-control" @bind-Value="request.Description" rows="2" />
@@ -104,7 +108,8 @@
                         <div class="modal-footer px-0 pb-0">
                             <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save"></i> Create Project
+                                <i class="bi bi-save"></i> Create Task
+                                 s
                             </button>
                         </div>
                     </form>

@@ -6,6 +6,7 @@
         <thead class="table-dark">
             <tr>
                 <th style="width: 50px;"></th>
+                <th>Name</th>
                 <th>Description</th>
                 <th>Assigned To</th>
                 <th>Due Date</th>
@@ -31,6 +32,7 @@
                             </button>
                         }
                     </td>
+                    <td><strong>@phaseTask.Name</strong></td>
                     <td @onclick="() => HandleViewPhaseTask(phaseTask.Id)" class="cursor-pointer">
                         <span class="badge bg-info">@phaseTask.Description (Con: @phaseTask.SubPhaseTasks?.Count) </span>
                     </td>
@@ -52,7 +54,9 @@
                     @foreach (var sub in phaseTask.SubPhaseTasks)
                     {
                         <tr class="sub-project-row bg-light">
+
                             <td></td> @* Cột chevron trống *@
+                            <td><strong>@sub.Name</strong></td>
                             <td @onclick="() => HandleViewPhaseTask(sub.Id)" class="cursor-pointer">
                                 <span class="ms-3 text-muted">↳ @sub.Description</span>
                             </td>

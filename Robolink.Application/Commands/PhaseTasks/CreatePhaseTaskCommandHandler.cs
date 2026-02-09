@@ -33,6 +33,7 @@ namespace Robolink.Application.Commands.PhaseTasks
             // ✅ Create task with ALL properties
             var task = new PhaseTask
             {
+                Name = request.Request.Name,
                 ProjectId = request.Request.ProjectId,
                 ProjectSystemPhaseConfigId = request.Request.ProjectSystemPhaseConfigId,
                 Description = request.Request.Description,

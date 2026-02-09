@@ -7,6 +7,7 @@ namespace Robolink.Application.Commands.PhaseTasks
     public record UpdatePhaseTaskCommand : IRequest<PhaseTaskDto>
 
     {
+        public string Name { get; set; } = null!;
         public Guid Id { get; init; }
         public string? Description { get; init; }
         public Guid AssignedStaffId { get; init; }

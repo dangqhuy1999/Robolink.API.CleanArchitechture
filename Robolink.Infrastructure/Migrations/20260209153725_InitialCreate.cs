@@ -166,6 +166,7 @@ namespace Robolink.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
                     ProjectId = table.Column<Guid>(type: "uuid", nullable: false),
                     ProjectSystemPhaseConfigId = table.Column<Guid>(type: "uuid", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),

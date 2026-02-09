@@ -34,6 +34,7 @@ namespace Robolink.Application.Commands.PhaseTasks
             if (!Enum.IsDefined(typeof(Task_Status), request.Status))
                 throw new InvalidOperationException($"Invalid task status: {request.Status}");
 
+           task.Name = task.Name.Trim();
             // Update properties
             task.ProcessRate = request.ProcessRate;
             task.Status = (Task_Status)request.Status;
