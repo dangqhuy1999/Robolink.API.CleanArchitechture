@@ -12,7 +12,7 @@ using Robolink.Infrastructure.Data;
 namespace Robolink.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20260209034919_InitialCreate")]
+    [Migration("20260209040544_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
