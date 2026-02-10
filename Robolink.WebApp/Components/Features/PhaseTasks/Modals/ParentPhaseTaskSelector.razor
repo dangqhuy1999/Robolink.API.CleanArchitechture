@@ -15,10 +15,10 @@
             <option value="">-- None (Main Phase Task) --</option>
             @if (AvailablePhaseTasks != null)
             {
-                @foreach (var task in AvailablePhaseTasks)
+                @foreach (var task in AvailablePhaseTasks.OrderBy(t => t.Name))
                 {
                     @* Để Blazor tự hiểu Guid, không cần ToString() *@
-                    <option value="@task.Id" disabled=@(task.Id == ExcludePhaseTaskId)>
+                    <option value="@task.Id.ToString()" disabled="@(task.Id == ExcludePhaseTaskId)">
                         @task.Name - @task.AssignedStaffName @* Hiển thị Name thay vì Id cho dễ nhìn *@
                     </option>
                 }
