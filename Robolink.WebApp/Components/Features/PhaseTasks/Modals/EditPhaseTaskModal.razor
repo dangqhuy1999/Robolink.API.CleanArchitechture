@@ -34,6 +34,11 @@
                 {
                     <form @onsubmit="HandleUpdatePhaseTask">
                         <div class="mb-3">
+                            <label class="form-label">Task Name</label>
+                            <InputText class="form-control" @bind-Value="updateRequest.Name" placeholder="Enter task name..." />
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Description</label>
                             <InputTextArea class="form-control" @bind-Value="updateRequest.Description" rows="2" />
                         </div>
@@ -42,7 +47,7 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Staff Management</label>
                                 <InputSelect class="form-control" @bind-Value="updateRequest.AssignedStaffId">
-                                    <option value="">-- Select Staff --</option>
+                                    <option value="@((Guid?)null)">-- Select Staff --</option>
                                     @if (staffs!= null)
                                     {
                                         @foreach (var staff in staffs)
@@ -57,39 +62,39 @@
                                 <label class="form-label">Status</label>
                                 <InputSelect class="form-control" @bind-Value="updateRequest.Status">
                                     <option value="">-- Select Status --</option>
-                                    <option value="0">Draft</option>
-                                    <option value="1">In Progress</option>
-                                    <option value="2">Completed</option>
-                                    <option value="3">On Hold</option>
+                                    <option value="@((int)Task_Status.Cancelled)">Cancelled</option>
+                                    <option value="@((int)Task_Status.InProgress)">In Progress</option>
+                                    <option value="@((int)Task_Status.Completed)">Completed</option>
+                                    <option value="@((int)Task_Status.OnHold)">On Hold</option>
                                 </InputSelect>
                             </div>
                         </div>
 
-                        <!-- ✅ NEW: Parent Project Selector
-                        <ParentPhaseTaskSelector 
-                            bind-SelectedParentId="updateRequest.ParentPhaseTaskId"
-                            ExcludePhaseTaskId="phaseTask.Id"
-                            CurrentParentName="phaseTask.ParentPhaseTaskName" /> -->
                         <ParentPhaseTaskSelector 
                             ProjectId="phaseTask.ProjectId" 
                             ProjectSystemPhaseConfigId="phaseTask.ProjectSystemPhaseConfigId"
                             @bind-SelectedParentId="updateRequest.ParentPhaseTaskId"
                             ExcludePhaseTaskId="phaseTask.Id"
                             CurrentParentName="@phaseTask.ParentPhaseTaskName" />
+                        
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">Deadline</label>
                                 <InputDate class="form-control" @bind-Value="updateRequest.DueDate" />
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">Priority</label>
                                 <InputSelect class="form-control" @bind-Value="updateRequest.Priority">
                                     <option value="">-- Select Priority --</option>
-                                    <option value="0">Low</option>
-                                    <option value="1">Medium</option>
-                                    <option value="2">High</option>
-                                    <option value="3">Critical</option>
+                                    <option value="@((int)0)">Low</option>
+                                    <option value="@((int)1)">Medium</option>
+                                    <option value="@((int)2)">High</option>
+                                    <option value="@((int)3)">Critical</option>
                                 </InputSelect>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Estimated Hours</label>
+                                <InputNumber class="form-control" @bind-Value="updateRequest.EstimatedHours" />
                             </div>
                         </div>
 
@@ -104,7 +109,6 @@
                             </div>
                         </div>
 
-                        <!-- ✅ NEW: Display Sub-Projects -->
                         @if (phaseTask.SubPhaseTasks?.Any() == true)
                         {
                             <div class="mb-3">
@@ -155,21 +159,19 @@
         try
         {
             phaseTask = await Mediator.Send(new GetPhaseTaskByIdQuery(PhaseTaskId));
-            if (phaseTask!= null)
+            if (phaseTask != null)
             {
                 updateRequest = new UpdatePhaseTaskRequest
                 {
-                    Id = phaseTask.Id, // <--- THIẾU DÒNG QUAN TRỌNG NÀY
+                    Id = phaseTask.Id,
                     Name = phaseTask.Name,
                     Description = phaseTask.Description,
                     AssignedStaffId = phaseTask.AssignedStaffId,
                     DueDate = phaseTask.DueDate,
-                    Status = phaseTask.Status, // Chuyển từ Enum sang int nếu cần
+                    Status = phaseTask.Status,
                     Priority = phaseTask.Priority,
                     EstimatedHours = phaseTask.EstimatedHours,
                     ParentPhaseTaskId = phaseTask.ParentPhaseTaskId,
-
-                    // Nếu trong DB có Budget thì gán vào, nếu không hãy xóa dòng này
                     InternalBudget = phaseTask.InternalBudget,
                     CustomerBudget = phaseTask.CustomerBudget
                 };
@@ -200,21 +202,21 @@
         {
             var result = await Mediator.Send(new UpdatePhaseTaskCommand
             {
-                Id = updateRequest.Id,                                 // ID của Task đang sửa (lấy từ Parameter)
-                Name = updateRequest.Name,                             // Tên Task
-                Description = updateRequest.Description,              // Nội dung mô tả
-                AssignedStaffId = updateRequest.AssignedStaffId,      // Nhân viên thực hiện
-                DueDate = updateRequest.DueDate,                      // Hạn chót
-                Status = updateRequest.Status,                        // Trạng thái (Enum)
-                Priority = updateRequest.Priority,                    // Mức độ ưu tiên
-                EstimatedHours = updateRequest.EstimatedHours,        // Giờ dự kiến
-                ParentPhaseTaskId = updateRequest.ParentPhaseTaskId,  // ID Task cha (nếu có)
-                CreatedBy = "Huy Dang"                                // Tên người cập nhật
+                Id = updateRequest.Id,
+                Name = updateRequest.Name ?? "",
+                Description = updateRequest.Description ?? "",
+                AssignedStaffId = updateRequest.AssignedStaffId ?? Guid.Empty,
+                DueDate = updateRequest.DueDate ?? DateTime.Now,
+                Status = updateRequest.Status ?? Task_Status.Cancelled,
+                Priority = updateRequest.Priority ?? 0,
+                EstimatedHours = updateRequest.EstimatedHours ?? 0,
+                ParentPhaseTaskId = updateRequest.ParentPhaseTaskId,
+                CreatedBy = "Huy Dang"
             });
 
             if (result != null)
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Project updated successfully!");
+                await JSRuntime.InvokeVoidAsync("alert", "Task updated successfully!");
                 await OnSaved.InvokeAsync();
                 await CloseModal();
             }
@@ -227,9 +229,7 @@
 
     private async Task SelectSubPhaseTask(Guid subProjectId)
     {
-        // Close current modal and open the sub-project
         await CloseModal();
-        // This would be handled by parent component
     }
 
     private async Task CloseModal()

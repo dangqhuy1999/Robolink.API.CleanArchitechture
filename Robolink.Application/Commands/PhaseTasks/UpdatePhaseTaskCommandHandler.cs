@@ -28,15 +28,15 @@ namespace Robolink.Application.Commands.PhaseTasks
             if (task == null)
                 throw new InvalidOperationException("Phase task not found");
 
-            // ✅ Update ALL properties (not just Description, AssignedStaffId, DueDate)
+            // ✅ Update ALL properties with proper null handling
             task.Name = request.Name ?? task.Name;
-            task.Description = request.Description ?? string.Empty;
-            task.AssignedStaffId = request.AssignedStaffId;
-            task.DueDate = request.DueDate;
-            task.Status = request.Status;              // ✅ NEW
-            task.Priority = request.Priority;          // ✅ NEW
-            task.EstimatedHours = request.EstimatedHours;  // ✅ NEW
-            task.ParentPhaseTaskId = request.ParentPhaseTaskId;  // ✅ NEW
+            task.Description = request.Description ?? task.Description;
+            task.AssignedStaffId = request.AssignedStaffId ?? task.AssignedStaffId;  // ✅ FIX: Line 34
+            task.DueDate = request.DueDate ?? task.DueDate;                          // ✅ FIX: Line 35
+            task.Status = request.Status ?? task.Status;                            // ✅ FIX: Line 36
+            task.Priority = request.Priority ?? task.Priority;                      // ✅ FIX: Line 37
+            task.EstimatedHours = request.EstimatedHours ?? task.EstimatedHours;   // ✅ FIX: Line 38
+            task.ParentPhaseTaskId = request.ParentPhaseTaskId;
             task.UpdatedAt = DateTime.UtcNow;
             task.UpdatedBy = request.CreatedBy ?? "System";
 

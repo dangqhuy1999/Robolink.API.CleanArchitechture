@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="Robolink.API/Robolink.API.csproj" />
+  <Project Path="Robolink.Application.Tests/Robolink.Application.Tests.csproj" />
   <Project Path="Robolink.Application/Robolink.Application.csproj" />
   <Project Path="Robolink.Core/Robolink.Core.csproj" />
   <Project Path="Robolink.Infrastructure/Robolink.Infrastructure.csproj" />
