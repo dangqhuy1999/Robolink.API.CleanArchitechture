@@ -66,8 +66,8 @@
                             @bind-SelectedParentId="request.ParentPhaseTaskId"
                             ProjectId="request.ProjectId"
                             ProjectSystemPhaseConfigId="request.ProjectSystemPhaseConfigId"
-                            ExcludePhaseTaskId=@null 
-                            CurrentParentName=@null />
+                            ExcludePhaseTaskId="@((Guid?)null)"
+                            CurrentParentName="@(string.Empty)" />
 
                         <div class="row">
 

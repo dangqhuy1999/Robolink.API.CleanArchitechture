@@ -12,7 +12,7 @@
                      Value="SelectedParentId"
                      ValueChanged="OnValueChanged"
                      ValueExpression="@(() => SelectedParentId)">
-            <option value="">-- None (Main Phase Task) --</option>
+            <option value="@((Guid?)null)">-- None (Main Phase Task) --</option>
             @if (AvailablePhaseTasks != null)
             {
                 @foreach (var task in AvailablePhaseTasks.OrderBy(t => t.Name))
@@ -58,25 +58,31 @@
 
     private List<PhaseTaskDto> AvailablePhaseTasks = new();
     
-    protected override async Task OnParametersSetAsync()
-    {
-        // Cứ mỗi khi cha truyền Parameter mới vào thì load lại data
-        await RefreshPhaseTasks();
-    }
-
-    private async Task OnValueChanged(Guid? value)
-    {
-        SelectedParentId = value; // Cập nhật nội bộ
-        await SelectedParentIdChanged.InvokeAsync(value); // Báo cho cha (Modal) biết để cập nhật updateRequest
-    }
     private Guid _lastProjectId;
     private Guid _lastPhaseId;
 
+    protected override async Task OnParametersSetAsync()
+    {
+        // Chỉ load lại khi ID thực sự thay đổi
+        if (ProjectId != _lastProjectId || ProjectSystemPhaseConfigId != _lastPhaseId)
+        {
+            await RefreshPhaseTasks();
+        }
+    }
+    private async Task OnValueChanged(Guid? value)
+    {
+        // Không gán trực tiếp SelectedParentId ở đây để tuân thủ Data Flow của Blazor
+        await SelectedParentIdChanged.InvokeAsync(value);
+    }
+
+    private async Task ForceRefresh()
+    {
+        _lastProjectId = Guid.Empty; // Ép buộc load lại
+        await RefreshPhaseTasks();
+    }
+
     private async Task RefreshPhaseTasks()
     {
-        // Chỉ load lại nếu thực sự có sự thay đổi về ID từ bên ngoài
-        if (ProjectId == _lastProjectId && ProjectSystemPhaseConfigId == _lastPhaseId) return;
-
         if (ProjectId == Guid.Empty || ProjectSystemPhaseConfigId == Guid.Empty) return;
 
         try
@@ -89,7 +95,7 @@
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading projects: {ex.Message}");
+            Console.WriteLine($"Error: {ex.Message}");
         }
     }
 }
