@@ -1,4 +1,3 @@
-@using Robolink.Application.DTOs
 
 @if (SubProjects?.Any() == true)
 {
@@ -19,12 +18,4 @@
             }
         </div>
     </div>
-}
-
-@code {
-    [Parameter]
-    public List<ProjectDto>? SubProjects { get; set; }
-
-    [Parameter]
-    public EventCallback<Guid> OnSelectSubProject { get; set; }
 }

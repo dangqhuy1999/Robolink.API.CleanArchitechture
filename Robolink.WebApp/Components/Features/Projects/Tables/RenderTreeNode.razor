@@ -125,10 +125,10 @@
         gap: 10px;
     }
 
-    .tree-row:hover {
-        background-color: #f8f9fa;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
+        .tree-row:hover {
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
 
     .action-buttons {
         display: flex;
@@ -141,9 +141,9 @@
         font-weight: bold;
     }
 
-    .tree-toggle:hover {
-        background-color: #f8f9fa;
-    }
+        .tree-toggle:hover {
+            background-color: #f8f9fa;
+        }
 
     .sub-projects-dropdown {
         background-color: #f8f9fa;
@@ -159,33 +159,6 @@
         padding-left: 10px;
         margin-top: 5px;
     }
+
 </style>
 
-@code {
-    [Parameter]
-    public ProjectDto Project { get; set; } = null!;
-
-    [Parameter]
-    public bool IsExpanded { get; set; } = false;
-
-    [Parameter]
-    public HashSet<Guid> ExpandedNodes { get; set; } = new();
-
-    [Parameter]
-    public EventCallback<Guid> OnToggle { get; set; }
-
-    [Parameter]
-    public EventCallback<Guid> OnSelectProject { get; set; }
-
-    [Parameter]
-    public EventCallback<Guid> OnAddSubProject { get; set; }
-
-    [Parameter]
-    public EventCallback<Guid> OnDelete { get; set; }
-
-    [Parameter]
-    public int Level { get; set; } = 0;
-
-    // ✅ NEW: Track dropdown visibility per node
-    private bool ShowSubProjects = false;
-}

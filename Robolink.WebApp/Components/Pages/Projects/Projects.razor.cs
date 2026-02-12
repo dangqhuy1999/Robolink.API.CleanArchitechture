@@ -5,10 +5,9 @@ using Robolink.Application.Commands.Projects;
 using Robolink.Application.DTOs;
 using Robolink.Application.Queries.Projects;
 using Robolink.WebApp.Components.Features.Projects.Shared;
-
 namespace Robolink.WebApp.Components.Pages.Projects;
 
-public partial class Projects
+public partial class Projects : ComponentBase
 {
     [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;

@@ -20,7 +20,7 @@ namespace Robolink.Core.Interfaces
         Task<IEnumerable<TEntity>> GetAllAsync();
         /// <summary>Find entities by predicate</summary>
         /// 
-        Task<(IEnumerable<TEntity> Items, int TotalCount)> GetPagedAsync(int startIndex, int count);
+        Task<(IEnumerable<TEntity> Items, int TotalCount)> GetPagedAsync(int startIndex, int count, Expression<Func<TEntity, bool>>? filter = null);
         Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate);
 
         /// <summary>Find single entity by predicate</summary>

@@ -1,0 +1,40 @@
+﻿@if (ShowModal)
+{
+    <div class="modal show d-block" style="background-color: rgba(0,0,0,0.5)">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Phase</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (IsLoading)
+                    {
+                        <div class="text-center"><div class="spinner-border"></div></div>
+                    }
+                    else if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                        <div class="alert alert-danger">@ErrorMessage</div>
+                    }
+                    else if (AvailablePhases == null || !AvailablePhases.Any())
+                    {
+                        <div class="alert alert-warning">All phases are already assigned.</div>
+                    }
+                    else
+                    {
+                        <div class="list-group">
+                            @foreach (var phase in AvailablePhases)
+                            {
+                                <button class="list-group-item list-group-item-action"
+                                        @onclick="() => OnAssign.InvokeAsync(phase.Id)">
+                                    <strong>@phase.Name</strong><br />
+                                    <small class="text-muted">@phase.Description</small>
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}

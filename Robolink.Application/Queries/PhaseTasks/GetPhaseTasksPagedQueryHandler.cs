@@ -3,6 +3,7 @@ using MediatR;
 using Robolink.Application.DTOs;
 using Robolink.Core.Entities;
 using Robolink.Core.Interfaces;
+using System.Linq.Expressions;
 
 namespace Robolink.Application.Queries.PhaseTasks
 {
@@ -19,28 +20,22 @@ namespace Robolink.Application.Queries.PhaseTasks
 
         public async Task<PagedResult<PhaseTaskDto>> Handle(GetPhaseTasksPagedQuery request, CancellationToken cancellationToken)
         {
-            // ✅ IMPORTANT: Get paged results WITH sub-projects loaded
-            (IEnumerable<PhaseTask> items, int totalCount) = await _phaseTaskRepo.GetPagedAsync(request.StartIndex, request.Count);
+            // Tạo filter để SQL chỉ lấy Task thuộc về đúng Phase hiện tại
+            Expression<Func<PhaseTask, bool>> filter = x => x.ProjectSystemPhaseConfigId == request.PhaseId;
 
-            // ✅ Ensure sub-projects are loaded by checking if they're null
-            var itemsWithSubPhaseTasks = items.ToList();
+            // Gọi Repo với filter đã tạo. 
+            // Repo mới (dùng ContextFactory) sẽ giúp tránh lỗi "Second operation"
+            (IEnumerable<PhaseTask> items, int totalCount) = await _phaseTaskRepo.GetPagedAsync(
+                request.StartIndex,
+                request.Count,
+                filter);
 
-            System.Diagnostics.Debug.WriteLine($"📦 Query returned {itemsWithSubPhaseTasks.Count} tasks");
-            foreach (var task in itemsWithSubPhaseTasks)
-            {
-                System.Diagnostics.Debug.WriteLine($"  📌 {task.Id}: SubTasks count = {task.SubPhaseTasksItems?.Count ?? 0}");
-            }
+            // Debug để kiểm tra dữ liệu đã lọc đúng chưa
+            System.Diagnostics.Debug.WriteLine($"📦 Phase {request.PhaseId} returned {items.Count()} tasks");
 
-            // 2. Map danh sách Entity (Project) sang danh sách DTO (ProjectDto)
-            var dtos = _mapper.Map<IEnumerable<PhaseTaskDto>>(itemsWithSubPhaseTasks);
+            // Map sang DTO
+            var dtos = _mapper.Map<IEnumerable<PhaseTaskDto>>(items);
 
-            System.Diagnostics.Debug.WriteLine($"📦 After mapping: {dtos.Count()} tasks");
-            foreach (var dto in dtos)
-            {
-                System.Diagnostics.Debug.WriteLine($"  📌 {dto.Id}: SubProjects DTO count = {dto.SubPhaseTasks?.Count ?? 0}");
-            }
-
-            // 3. Đóng gói vào "chiếc xe tải" PagedResult để gửi về cho UI
             return new PagedResult<PhaseTaskDto>(dtos, totalCount);
         }
     }

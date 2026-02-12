@@ -1,5 +1,3 @@
-@using Robolink.Application.DTOs
-
 @if (SubPhaseTasks?.Any() == true)
 {
     <div class="alert alert-light border-start border-info border-3 py-2">
@@ -19,12 +17,4 @@
             }
         </div>
     </div>
-}
-
-@code {
-    [Parameter]
-    public List<PhaseTaskDto>? SubPhaseTasks { get; set; }
-
-    [Parameter]
-    public EventCallback<Guid> OnSelectSubPhaseTask { get; set; }
 }

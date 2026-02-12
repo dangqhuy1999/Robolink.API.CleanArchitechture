@@ -37,23 +37,34 @@ namespace Robolink.Infrastructure.Repositories
                 .Where(e => !e.IsDeleted)
                 .ToListAsync();
         }
-        public async Task<(IEnumerable<TEntity> Items, int TotalCount)> GetPagedAsync(int startIndex, int count)
+        // Thêm tham số filter để UI truyền điều kiện lọc xuống
+        public async Task<(IEnumerable<TEntity> Items, int TotalCount)> GetPagedAsync(
+            int startIndex,
+            int count,
+            Expression<Func<TEntity, bool>>? filter = null) // Thêm cái này!
         {
             using var tempContext = await _contextFactory.CreateDbContextAsync();
             var tempDbSet = tempContext.Set<TEntity>();
 
+            // 1. Khởi tạo query cơ bản
             var query = tempDbSet.AsNoTracking().Where(e => !e.IsDeleted);
-            
-            // ✅ For Project entity, include related entities
-            if (typeof(TEntity).Name == "Project")
+
+            // 2. Áp dụng bộ lọc (Ví dụ: Chỉ lấy task của Phase X)
+            if (filter != null)
             {
-                query = query
-                    .Include("Client")
-                    .Include("Manager")
-                    .Include("ParentProject")
-                    .Include("SubProjectsItems"); // ✅ THIS IS CRITICAL!
+                query = query.Where(filter);
             }
-     
+
+            // 3. Include dữ liệu liên quan cho PhaseTask
+            if (typeof(TEntity).Name == "PhaseTask")
+            {
+                query = query.Include("SubPhaseTasksItems"); // Quan trọng để lấy task con!
+            }
+            else if (typeof(TEntity).Name == "Project")
+            {
+                query = query.Include("Client").Include("Manager").Include("SubProjectsItems");
+            }
+
             var totalCount = await query.CountAsync();
             var items = await query
                 .OrderByDescending(x => x.CreatedAt)

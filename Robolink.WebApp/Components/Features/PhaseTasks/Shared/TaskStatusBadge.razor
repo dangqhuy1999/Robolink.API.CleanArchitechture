@@ -10,19 +10,3 @@ else
 {
     <span class="badge bg-secondary">⭕ Pending</span>
 }
-
-@code {
-    [Parameter]
-    public int Status { get; set; }
-}@if (Status == 2)
-{
-    <span class="badge bg-success">✅ Completed</span>
-}
-else if (Status == 1)
-{
-    <span class="badge bg-warning">⏳ In Progress</span>
-}
-else
-{
-    <span class="badge bg-secondary">⭕ Pending</span>
-}

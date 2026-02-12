@@ -1,0 +1,34 @@
+﻿<div class="mb-3">
+    <label class="form-label">
+        <i class="bi bi-diagram-2"></i> Parent Task (Optional)
+    </label>
+    <div class="input-group">
+        <InputSelect class="form-control"
+                     TValue="Guid ?"
+                     Value="SelectedParentId"
+                     ValueChanged="OnValueChanged"
+                     ValueExpression="@(() => SelectedParentId)">
+            <option value="@((Guid?)null)">-- None (Main Phase Task) --</option>
+            @if (AvailablePhaseTasks != null)
+            {
+                @foreach (var task in AvailablePhaseTasks.OrderBy(t => t.Name))
+                {
+                    @* Để Blazor tự hiểu Guid, không cần ToString() *@
+                    <option value="@task.Id" disabled=@(task.Id == ExcludePhaseTaskId)>
+                        @task.Name - @task.AssignedStaffName @* Hiển thị Name thay vì Id cho dễ nhìn *@
+                    </option>
+                }
+            }
+        </InputSelect>
+        <button type="button" class="btn btn-outline-secondary" @onclick="RefreshPhaseTasks" 
+                title="Refresh available tasks">
+            <i class="bi bi-arrow-clockwise"></i>
+        </button>
+    </div>
+    @if (!string.IsNullOrEmpty(CurrentParentName))
+    {
+        <small class="text-info">
+            <i class="bi bi-info-circle"></i> Current parent: <strong>@CurrentParentName</strong>
+        </small>
+    }
+</div>

@@ -1,5 +1,3 @@
-@using Robolink.Application.DTOs
-
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <button class="btn btn-outline-secondary btn-sm" @onclick="OnBack">
@@ -14,7 +12,7 @@
         }
     </div>
     <div class="d-flex gap-2">
-        <button class="btn btn-success" @onclick="OnAddTask" disabled="@(IsLoading || PhaseConfig == null)">
+        <button class="btn btn-success" @onclick="OnAddTask" disabled=@(IsLoading || PhaseConfig == null)>
             <i class="bi bi-plus-circle"></i> Add Task
         </button>
         <button class="btn btn-secondary" @onclick="OnRefresh">
@@ -22,25 +20,3 @@
         </button>
     </div>
 </div>
-
-@code {
-    [Parameter]
-    public ProjectPhaseConfigDto? PhaseConfig { get; set; }
-
-    [Parameter]
-    public bool IsLoading { get; set; }
-
-    [Parameter]
-    public EventCallback OnBack { get; set; }
-
-    [Parameter]
-    public EventCallback OnAddTask { get; set; }
-
-    [Parameter]
-    public EventCallback OnRefresh { get; set; }
-
-    private string GetPhaseName()
-    {
-        return PhaseConfig?.CustomPhaseName ?? PhaseConfig?.SystemPhase?.Name ?? "Unknown Phase";
-    }
-}

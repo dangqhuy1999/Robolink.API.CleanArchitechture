@@ -9,7 +9,7 @@ using Robolink.WebApp.Components.Features.Projects.Shared;
 
 namespace Robolink.WebApp.Components.Pages.PhaseTasks;
 
-public partial class PhaseTasks
+public partial class PhaseTasks : ComponentBase
 {
     [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
@@ -23,6 +23,7 @@ public partial class PhaseTasks
     private bool showCreateModal = false;
     private bool showEditModal = false;
     private bool showQuickAddSubModal = false;
+    private string? modalErrorMessage = null;
     private Guid selectedPhaseTaskId = Guid.Empty;
 
     // Pagination
@@ -44,34 +45,45 @@ public partial class PhaseTasks
     // ✅ LOAD PROJECTS WITH PAGINATION
     private async Task LoadPhaseTasks()
     {
+        if (ProjectSystemPhaseConfigId == Guid.Empty) return;
+
         isLoading = true;
         try
         {
-            // 1. Lấy TOÀN BỘ task của Phase này (Bỏ phân trang phẳng nếu số lượng task không quá lớn > 1000)
-            // Hoặc Query này phải được viết để trả về Task cha kèm SubTasks bên trong Items
-            var result = await Mediator.Send(new GetPhaseTasksPagedQuery(0, 1000));
-            var allItems = result.Items;
+            // 1. Lấy đúng Task của Phase này (startIndex=0, count=1000 để lấy đủ cha con)
+            var result = await Mediator.Send(new GetPhaseTasksPagedQuery(0, 1000, ProjectSystemPhaseConfigId));
+        
+            var allItems = result.Items.ToList();
 
-            // 2. Lọc ra danh sách cha gốc
-            phaseTasks = allItems.Where(p => !p.ParentPhaseTaskId.HasValue).ToList();
+            // 2. Lọc danh sách Cha
+            // Lúc này allItems đã sạch, chỉ toàn task của Phase này nên không sợ bị lẫn task phase khác
+            var allParentTasks = allItems.Where(p => !p.ParentPhaseTaskId.HasValue).ToList();
 
-            // 3. Quan trọng: Tự tay gắn con vào cha nếu Backend chưa làm
-            foreach (var parent in phaseTasks)
+            // 3. Gán con vào cha (Nếu Mapping chưa tự làm)
+            foreach (var parent in allParentTasks)
             {
                 parent.SubPhaseTasks = allItems
                     .Where(sub => sub.ParentPhaseTaskId == parent.Id)
                     .ToList();
             }
 
-            // 4. Tính toán phân trang dựa trên danh sách CHA
-            totalPhaseTasks = phaseTasks.Count;
+            // 4. Thực hiện phân trang trên danh sách Cha
+            totalPhaseTasks = allParentTasks.Count;
             totalPages = (int)Math.Ceiling((double)totalPhaseTasks / pageSize);
 
-            // Chỉ hiển thị các cha của trang hiện tại
-            phaseTasks = phaseTasks.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+            phaseTasks = allParentTasks
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
         }
-        catch (Exception ex) { /* handle error */ }
-        finally { isLoading = false; }
+        catch (Exception ex) 
+        { 
+            modalErrorMessage = ex.Message; // Gán lỗi để hiển thị lên UI
+        }
+        finally 
+        { 
+            isLoading = false; 
+        }
     }
 
     // ✅ GO TO PAGE

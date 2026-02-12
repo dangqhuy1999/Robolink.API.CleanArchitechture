@@ -1,5 +1,3 @@
-@using Robolink.Application.DTOs
-@using Robolink.WebApp.Components.Features.SystemPhases.Shared
 
 <div class="table-responsive">
     <table class="table table-hover table-striped table-sm">
@@ -52,44 +50,13 @@
         </tbody>
     </table>
 </div>
-
-@code {
-    [Parameter]
-    public List<SystemPhaseDto>? Phases { get; set; }
-
-    [Parameter]
-    public EventCallback<Guid> OnEdit { get; set; }
-
-    [Parameter]
-    public EventCallback<Guid> OnDelete { get; set; }
-
-    [Parameter]
-    public EventCallback OnRefresh { get; set; }
-
-    private Dictionary<Guid, int> UsageCount = new();
-
-    private async Task HandleEdit(Guid phaseId)
-    {
-        await OnEdit.InvokeAsync(phaseId);
-    }
-
-    private async Task HandleDelete(Guid phaseId)
-    {
-        await OnDelete.InvokeAsync(phaseId);
-    }
-
-    private int GetUsageCount(Guid phaseId)
-    {
-        return UsageCount.ContainsKey(phaseId) ? UsageCount[phaseId] : 0;
-    }
-}
-
 <style>
     .phase-row {
         transition: background-color 0.2s ease;
     }
 
-    .phase-row:hover {
-        background-color: #f8f9fa;
-    }
+        .phase-row:hover {
+            background-color: #f8f9fa;
+        }
+
 </style>

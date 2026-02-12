@@ -1,0 +1,37 @@
+﻿@if (Project != null)
+{
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <small class="text-muted">Manager</small>
+                    <h6>@Project.ManagerName</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <small class="text-muted">Client</small>
+                    <h6>@Project.ClientName</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <small class="text-muted">Budget</small>
+                    <h6>$@(Project.CustomerBudget?.ToString("N0") ?? "N/A")</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <small class="text-muted">Deadline</small>
+                    <h6>@Project.Deadline.ToString("MMM dd, yyyy")</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+}

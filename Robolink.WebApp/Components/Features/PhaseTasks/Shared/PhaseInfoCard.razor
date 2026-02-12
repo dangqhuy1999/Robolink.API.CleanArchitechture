@@ -1,6 +1,4 @@
-﻿@using Robolink.Application.DTOs
-
-@if (PhaseConfig != null)
+﻿@if (PhaseConfig != null)
 {
     <div class="card mb-4">
         <div class="card-body">
@@ -28,14 +26,4 @@
             </div>
         </div>
     </div>
-}
-
-@code {
-    [Parameter]
-    public ProjectPhaseConfigDto? PhaseConfig { get; set; }
-
-    private int GetCompletedCount()
-    {
-        return PhaseConfig?.Tasks?.Count(t => (int)t.Status == 2) ?? 0;
-    }
 }
