@@ -1,6 +1,6 @@
 using MediatR;
 using AutoMapper;
-using Robolink.Application.DTOs;
+using Robolink.Shared.DTOs;
 using Robolink.Core.Interfaces;
 
 namespace Robolink.Application.Commands.ProjectPhases

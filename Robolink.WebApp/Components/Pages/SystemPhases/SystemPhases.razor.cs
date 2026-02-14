@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Components;
 using Robolink.Application.Commands.SystemPhases;
-using Robolink.Application.DTOs;
+using Robolink.Shared.DTOs;
 using Robolink.Application.Queries.SystemPhases;
 using Robolink.Application.Queries.ProjectPhases;
 using Microsoft.JSInterop;

@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Robolink.Application.DTOs;
+using Robolink.Shared.DTOs;
 using Robolink.Core.Entities;
 
 namespace Robolink.Application.Mappers

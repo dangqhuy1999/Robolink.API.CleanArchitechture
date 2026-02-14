@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Robolink.Core.Enums
+namespace Robolink.Shared.Enums
 {
     public enum ProjectPriority { Low, Medium, High, Critical }
 }

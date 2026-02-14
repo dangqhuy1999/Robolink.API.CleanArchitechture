@@ -1,6 +1,6 @@
 using System;
 
-namespace Robolink.Application.DTOs
+namespace Robolink.Shared.DTOs
 {
     /// <summary>DTO for displaying Client</summary>
     public class ClientDto

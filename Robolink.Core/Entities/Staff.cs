@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Robolink.Core.Enums;
+using Robolink.Shared.Enums;
 
 namespace Robolink.Core.Entities
 {

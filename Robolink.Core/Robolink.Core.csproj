@@ -15,4 +15,8 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Robolink.Shared\Robolink.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

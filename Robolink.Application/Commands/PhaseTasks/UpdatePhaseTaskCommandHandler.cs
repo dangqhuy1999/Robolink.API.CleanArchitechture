@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
-using Robolink.Application.DTOs;
+using Robolink.Shared.DTOs;
 using Robolink.Core.Entities;
 using Robolink.Core.Interfaces;
 

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel.DataAnnotations.Schema; // Thêm dòng này
-using Robolink.Core.Enums;
+using Robolink.Shared.Enums;
 
 namespace Robolink.Core.Entities
 {

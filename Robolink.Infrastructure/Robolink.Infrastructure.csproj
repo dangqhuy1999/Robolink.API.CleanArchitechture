@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Robolink.Application\Robolink.Application.csproj" />
+    <ProjectReference Include="..\Robolink.Shared\Robolink.Shared.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Robolink.Application.DTOs
+namespace Robolink.Shared.DTOs
 {
     /// <summary>DTO for displaying project</summary>
     public class ProjectDto

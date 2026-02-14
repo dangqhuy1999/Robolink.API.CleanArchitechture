@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Xunit;
 using Moq;
 using Robolink.Application.Commands.PhaseTasks;
-using Robolink.Application.DTOs;
+using Robolink.Shared.DTOs;
 using Robolink.Core.Entities;
-using Robolink.Core.Enums;
+using Robolink.Shared.Enums;
 using Robolink.Core.Interfaces;
 using AutoMapper;
 

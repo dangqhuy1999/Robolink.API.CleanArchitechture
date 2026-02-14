@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Robolink.Application.DTOs
+namespace Robolink.Shared.DTOs
 {
     // T là kiểu dữ liệu linh hoạt (sau này dùng cho StaffDto, ClientDto đều được)
     public class PagedResult<T>

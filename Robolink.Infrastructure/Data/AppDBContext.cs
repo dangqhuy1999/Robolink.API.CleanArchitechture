@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Robolink.Core.Entities;
-using Robolink.Core.Enums;
+using Robolink.Shared.Enums;
 
 namespace Robolink.Infrastructure.Data
 {

@@ -1,6 +1,6 @@
 ﻿using MediatR;
-using Robolink.Application.DTOs;
-using Robolink.Core.Enums;
+using Robolink.Shared.DTOs;
+using Robolink.Shared.Enums;
 
 namespace Robolink.Application.Commands.PhaseTasks
 {

@@ -1,7 +1,7 @@
 using System;
-using Robolink.Core.Enums;
+using Robolink.Shared.Enums;
 
-namespace Robolink.Application.DTOs
+namespace Robolink.Shared.DTOs
 {
     /// <summary>DTO for displaying Staff</summary>
     public class StaffDto

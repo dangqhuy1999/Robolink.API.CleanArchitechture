@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using Robolink.Application.DTOs;
+using Robolink.Shared.DTOs;
 using Robolink.Core.Entities;
-using Robolink.Core.Enums;
+using Robolink.Shared.Enums;
 
 namespace Robolink.Application.Mappers
 {

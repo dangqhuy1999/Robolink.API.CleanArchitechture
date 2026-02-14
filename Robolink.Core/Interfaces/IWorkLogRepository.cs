@@ -1,5 +1,5 @@
 using Robolink.Core.Entities;
-using Robolink.Core.Enums;
+using Robolink.Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Components;
-using Robolink.Application.DTOs;
+using Robolink.Shared.DTOs;
 using Robolink.Application.Queries.PhaseTasks;
 
 namespace Robolink.WebApp.Components.Features.PhaseTasks.Shared

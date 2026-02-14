@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using Robolink.Application.DTOs;
+using Robolink.Shared.DTOs;
 using Robolink.Application.Queries.Projects;
 
 namespace Robolink.WebApp.Components.Features.Projects.Shared

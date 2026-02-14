@@ -1,5 +1,5 @@
 using MediatR;
-using Robolink.Application.DTOs;
+using Robolink.Shared.DTOs;
 
 namespace Robolink.Application.Commands.SystemPhases
 {

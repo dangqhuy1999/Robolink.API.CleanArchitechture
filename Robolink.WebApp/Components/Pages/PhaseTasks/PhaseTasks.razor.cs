@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Robolink.Application.Commands.PhaseTasks;
-using Robolink.Application.DTOs;
+using Robolink.Shared.DTOs;
 using Robolink.Application.Queries.PhaseTasks;
 using Robolink.WebApp.Components.Features.PhaseTasks.Shared;
 using Robolink.WebApp.Components.Features.Projects.Shared;

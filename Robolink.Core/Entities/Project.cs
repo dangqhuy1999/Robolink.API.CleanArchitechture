@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
-using Robolink.Core.Enums;
+using Robolink.Shared.Enums;
 
 namespace Robolink.Core.Entities
 {

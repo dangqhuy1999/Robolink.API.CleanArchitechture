@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Robolink.Core.Entities;
-using Robolink.Core.Enums;
+using Robolink.Shared.Enums;
 using Robolink.Core.Interfaces;
 using Robolink.Infrastructure.Data;
 using System;

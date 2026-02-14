@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Robolink.Application.Commands.PhaseTasks;
-using Robolink.Application.DTOs;
+using Robolink.Shared.DTOs;
 using Robolink.Application.Queries.PhaseTasks;
 using Robolink.Application.Queries.Staff;
-using Robolink.Core.Enums;
+using Robolink.Shared.Enums;
 
 namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
 {

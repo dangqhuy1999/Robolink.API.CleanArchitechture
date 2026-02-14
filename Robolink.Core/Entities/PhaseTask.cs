@@ -1,5 +1,5 @@
 ﻿using Robolink.Core.Common;
-using Robolink.Core.Enums;
+using Robolink.Shared.Enums;
 using System;
 
 namespace Robolink.Core.Entities

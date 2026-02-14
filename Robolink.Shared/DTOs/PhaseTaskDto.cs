@@ -1,7 +1,7 @@
-﻿using Robolink.Core.Enums;
+﻿using Robolink.Shared.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace Robolink.Application.DTOs
+namespace Robolink.Shared.DTOs
 {
     public class PhaseTaskDto
     {

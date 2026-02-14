@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Robolink.Application.DTOs;
+using Robolink.Shared.DTOs;
 
 namespace Robolink.WebApp.Components.Features.Projects.Shared
 {

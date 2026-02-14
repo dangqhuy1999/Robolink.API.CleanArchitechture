@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Robolink.Application.Commands.SystemPhases;
-using Robolink.Application.DTOs;
+using Robolink.Shared.DTOs;
 using Robolink.Application.Queries.SystemPhases;
 
 namespace Robolink.WebApp.Components.Features.SystemPhases.Modals

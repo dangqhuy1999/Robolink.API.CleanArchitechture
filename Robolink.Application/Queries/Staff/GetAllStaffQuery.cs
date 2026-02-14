@@ -1,5 +1,5 @@
 using MediatR;
-using Robolink.Application.DTOs;
+using Robolink.Shared.DTOs;
 using System.Collections.Generic;
 
 namespace Robolink.Application.Queries.Staff

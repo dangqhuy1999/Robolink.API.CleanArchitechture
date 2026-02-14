@@ -1,4 +1,4 @@
-﻿namespace Robolink.Application.DTOs
+﻿namespace Robolink.Shared.DTOs
 {
     public class SystemPhaseDto
     {
