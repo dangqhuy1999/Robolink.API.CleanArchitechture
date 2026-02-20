@@ -3,6 +3,8 @@ using Refit;
 using Robolink.Application;
 using Robolink.Infrastructure;
 using Robolink.Shared.Interfaces.API.PhaseTasks;
+using Robolink.Shared.Interfaces.API.Clients;
+using Robolink.Shared.Interfaces.API.Staffs;
 namespace Robolink.WebApp
 {
     public static class DependencyInjection
@@ -30,8 +32,12 @@ namespace Robolink.WebApp
             */
             services.AddRefitClient<IPhaseTaskApi>(settings)
                     .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
-            
-            
+            services.AddRefitClient<IClientApi>(settings)
+                    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
+            services.AddRefitClient<IStaffApi>(settings)
+                    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
+
+
             return services;
         }
     }
