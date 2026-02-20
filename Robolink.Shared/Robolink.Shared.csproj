@@ -12,4 +12,13 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Interfaces\API\ProjectPhases\" />
+    <Folder Include="Interfaces\API\Projects\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Refit" Version="10.0.1" />
+  </ItemGroup>
+
 </Project>

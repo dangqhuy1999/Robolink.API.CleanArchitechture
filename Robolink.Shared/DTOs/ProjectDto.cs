@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using System.ComponentModel.DataAnnotations;
 
 namespace Robolink.Shared.DTOs
 {
-    /// <summary>DTO for displaying project</summary>
+    // <summary>DTO for displaying project</summary>
     public class ProjectDto
     {
         public Guid Id { get; set; }

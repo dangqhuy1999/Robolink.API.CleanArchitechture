@@ -50,12 +50,14 @@ namespace Robolink.Application.Tests.Commands.PhaseTasks
 
             var command = new UpdatePhaseTaskCommand
             {
-                Id = taskId,
-                Name = "New Name",
-                Description = "New Description",
-                Status = Task_Status.InProgress,
-                Priority = 2,
-                CreatedBy = "Test User"
+                Id = Guid.NewGuid(),
+                UpdatedBy = "Admin",
+                // ✅ Phải đưa vào trong object Request như thế này:
+                Request = new UpdatePhaseTaskRequest
+                {
+                    Name = "Task mới",
+                    Description = "Mô tả gì đó"
+                }
             };
 
             var dto = new PhaseTaskDto { Id = taskId, Name = "New Name" };
@@ -105,10 +107,14 @@ namespace Robolink.Application.Tests.Commands.PhaseTasks
 
             var command = new UpdatePhaseTaskCommand
             {
-                Id = taskId,
-                Name = null,  // ✅ Không thay đổi
-                AssignedStaffId = null,  // ✅ Giữ giá trị cũ
-                CreatedBy = "Test User"
+                Id = Guid.NewGuid(),
+                UpdatedBy = "Admin",
+                // ✅ Phải đưa vào trong object Request như thế này:
+                Request = new UpdatePhaseTaskRequest
+                {
+                    Name = "Task mới",
+                    Description = "Mô tả gì đó"
+                }
             };
 
             var dto = new PhaseTaskDto { Id = taskId, Name = originalName };

@@ -12,6 +12,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Refit" Version="10.0.1" />
+    <PackageReference Include="Refit.HttpClientFactory" Version="10.0.1" />
+    <PackageReference Include="Refit.Newtonsoft.Json" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>

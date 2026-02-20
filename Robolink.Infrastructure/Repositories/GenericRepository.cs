@@ -26,15 +26,36 @@ namespace Robolink.Infrastructure.Repositories
         }
 
         // ========== READ ==========
-        public virtual async Task<TEntity?> GetByIdAsync(Guid id)
+        public virtual async Task<TEntity?> GetByIdAsync(Guid id, params Expression<Func<TEntity, object>>[] includes)
         {
-            return await _dbSet.FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted);
+            // Tạo một Context mới toanh chỉ dành riêng cho lần đọc này
+            using var context = _contextFactory.CreateDbContext();
+
+            // Lấy DbSet từ cái context mới tạo này
+            IQueryable<TEntity> query = context.Set<TEntity>();
+
+            // Nạp các bảng liên quan
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+
+            return await query.AsNoTracking() // Đọc dữ liệu thì nên dùng AsNoTracking
+            .FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted);
         }
 
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
         {
-            return await _dbSet
+
+            // Tạo một context riêng cho luồng này
+            using var context = _contextFactory.CreateDbContext();
+
+            return await context.Set<TEntity>()
                 .Where(e => !e.IsDeleted)
+                .AsNoTracking() // Thêm cái này để tăng tốc độ đọc dữ liệu
                 .ToListAsync();
         }
         // Thêm tham số filter để UI truyền điều kiện lọc xuống
@@ -89,25 +110,41 @@ namespace Robolink.Infrastructure.Repositories
 
         public virtual async Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return await _dbSet
+            // Tạo một context riêng cho luồng này
+            using var context = _contextFactory.CreateDbContext();
+
+            return await context.Set<TEntity>()
+                .AsNoTracking() // Thêm cái này để tăng tốc độ đọc dữ liệu
                 .Where(e => !e.IsDeleted)
                 .FirstOrDefaultAsync(predicate);
         }
 
         public virtual async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return await _dbSet
+            // Tạo một context riêng cho luồng này
+            using var context = _contextFactory.CreateDbContext();
+
+            return await context.Set<TEntity>()
+                .AsNoTracking() // Thêm cái này để tăng tốc độ đọc dữ liệu
                 .Where(e => !e.IsDeleted)
                 .AnyAsync(predicate);
         }
 
         public virtual async Task<int> CountAsync(Expression<Func<TEntity, bool>>? predicate = null)
         {
-            var query = _dbSet.Where(e => !e.IsDeleted);
-            
-            if (predicate != null)
-                query = query.Where(predicate);
+            // 1. Mượn một context mới toanh
+            using var context = _contextFactory.CreateDbContext();
 
+            // 2. Lấy tập dữ liệu và lọc những ông chưa bị xóa
+            var query = context.Set<TEntity>().Where(e => !e.IsDeleted);
+
+            // 3. Nếu có điều kiện lọc riêng (predicate) thì áp dụng thêm
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+
+            // 4. Đếm và trả về kết quả (Xong hàm này context tự hủy nhờ 'using')
             return await query.CountAsync();
         }
 
@@ -116,7 +153,10 @@ namespace Robolink.Infrastructure.Repositories
         public virtual async Task AddAsync(TEntity entity)
         {
             entity.CreatedAt = DateTime.UtcNow;
-            await _dbSet.AddAsync(entity);
+            using var context = _contextFactory.CreateDbContext();
+            await context.Set<TEntity>().AddAsync(entity);
+            // 4. BẮT BUỘC: Lưu thay đổi xuống Database
+            await context.SaveChangesAsync();
         }
         public virtual async Task AddRangeAsync(IEnumerable<TEntity> entities)
         {
@@ -125,57 +165,101 @@ namespace Robolink.Infrastructure.Repositories
             {
                 entity.CreatedAt = DateTime.UtcNow;
             }
-            await _dbSet.AddRangeAsync(entityList);
+            using var context = _contextFactory.CreateDbContext();
+            await context.Set<TEntity>().AddRangeAsync(entityList);
+            // 4. BẮT BUỘC: Lưu thay đổi xuống Database
+            await context.SaveChangesAsync();
         }
         // ========== UPDATE ==========
         public virtual async Task UpdateAsync(TEntity entity)
         {
+            // 1. Cập nhật thời gian sửa đổi
             entity.UpdatedAt = DateTime.UtcNow;
-            _dbSet.Update(entity);
-            await Task.CompletedTask;
+
+            // 2. Mượn context
+            using var context = _contextFactory.CreateDbContext();
+
+            // 3. Đánh dấu entity này là đã bị thay đổi (Attach và set state là Modified)
+            context.Set<TEntity>().Update(entity);
+
+            // 4. BẮT BUỘC: Lưu thay đổi xuống Database
+            await context.SaveChangesAsync();
         }
 
         public virtual async Task UpdateRangeAsync(IEnumerable<TEntity> entities)
         {
             var entityList = entities.ToList();
+
+            // 1. Cập nhật thời gian cho toàn bộ danh sách
             foreach (var entity in entityList)
             {
                 entity.UpdatedAt = DateTime.UtcNow;
             }
-            _dbSet.UpdateRange(entityList);
-            await Task.CompletedTask;
+
+            // 2. Mượn một context mới
+            using var context = _contextFactory.CreateDbContext();
+
+            // 3. Đưa danh sách vào để EF bắt đầu theo dõi (Tracking)
+            context.Set<TEntity>().UpdateRange(entityList);
+
+            // 4. QUAN TRỌNG NHẤT: Lưu tất cả thay đổi xuống DB trong 1 lần gửi
+            await context.SaveChangesAsync();
         }
 
         // ========== DELETE ==========
         public virtual async Task SoftDeleteAsync(Guid id)
         {
-            var entity = await _dbSet.FirstOrDefaultAsync(e => e.Id == id);
+            // 1. Mượn context
+            using var context = _contextFactory.CreateDbContext();
+
+            // 2. Tìm entity (không dùng AsNoTracking ở đây vì mình cần sửa nó)
+            var entity = await context.Set<TEntity>().FirstOrDefaultAsync(e => e.Id == id);
+
             if (entity != null)
             {
+                // 3. Đánh dấu xóa và cập nhật thời gian
                 entity.IsDeleted = true;
                 entity.UpdatedAt = DateTime.UtcNow;
-                _dbSet.Update(entity);
+
+                // 4. Lưu trực tiếp (vì cùng context nên EF tự hiểu đây là Update)
+                await context.SaveChangesAsync();
             }
         }
 
         public virtual async Task DeleteAsync(Guid id)
         {
-            var entity = await _dbSet.FirstOrDefaultAsync(e => e.Id == id);
+            // 1. Mượn context
+            using var context = _contextFactory.CreateDbContext();
+
+            // 2. Tìm entity
+            var entity = await context.Set<TEntity>().FirstOrDefaultAsync(e => e.Id == id);
+
             if (entity != null)
             {
-                _dbSet.Remove(entity);
+                // 3. Đánh dấu xóa
+                context.Set<TEntity>().Remove(entity);
+
+                // 4. BẮT BUỘC: Nhấn nút "Gửi" lệnh xuống DB
+                await context.SaveChangesAsync();
             }
         }
 
         public virtual async Task SoftDeleteRangeAsync(IEnumerable<Guid> ids)
         {
-            var entities = await _dbSet.Where(e => ids.Contains(e.Id)).ToListAsync();
+            // 1. Mượn context
+            using var context = _contextFactory.CreateDbContext();
+
+            // 2. Tìm entity (không dùng AsNoTracking ở đây vì mình cần sửa nó)
+            var entities = await context.Set<TEntity>().Where(e => ids.Contains(e.Id)).ToListAsync();
             foreach (var entity in entities)
             {
                 entity.IsDeleted = true;
                 entity.UpdatedAt = DateTime.UtcNow;
             }
-            _dbSet.UpdateRange(entities);
+            // 3. Đánh dấu update
+            context.Set<TEntity>().UpdateRange(entities);
+            // 4. BẮT BUỘC: Nhấn nút "Gửi" lệnh xuống DB
+            await context.SaveChangesAsync();
         }
 
         // ========== SAVE ==========

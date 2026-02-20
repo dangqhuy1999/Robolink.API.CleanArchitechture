@@ -1,19 +1,20 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using Robolink.Application.Commands.PhaseTasks;
 using Robolink.Shared.DTOs;
-using Robolink.Application.Queries.Clients;
-using Robolink.Application.Queries.PhaseTasks;
-using Robolink.Application.Queries.Staff;
-using System.Xml.Linq;
+using Robolink.Shared.Interfaces.API.Clients;
+using Robolink.Shared.Interfaces.API.PhaseTasks;
+using Robolink.Shared.Interfaces.API.Staffs;
 
 namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals // Thay bằng namespace thực tế của em
 {
     public partial class CreatePhaseTaskModal : ComponentBase
     {
         // Inject Service thay cho @inject
-        [Inject] private IMediator Mediator { get; set; } = null!;
+        // Thay vì dùng Mediator, em dùng Refit Client
+        [Inject] private IPhaseTaskApi PhaseTaskApi { get; set; } = null!;
+        [Inject] private IClientApi ClientApi { get; set; } = null!;
+        [Inject] private IStaffApi StaffApi { get; set; } = null!;
+
         [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
         // Thêm Parameter ở trên
         [Parameter] public Guid ProjectId { get; set; }
@@ -51,8 +52,8 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals // Thay bằng n
         {
             try
             {
-                var result = await Mediator.Send(new GetAllClientsQuery());
-                clients = result?.ToList() ?? new();
+                var result = await ClientApi.GetAllClientsAsync();
+                clients = result?.Items?.ToList() ?? new();
             }
             catch (Exception ex)
             {
@@ -64,8 +65,8 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals // Thay bằng n
         {
             try
             {
-                var result = await Mediator.Send(new GetAllStaffQuery());
-                staffs = result?.ToList() ?? new();
+                var result = await StaffApi.GetAllStaffsAsync();
+                staffs = result?.Items?.ToList() ?? new();
             }
             catch (Exception ex)
             {
@@ -77,11 +78,9 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals // Thay bằng n
         {
             try
             {
-                var result = await Mediator.Send(new CreatePhaseTaskCommand
-                {
-                    Request = request,
-                    CreatedBy = "Huy Dang"
-                });
+
+                // WebApp CHỈ gửi Request thô đi, không quan tâm CreatedBy hay Command
+                var result = await PhaseTaskApi.CreateAsync(request);
 
                 if (result != null)
                 {

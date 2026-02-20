@@ -25,36 +25,22 @@ namespace Robolink.Application.Commands.PhaseTasks
 
         public async Task<PhaseTaskDto> Handle(CreatePhaseTaskCommand request, CancellationToken cancellationToken)
         {
-            // ✅ Validate phase config exists
+            // 1. Kiểm tra config
             var phaseConfig = await _phaseConfigRepo.GetByIdAsync(request.Request.ProjectSystemPhaseConfigId);
-            if (phaseConfig == null)
-                throw new InvalidOperationException("Phase configuration not found");
+            if (phaseConfig == null) throw new InvalidOperationException("Phase configuration not found");
 
-            // ✅ Create task with ALL properties
-            var task = new PhaseTask
-            {
-                Name = request.Request.Name,
-                ProjectId = request.Request.ProjectId,
-                ProjectSystemPhaseConfigId = request.Request.ProjectSystemPhaseConfigId,
-                Description = request.Request.Description,
-                AssignedStaffId = request.Request.AssignedStaffId,
-                DueDate = request.Request.DueDate,
-                Status = Task_Status.Pending,
-                Priority = request.Request.Priority,              // ✅ ADDED
-                EstimatedHours = request.Request.EstimatedHours,  // ✅ ADDED
-                ParentPhaseTaskId = request.Request.ParentPhaseTaskId,  // ✅ ADDED
-                CreatedBy = request.CreatedBy ?? "System",
-                RowVersion = Array.Empty<byte>()  // ✅ Initialize for concurrency
-            };
+            // 2. DÙNG MAPPER ĐỂ TẠO ENTITY (Cực gọn!)
+            var task = _mapper.Map<PhaseTask>(request.Request);
 
-            // ✅ Save
+            // Gán nốt những thông tin thuộc về "Hệ thống" mà Request không có
+            task.CreatedBy = request.CreatedBy ?? "System";
+
+            // 3. Lưu vào DB
             await _taskRepo.AddAsync(task);
-            await _taskRepo.SaveChangesAsync();
 
-            // ✅ Return DTO with mapping
+            // 4. Map ngược lại DTO để trả về
             var dto = _mapper.Map<PhaseTaskDto>(task);
             dto.PhaseName = phaseConfig.CustomPhaseName ?? phaseConfig.SystemPhase?.Name;
-            // AssignedStaffName nếu cần, có thể load từ Staff table
 
             return dto;
         }

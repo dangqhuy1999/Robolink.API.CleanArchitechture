@@ -1,4 +1,4 @@
-using Robolink.Core.Common;
+﻿using Robolink.Core.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -13,8 +13,8 @@ namespace Robolink.Core.Interfaces
     public interface IGenericRepository<TEntity> where TEntity : EntityBase
     {
         // ========== READ ==========
-        /// <summary>Get entity by ID</summary>
-        Task<TEntity?> GetByIdAsync(Guid id);
+        // Thêm tham số includes để cho phép nạp các bảng liên quan
+        Task<TEntity?> GetByIdAsync(Guid id, params Expression<Func<TEntity, object>>[] includes);
 
         /// <summary>Get all entities (respects soft delete by default)</summary>
         Task<IEnumerable<TEntity>> GetAllAsync();

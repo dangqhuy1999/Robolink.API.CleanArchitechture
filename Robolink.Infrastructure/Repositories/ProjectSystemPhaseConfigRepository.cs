@@ -83,13 +83,7 @@ namespace Robolink.Infrastructure.Repositories
 
             return maxSequence + 1;
         }
-        // Thêm vào trong ProjectSystemPhaseConfigRepository.cs
-        public override async Task<ProjectSystemPhaseConfig?> GetByIdAsync(Guid id)
-        {
-            return await _dbSet
-                .Include(pc => pc.SystemPhase) // ✅ Quan trọng nhất là dòng này
-                .FirstOrDefaultAsync(pc => pc.Id == id && !pc.IsDeleted);
-        }
+        
 
         // Thêm method này
         public async Task<IEnumerable<ProjectSystemPhaseConfig>> GetBySystemPhaseIdAsync(Guid systemPhaseId)

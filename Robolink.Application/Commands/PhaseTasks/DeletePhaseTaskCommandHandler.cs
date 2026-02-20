@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Robolink.Core.Entities;
 using Robolink.Core.Interfaces;
 
@@ -19,8 +19,10 @@ namespace Robolink.Application.Commands.PhaseTasks
             if (task == null)
                 throw new InvalidOperationException("Phase task not found");
 
-            await _taskRepo.DeleteAsync(request.PhaseTaskId);
-            await _taskRepo.SaveChangesAsync();
+            // Trong DeletePhaseTaskCommandHandler
+            await _taskRepo.SoftDeleteAsync(request.PhaseTaskId);
+            // KHÔNG CẦN gọi _taskRepo.SaveChangesAsync() nữa nhé! 
+            // Vì bên trong SoftDeleteAsync chị đã cho nó tự Save luôn rồi.
 
             return true;
         }

@@ -1,5 +1,3 @@
-using System;
-
 namespace Robolink.Shared.DTOs
 {
     /// <summary>DTO for displaying Client</summary>

@@ -3,9 +3,6 @@ using MediatR;
 using Robolink.Shared.DTOs;
 using Robolink.Core.Entities;
 using Robolink.Core.Interfaces;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Robolink.Application.Queries.Clients
 {

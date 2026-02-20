@@ -6,12 +6,15 @@ using Robolink.Shared.DTOs;
 using Robolink.Application.Queries.PhaseTasks;
 using Robolink.Application.Queries.Staff;
 using Robolink.Shared.Enums;
+using Robolink.Shared.Interfaces.API.Staffs;
+using Robolink.Shared.Interfaces.API.PhaseTasks;
 
 namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
 {
     public partial class EditPhaseTaskModal : ComponentBase
     {
-        [Inject] private IMediator Mediator { get; set; } = null!;
+        [Inject] private IPhaseTaskApi PhaseTaskApi { get; set; } = null!;
+        [Inject] private IStaffApi StaffApi { get; set; } = null!;
         [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
         [Parameter] public bool ShowModal { get; set; }
         [Parameter] public Guid PhaseTaskId { get; set; }
@@ -38,7 +41,7 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
         {
             try
             {
-                phaseTask = await Mediator.Send(new GetPhaseTaskByIdQuery(PhaseTaskId));
+                phaseTask = await PhaseTaskApi.GetByIdAsync(PhaseTaskId);
                 if (phaseTask != null)
                 {
                     updateRequest = new UpdatePhaseTaskRequest
@@ -67,8 +70,8 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
         {
             try
             {
-                var result = await Mediator.Send(new GetAllStaffQuery());
-                staffs = result?.ToList() ?? new();
+                var result = await StaffApi.GetAllStaffsAsync();
+                staffs = result?.Items?.ToList() ?? new();
             }
             catch (Exception ex)
             {
@@ -80,19 +83,7 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
         {
             try
             {
-                var result = await Mediator.Send(new UpdatePhaseTaskCommand
-                {
-                    Id = updateRequest.Id,
-                    Name = updateRequest.Name ?? "",
-                    Description = updateRequest.Description ?? "",
-                    AssignedStaffId = updateRequest.AssignedStaffId ?? Guid.Empty,
-                    DueDate = updateRequest.DueDate ?? DateTime.Now,
-                    Status = updateRequest.Status ?? Task_Status.Cancelled,
-                    Priority = updateRequest.Priority ?? 0,
-                    EstimatedHours = updateRequest.EstimatedHours ?? 0,
-                    ParentPhaseTaskId = updateRequest.ParentPhaseTaskId,
-                    CreatedBy = "Huy Dang"
-                });
+                var result = await PhaseTaskApi.UpdateAsync(PhaseTaskId,updateRequest);
 
                 if (result != null)
                 {

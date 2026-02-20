@@ -9,7 +9,12 @@ namespace Robolink.API
         {
             services.AddApplicationDI()
                 .AddInfrastructureDI(configuration);
-
+            services.AddControllers()
+                .AddNewtonsoftJson(options =>
+                {
+                    // Tránh lỗi vòng lặp nếu em có quan hệ cha-con phức tạp
+                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                });
             return services;
         }
     }
