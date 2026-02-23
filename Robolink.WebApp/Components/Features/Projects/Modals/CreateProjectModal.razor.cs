@@ -44,7 +44,8 @@ namespace Robolink.WebApp.Components.Features.Projects.Modals
             try
             {
                 var result = await Mediator.Send(new GetAllClientsQuery());
-                clients = result?.ToList() ?? new();
+                // 2. Lấy danh sách từ thuộc tính Items (Đây là chỗ em bị lỗi)
+                clients = result?.Items?.ToList() ?? new();
             }
             catch (Exception ex)
             {
@@ -57,7 +58,7 @@ namespace Robolink.WebApp.Components.Features.Projects.Modals
             try
             {
                 var result = await Mediator.Send(new GetAllStaffQuery());
-                managers = result?.ToList() ?? new();
+                managers = result?.Items?.ToList() ?? new();
             }
             catch (Exception ex)
             {

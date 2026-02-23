@@ -2,8 +2,11 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Robolink.Application.Commands.PhaseTasks;
-using Robolink.Shared.DTOs;
 using Robolink.Application.Queries.PhaseTasks;
+using Robolink.Core.Entities;
+using Robolink.Shared.DTOs;
+using Robolink.Shared.Interfaces.API.Clients;
+using Robolink.Shared.Interfaces.API.PhaseTasks;
 using Robolink.WebApp.Components.Features.PhaseTasks.Shared;
 using Robolink.WebApp.Components.Features.Projects.Shared;
 
@@ -11,7 +14,8 @@ namespace Robolink.WebApp.Components.Pages.PhaseTasks;
 
 public partial class PhaseTasks : ComponentBase
 {
-    [Inject] private IMediator Mediator { get; set; } = null!;
+    
+    [Inject] private IPhaseTaskApi PhaseTaskApi { get; set; } = null!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!; // ✅ NEW
     [Parameter] public Guid ProjectId { get; set; } // Cha phải truyền cái này vào
@@ -51,9 +55,10 @@ public partial class PhaseTasks : ComponentBase
         try
         {
             // 1. Lấy đúng Task của Phase này (startIndex=0, count=1000 để lấy đủ cha con)
-            var result = await Mediator.Send(new GetPhaseTasksPagedQuery(0, 1000, ProjectSystemPhaseConfigId));
-        
-            var allItems = result.Items.ToList();
+            
+
+            var result = await PhaseTaskApi.GetPhaseTasksPagedAsync(0, 1000, ProjectSystemPhaseConfigId);
+            var allItems = result?.Items?.ToList() ?? new();
 
             // 2. Lọc danh sách Cha
             // Lúc này allItems đã sạch, chỉ toàn task của Phase này nên không sợ bị lẫn task phase khác
@@ -106,39 +111,8 @@ public partial class PhaseTasks : ComponentBase
     private async Task QuickAddPhaseTask()
     {
         try
-        {
-            var result = await Mediator.Send(new CreatePhaseTaskCommand()
-            {
-                CreatedBy = "Huy Dang",
-                Request = new CreatePhaseTaskRequest()
-                {
-                    Name = "New Auto Task",
-                    Description = "Auto created task",
-
-                    // Cần truyền đủ ID của Project và Phase (Lấy từ Parameter của component)
-                    ProjectId = ProjectId,
-                    ProjectSystemPhaseConfigId = ProjectSystemPhaseConfigId,
-
-                    // Thông tin nhân viên (Cần Guid và Name cụ thể)
-                    AssignedStaffId = PhaseTaskConstants.DefaultManagerId, // Giả sử dùng ManagerId làm StaffId
-                    AssignedStaffName = "Manager Name", // Phải có vì Request yêu cầu null!
-
-                    // Thời gian (Lưu ý: dùng DueDate thay vì Deadline)
-                    StartDate = DateTime.UtcNow,
-                    DueDate = DateTime.Today.AddDays(PhaseTaskConstants.DefaultPhaseTaskDurationDays),
-
-                    // Tài chính & Trạng thái
-                    InternalBudget = PhaseTaskConstants.DefaultInternalBudget,
-                    CustomerBudget = PhaseTaskConstants.DefaultCustomerBudget,
-                    Priority = PhaseTaskConstants.DefaultPhaseTaskPriority,
-                    Status = 1, // Thêm giá trị mặc định cho Status
-                    ProcessRate = 0,
-                    EstimatedHours = 8, // Thêm số giờ dự kiến nếu cần
-
-                    // Nếu là Task cha thì để null, nếu là Sub-task thì truyền ID cha vào
-                    ParentPhaseTaskId = null
-                }
-            });
+        { 
+            var result = await PhaseTaskApi.QuickCreateAsync( ProjectId, ProjectSystemPhaseConfigId); 
             if (result != null)
             {
                 currentPage = 1;
@@ -194,9 +168,17 @@ public partial class PhaseTasks : ComponentBase
         {
             try
             {
-                await Mediator.Send(new DeletePhaseTaskCommand(taskId));
-                await LoadPhaseTasks();
-                await JSRuntime.InvokeVoidAsync("alert", "Task deleted successfully!");
+                // ✅ Gọi qua API thay vì gọi trực tiếp Mediator
+                var result = await PhaseTaskApi.DeleteAsync(taskId);
+                if (result) // Nếu Handler trả về true
+                {
+                    await LoadPhaseTasks();
+                    await JSRuntime.InvokeVoidAsync("alert", "Task deleted successfully!");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "Delete failed: Task might not exist.");
+                }
             }
             catch (Exception ex)
             {

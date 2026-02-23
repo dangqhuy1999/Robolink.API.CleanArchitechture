@@ -8,7 +8,7 @@ using Robolink.Shared.Interfaces.API.Staffs;
 namespace Robolink.API.Controllers.Staffs
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/staffs")]
     public class StaffsController : ControllerBase, IStaffApi // Kế thừa để ép đúng chuẩn API
     {
         private readonly IMediator _mediator;

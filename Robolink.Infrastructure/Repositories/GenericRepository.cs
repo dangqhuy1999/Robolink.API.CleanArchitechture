@@ -12,7 +12,7 @@ namespace Robolink.Infrastructure.Repositories
     /// </summary>
     public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : EntityBase
     {
-        private readonly IDbContextFactory<AppDBContext> _contextFactory;
+        protected readonly IDbContextFactory<AppDBContext> _contextFactory;
         protected readonly AppDBContext _context;
         protected readonly DbSet<TEntity> _dbSet;
 
@@ -62,28 +62,26 @@ namespace Robolink.Infrastructure.Repositories
         public async Task<(IEnumerable<TEntity> Items, int TotalCount)> GetPagedAsync(
             int startIndex,
             int count,
-            Expression<Func<TEntity, bool>>? filter = null) // Thêm cái này!
+            Expression<Func<TEntity, bool>>? filter = null,
+            params Expression<Func<TEntity, object>>[] includes) // THÊM CÁI NÀY
         {
             using var tempContext = await _contextFactory.CreateDbContextAsync();
             var tempDbSet = tempContext.Set<TEntity>();
 
-            // 1. Khởi tạo query cơ bản
             var query = tempDbSet.AsNoTracking().Where(e => !e.IsDeleted);
 
-            // 2. Áp dụng bộ lọc (Ví dụ: Chỉ lấy task của Phase X)
             if (filter != null)
             {
                 query = query.Where(filter);
             }
 
-            // 3. Include dữ liệu liên quan cho PhaseTask
-            if (typeof(TEntity).Name == "PhaseTask")
+            // ĐÂY CHÍNH LÀ ĐOẠN ĐÁNH BAY CÁI IF-ELSE XẤU XÍ CỦA EM
+            if (includes != null)
             {
-                query = query.Include("SubPhaseTasksItems"); // Quan trọng để lấy task con!
-            }
-            else if (typeof(TEntity).Name == "Project")
-            {
-                query = query.Include("Client").Include("Manager").Include("SubProjectsItems");
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
             }
 
             var totalCount = await query.CountAsync();

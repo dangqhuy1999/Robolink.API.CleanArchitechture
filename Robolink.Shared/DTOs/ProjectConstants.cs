@@ -1,6 +1,6 @@
 namespace Robolink.WebApp.Components.Features.Projects.Shared;
 
-public static class PhaseTaskonstants
+public static class ProjectConstants
 {
     // Default Client and Manager for Quick Add
     public static readonly Guid DefaultClientId = Guid.Parse("188cd869-567e-4cd2-870a-48bdb04af5cd");

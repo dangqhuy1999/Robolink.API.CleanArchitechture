@@ -28,6 +28,8 @@ namespace Robolink.Application
 
             // 4. Đăng ký các Repository
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddScoped<IProjectRepository, ProjectRepository>();
+
             services.AddScoped<IProjectSystemPhaseConfigRepository, ProjectSystemPhaseConfigRepository>();
             services.AddScoped<IWorkLogRepository, WorkLogRepository>();
 

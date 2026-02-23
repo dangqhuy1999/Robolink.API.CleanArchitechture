@@ -7,7 +7,7 @@ using System.Text;
 namespace Robolink.Application.Queries.Projects
 {
     // Trong tầng Application
-    public class GetPhaseTasksPagedQuery(int startIndex, int count) : IRequest<PagedResult<ProjectDto>>
+    public class GetProjectsPagedQuery(int startIndex, int count) : IRequest<PagedResult<ProjectDto>>
     {
         // Bắt buộc phải có 2 dòng này để Handler "nhìn thấy" dữ liệu
         public int StartIndex { get; } = startIndex;

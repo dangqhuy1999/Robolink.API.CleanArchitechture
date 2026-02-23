@@ -7,7 +7,7 @@ using Robolink.Shared.Interfaces.API.Clients;
 namespace Robolink.API.Controllers.Clients
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/clients")]
     public class ClientsController : ControllerBase, IClientApi // Kế thừa để ép đúng chuẩn API
     {
         private readonly IMediator _mediator;

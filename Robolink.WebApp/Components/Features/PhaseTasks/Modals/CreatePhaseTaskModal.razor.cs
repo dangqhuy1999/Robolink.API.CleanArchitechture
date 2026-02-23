@@ -64,7 +64,7 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals // Thay bằng n
         private async Task LoadManagers()
         {
             try
-            {
+             {
                 var result = await StaffApi.GetAllStaffsAsync();
                 staffs = result?.Items?.ToList() ?? new();
             }
@@ -78,7 +78,14 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals // Thay bằng n
         {
             try
             {
+                // Tìm đối tượng staff trong danh sách 'staffs' dựa trên cái ID mà InputSelect đã bind
+                var selectedStaff = staffs.FirstOrDefault(s => s.Id == request.AssignedStaffId);
 
+                if (selectedStaff != null)
+                {
+                    // "Nối dây" cái tên vào đây trước khi gửi đi
+                    request.AssignedStaffName = selectedStaff.FullName;
+                }
                 // WebApp CHỈ gửi Request thô đi, không quan tâm CreatedBy hay Command
                 var result = await PhaseTaskApi.CreateAsync(request);
 

@@ -25,8 +25,8 @@ namespace Robolink.Application.Commands.Projects
 
         public async Task<ProjectDto> Handle(UpdateProjectCommand request, CancellationToken cancellationToken)
         {
-            // ✅ Get existing project
-            var project = await _projectRepo.GetByIdAsync(request.Request.Id);
+            var updateId = request.Request.Id ?? throw new ArgumentNullException("Id cannot be null");
+            var project = await _projectRepo.GetByIdAsync(updateId); // Hết lỗi đỏ!
             if (project == null)
                 throw new InvalidOperationException("Project not found");
 

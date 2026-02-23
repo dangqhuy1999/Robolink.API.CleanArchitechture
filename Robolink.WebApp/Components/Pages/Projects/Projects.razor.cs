@@ -2,14 +2,17 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Robolink.Application.Commands.Projects;
-using Robolink.Shared.DTOs;
 using Robolink.Application.Queries.Projects;
+using Robolink.Core.Entities;
+using Robolink.Shared.DTOs;
+using Robolink.Shared.Interfaces.API.Projects;
 using Robolink.WebApp.Components.Features.Projects.Shared;
+using System.Threading.Tasks;
 namespace Robolink.WebApp.Components.Pages.Projects;
 
 public partial class Projects : ComponentBase
 {
-    [Inject] private IMediator Mediator { get; set; } = null!;
+    [Inject] private IProjectApi ProjectApi { get; set; } = null!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!; // ✅ NEW
 
@@ -23,7 +26,7 @@ public partial class Projects : ComponentBase
 
     // Pagination
     private int currentPage = 1;
-    private int pageSize = PhaseTaskonstants.DefaultPageSize;
+    private int pageSize = ProjectConstants.DefaultPageSize;
     private int totalProjects = 0;
     private int totalPages = 0;
 
@@ -39,21 +42,13 @@ public partial class Projects : ComponentBase
         try
         {
             int startIndex = (currentPage - 1) * pageSize;
-            var result = await Mediator.Send(new GetPhaseTasksPagedQuery(startIndex, pageSize));
-            
-            // ✅ FIX: Filter to show ONLY main projects (ParentProjectId == null)
-            projects = result.Items
-                .Where(p => !p.ParentProjectId.HasValue)  // ✅ Only main projects
-                .ToList();
 
-            totalProjects = result.TotalCount;
-            totalPages = (int)Math.Ceiling((double)totalProjects / pageSize);
+            // Gọi API: Server trả về đúng 10 ông Cha, trong mỗi ông Cha ĐÃ CÓ SẴN đám Con
+            var result = await ProjectApi.GetProjectsPagedAsync(startIndex, pageSize);
 
-            System.Diagnostics.Debug.WriteLine($"📊 Loaded {projects.Count} main projects");
-            foreach (var proj in projects)
-            {
-                System.Diagnostics.Debug.WriteLine($"  ✅ {proj.ProjectCode} - Subs: {proj.SubProjects?.Count ?? 0}");
-            }
+            projects = result.Items.ToList(); // 10 ông Cha
+            totalProjects = result.TotalCount; // Ví dụ: 10
+            totalPages = (int)Math.Ceiling((double)totalProjects / pageSize); // 1 trang duy nhất
         }
         catch (Exception ex)
         {
@@ -88,23 +83,7 @@ public partial class Projects : ComponentBase
     {
         try
         {
-            var result = await Mediator.Send(new CreateProjectCommand()
-            {
-                CreatedBy = "Huy Dang",
-                Request = new CreateProjectRequest()
-                {
-                    ProjectCode = $"{PhaseTaskonstants.ProjectCodePrefix}-{Guid.NewGuid().ToString().Substring(0, 5).ToUpper()}",
-                    Name = $"Project {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
-                    Description = "Auto created project",
-                    ClientId = PhaseTaskonstants.DefaultClientId,
-                    ManagerId = PhaseTaskonstants.DefaultManagerId,
-                    StartDate = DateTime.UtcNow,
-                    Deadline = DateTime.Today.AddDays(PhaseTaskonstants.DefaultProjectDurationDays),
-                    Priority = PhaseTaskonstants.DefaultProjectPriority,
-                    InternalBudget = PhaseTaskonstants.DefaultInternalBudget,
-                    CustomerBudget = PhaseTaskonstants.DefaultCustomerBudget
-                }
-            });
+            var result = await ProjectApi.QuickCreateAsync();
 
             if (result != null)
             {
@@ -161,9 +140,18 @@ public partial class Projects : ComponentBase
         {
             try
             {
-                await Mediator.Send(new DeleteProjectCommand(projectId));
-                await LoadProjects();
-                await JSRuntime.InvokeVoidAsync("alert", "Project deleted successfully!");
+                // ✅ Gọi qua API thay vì gọi trực tiếp Mediator
+                var result = await ProjectApi.DeleteAsync(projectId);
+                if (result) // Nếu Handler trả về true
+                {
+                    await LoadProjects();
+                    await JSRuntime.InvokeVoidAsync("alert", "Project deleted successfully!");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "Delete failed: Task might not exist.");
+                }
+                
             }
             catch (Exception ex)
             {

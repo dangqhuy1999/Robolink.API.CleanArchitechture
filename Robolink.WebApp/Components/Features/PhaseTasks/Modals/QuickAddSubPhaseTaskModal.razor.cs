@@ -68,7 +68,7 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
             try
             {
                 var result = await Mediator.Send(new GetAllStaffQuery());
-                staffs = result?.ToList() ?? new();
+                staffs = result?.Items?.ToList() ?? new();
             }
             catch (Exception ex)
             {

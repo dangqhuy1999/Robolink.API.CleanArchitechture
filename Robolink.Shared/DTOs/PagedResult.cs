@@ -6,7 +6,8 @@ namespace Robolink.Shared.DTOs
     {
         public IEnumerable<T> Items { get; set; } = new List<T>();
         public int TotalCount { get; set; }
-
+        // THÊM DÒNG NÀY NÈ EM
+        public PagedResult() { }
         public PagedResult(IEnumerable<T> items, int totalCount)
         {
             Items = items;

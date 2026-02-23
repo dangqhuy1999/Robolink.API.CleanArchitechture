@@ -3,15 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 using Refit;
 using Robolink.Application.Commands.PhaseTasks;
 using Robolink.Application.Queries.PhaseTasks;
+using Robolink.Core.Entities;
 using Robolink.Shared.DTOs;
 using Robolink.Shared.Enums;
-using Robolink.Shared.Interfaces.API.PhaseTasks; // Interface em vừa tạo
+using Robolink.Shared.Interfaces.API.PhaseTasks;
+using Robolink.WebApp.Components.Features.PhaseTasks.Shared; // Interface em vừa tạo
 
 
 namespace Robolink.API.Controllers.PhaseTasks
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/phasetasks")]
     public class PhaseTasksController : ControllerBase, IPhaseTaskApi // Kế thừa để ép đúng chuẩn API
     {
         private readonly IMediator _mediator;
@@ -22,7 +24,7 @@ namespace Robolink.API.Controllers.PhaseTasks
         }
 
         [HttpGet("paged")]
-        public async Task<PagedResult<PhaseTaskDto>> GetPhaseTasksAsync(int startIndex, int count, Guid phaseId)
+        public async Task<PagedResult<PhaseTaskDto>> GetPhaseTasksPagedAsync([FromQuery] int startIndex, [FromQuery] int count, [FromQuery] Guid phaseId)
         {
             // Controller lúc này chỉ đóng vai trò "người chuyển tin"
             // Nó gửi yêu cầu xuống tầng Application thông qua Mediator
@@ -35,8 +37,52 @@ namespace Robolink.API.Controllers.PhaseTasks
             return await _mediator.Send(new GetPhaseTaskByIdQuery(id));
         }
 
+
+        [HttpPost("sample")]
+        public async Task<PhaseTaskDto> QuickCreateAsync(Guid ProjectId,Guid ProjectSystemPhaseConfigId)
+        {
+            // Tạo Command từ Request (Application nắm giữ logic này)
+            var command = new CreatePhaseTaskCommand
+            {
+                Request = new CreatePhaseTaskRequest()
+                {
+                    Name = "New Auto Task",
+                    Description = "Auto created task",
+
+                    // Cần truyền đủ ID của Project và Phase (Lấy từ Parameter của component)
+                    ProjectId = ProjectId,
+                    ProjectSystemPhaseConfigId = ProjectSystemPhaseConfigId,
+
+                    // Thông tin nhân viên (Cần Guid và Name cụ thể)
+                    AssignedStaffId = PhaseTaskConstants.DefaultManagerId, // Giả sử dùng ManagerId làm StaffId
+                    AssignedStaffName = "Manager Name", // Phải có vì Request yêu cầu null!
+
+                    // Thời gian (Lưu ý: dùng DueDate thay vì Deadline)
+                    StartDate = DateTime.UtcNow,
+                    DueDate = DateTime.Today.AddDays(PhaseTaskConstants.DefaultPhaseTaskDurationDays),
+
+                    // Tài chính & Trạng thái
+                    InternalBudget = PhaseTaskConstants.DefaultInternalBudget,
+                    CustomerBudget = PhaseTaskConstants.DefaultCustomerBudget,
+                    Priority = PhaseTaskConstants.DefaultPhaseTaskPriority,
+                    Status = 1, // Thêm giá trị mặc định cho Status
+                    ProcessRate = 0,
+                    EstimatedHours = 8, // Thêm số giờ dự kiến nếu cần
+
+                    // Nếu là Task cha thì để null, nếu là Sub-task thì truyền ID cha vào
+                    ParentPhaseTaskId = null
+                },
+                CreatedBy = "Huy Dang"
+            };
+
+            // Gửi đi và nhận lại DTO
+            var result = await _mediator.Send(command);
+
+            return (PhaseTaskDto)result!;
+        }
+
         [HttpPost]
-        public async Task<PhaseTaskDto> CreateAsync([Body] CreatePhaseTaskRequest request)
+        public async Task<PhaseTaskDto> CreateAsync([FromBody] CreatePhaseTaskRequest request)
         {
             // Tạo Command từ Request (Application nắm giữ logic này)
             var command = new CreatePhaseTaskCommand
@@ -69,7 +115,7 @@ namespace Robolink.API.Controllers.PhaseTasks
         }
 
         [HttpPut("{id}")]
-        public async Task<PhaseTaskDto> UpdateAsync(Guid id, [Body] UpdatePhaseTaskRequest request)
+        public async Task<PhaseTaskDto> UpdateAsync(Guid id, [FromBody] UpdatePhaseTaskRequest request)
         {
             var command = new UpdatePhaseTaskCommand
             {
@@ -80,6 +126,13 @@ namespace Robolink.API.Controllers.PhaseTasks
 
             var result = await _mediator.Send(command);
             return (PhaseTaskDto)result!; // Ép kiểu để hết lỗi đỏ
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<bool> DeleteAsync(Guid id) // Bỏ ActionResult để khớp 100% với Interface
+        {
+            // Đảm bảo tên tham số trong Command là PhaseTaskId giống Handler
+            return await _mediator.Send(new DeletePhaseTaskCommand(id));
         }
     }
 }
