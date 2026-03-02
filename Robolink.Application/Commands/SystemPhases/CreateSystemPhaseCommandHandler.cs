@@ -11,9 +11,7 @@ namespace Robolink.Application.Commands.SystemPhases
         private readonly IGenericRepository<SystemPhase> _phaseRepo;
         private readonly IMapper _mapper;
 
-        public CreateSystemPhaseCommandHandler(
-            IGenericRepository<SystemPhase> phaseRepo,
-            IMapper mapper)
+        public CreateSystemPhaseCommandHandler(IGenericRepository<SystemPhase> phaseRepo, IMapper mapper)
         {
             _phaseRepo = phaseRepo;
             _mapper = mapper;
@@ -21,28 +19,30 @@ namespace Robolink.Application.Commands.SystemPhases
 
         public async Task<SystemPhaseDto> Handle(CreateSystemPhaseCommand request, CancellationToken cancellationToken)
         {
-            // Validate name uniqueness
-            var existing = await _phaseRepo.GetAllAsync();
-            if (existing.Any(p => p.Name.ToLower() == request.Name.ToLower()))
-                throw new InvalidOperationException($"Phase with name '{request.Name}' already exists");
+            // 1. ✅ Validation: Check trùng tên dùng AnyAsync (Cực nhanh vì SQL chỉ trả về true/false)
+            var isNameExists = await _phaseRepo.AnyAsync(p =>
+                p.Name.ToLower() == request.Request.Name.ToLower());
 
-            var phase = new SystemPhase
-            {
-                Id = Guid.NewGuid(),
-                Name = request.Name,
-                Description = request.Description,
-                DefaultSequence = request.DefaultSequence,
-                IsActive = request.IsActive,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = request.CreatedBy ?? "System",
-                // ✅ THÊM DÒNG NÀY ĐỂ HẾT LỖI COMPILER
-                RowVersion = Array.Empty<byte>()
-            };
+            if (isNameExists)
+                throw new InvalidOperationException($"Giai đoạn '{request.Request.Name}' đã tồn tại trong hệ thống.");
 
+            // 2. ✅ MÁY GIẶT AUTOMAPPER: Biến Request thành Entity
+            var phase = _mapper.Map<SystemPhase>(request.Request);
+
+            // Gán các thông tin hệ thống
+            phase.Id = Guid.NewGuid();
+            phase.CreatedAt = DateTime.UtcNow;
+            phase.CreatedBy = request.CreatedBy ?? "System";
+            phase.RowVersion = Array.Empty<byte>(); // Giải quyết lỗi compiler
+
+            // 3. ✅ Lưu vào database
             await _phaseRepo.AddAsync(phase);
             await _phaseRepo.SaveChangesAsync();
 
-            return _mapper.Map<SystemPhaseDto>(phase);
+            // 4. ✅ ĂN TIỀN: Dùng Projection để lấy DTO xịn trả về
+            // Đảm bảo dữ liệu trả về nhất quán với cấu hình MappingProfile
+            return await _phaseRepo.GetProjectedByIdAsync<SystemPhaseDto>(phase.Id)
+                   ?? throw new InvalidOperationException("Lỗi khi lấy dữ liệu sau khi tạo.");
         }
     }
 }

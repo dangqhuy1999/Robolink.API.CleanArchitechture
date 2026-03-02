@@ -9,7 +9,7 @@ namespace Robolink.API.Controllers.Staffs
 {
     [ApiController]
     [Route("api/staffs")]
-    public class StaffsController : ControllerBase, IStaffApi // Kế thừa để ép đúng chuẩn API
+    public class StaffsController : ControllerBase // Kế thừa để ép đúng chuẩn API
     {
         private readonly IMediator _mediator;
 
@@ -18,14 +18,18 @@ namespace Robolink.API.Controllers.Staffs
             _mediator = mediator;
         }
         [HttpGet]
-        public async Task<PagedResult<StaffDto>> GetAllStaffsAsync() // Sửa kiểu trả về thành PagedResult
+        public async Task<ActionResult<PagedResult<StaffDto>>> GetAllStaffsAsync([FromQuery] int startIndex, [FromQuery] int count) // Sửa kiểu trả về thành PagedResult
         {
-            var query = new GetAllStaffQuery(); // Query chứ không phải Command vì đây là lệnh lấy dữ liệu
+            // ❌ Sai: New không tham số trong khi Constructor bắt phải có
+            // var query = new GetAllClientsQuery(); 
+
+            // ✅ Đúng: Truyền giá trị từ URL xuống
+            var query = new GetAllStaffQuery(startIndex, count);
 
             var result = await _mediator.Send(query);
 
-            // Ép kiểu về PagedResult để khớp với đầu ra
-            return (PagedResult<StaffDto>)result!;
+            // ✅ Trả về Ok kèm dữ liệu
+            return Ok(result);
         }
     }
 }

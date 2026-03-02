@@ -1,33 +1,43 @@
-﻿using System;
+﻿using AutoMapper;
+using MediatR;
+using Moq;
+using Robolink.Application.Commands.PhaseTasks;
+using Robolink.Core.Entities;
+using Robolink.Core.Interfaces;
+using Robolink.Shared.DTOs;
+using Robolink.Shared.Enums;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using Moq;
-using Robolink.Application.Commands.PhaseTasks;
-using Robolink.Shared.DTOs;
-using Robolink.Core.Entities;
-using Robolink.Shared.Enums;
-using Robolink.Core.Interfaces;
-using AutoMapper;
 
 namespace Robolink.Application.Tests.Commands.PhaseTasks
 {
     public class CreatePhaseTaskCommandHandlerTests
     {
+
         private readonly Mock<IGenericRepository<PhaseTask>> _mockTaskRepo;
-        private readonly Mock<IProjectSystemPhaseConfigRepository> _mockPhaseConfigRepo;
+        private readonly Mock<IGenericRepository<ProjectSystemPhaseConfig>> _mockPhaseConfigRepo; // ✅ Đổi sang Generic cho đồng bộ
+        private readonly Mock<IGenericRepository<Staff>> _mockStaffRepo; // ✅ Thêm mới
+        private readonly Mock<IMediator> _mockMediator; // ✅ Thêm mới để bắn Event
         private readonly Mock<IMapper> _mockMapper;
         private readonly CreatePhaseTaskCommandHandler _handler;
 
         public CreatePhaseTaskCommandHandlerTests()
         {
             _mockTaskRepo = new Mock<IGenericRepository<PhaseTask>>();
-            _mockPhaseConfigRepo = new Mock<IProjectSystemPhaseConfigRepository>();
+            _mockStaffRepo = new Mock<IGenericRepository<Staff>>(); // ✅ Khởi tạo Mock Staff
+            _mockPhaseConfigRepo = new Mock<IGenericRepository<ProjectSystemPhaseConfig>>(); // ✅ Khởi tạo Mock Config
+            _mockMediator = new Mock<IMediator>(); // ✅ Khởi tạo Mock Mediator
             _mockMapper = new Mock<IMapper>();
+
+            // ✅ Truyền ĐẦY ĐỦ 5 tham số theo đúng thứ tự trong Handler mới
             _handler = new CreatePhaseTaskCommandHandler(
-                _mockTaskRepo.Object, 
-                _mockPhaseConfigRepo.Object, 
-                _mockMapper.Object);
+                _mockTaskRepo.Object,
+                _mockPhaseConfigRepo.Object,
+                _mockStaffRepo.Object,
+                _mockMapper.Object,
+                _mockMediator.Object);
         }
 
         [Fact]

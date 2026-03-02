@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Refit;
 using Robolink.Shared.DTOs;
 using Robolink.Shared.Interfaces.API.Clients;
 using Robolink.Shared.Interfaces.API.PhaseTasks;
+using Robolink.Shared.Interfaces.API.Projects;
 using Robolink.Shared.Interfaces.API.Staffs;
+using Robolink.WebApp.Components.Features.Projects.Shared;
 
 namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals // Thay bằng namespace thực tế của em
 {
@@ -26,8 +29,9 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals // Thay bằng n
         private CreatePhaseTaskRequest request = new();
         private List<ClientDto> clients = new();
         private List<StaffDto> staffs = new();
+        private int totalStaffs;
         private bool isLoading = false;
-
+        private int totalClients;
         protected override async Task OnParametersSetAsync()
         {
             if (ShowModal)
@@ -52,8 +56,15 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals // Thay bằng n
         {
             try
             {
-                var result = await ClientApi.GetAllClientsAsync();
+                var result = await ClientApi.GetAllClientsAsync(ProjectConstants.clientStartIndex, ProjectConstants.clientPageSize);
                 clients = result?.Items?.ToList() ?? new();
+                totalClients = result.TotalCount; // Lưu lại tổng số để hiển thị "Trang 1/10"
+            }
+            catch (ApiException ex) // Lỗi từ phía Server (400, 404, 500...)
+            {
+                // Đọc nội dung lỗi từ Server gửi về
+                var errorContent = await ex.GetContentAsAsync<Dictionary<string, string>>();
+                await JSRuntime.InvokeVoidAsync("alert", "Error API server: " + ex.Message);
             }
             catch (Exception ex)
             {
@@ -65,8 +76,20 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals // Thay bằng n
         {
             try
              {
-                var result = await StaffApi.GetAllStaffsAsync();
-                staffs = result?.Items?.ToList() ?? new();
+                // Dùng biến số thay vì viết chết số 10
+                var result = await StaffApi.GetAllStaffsAsync(ProjectConstants.staffStartIndex, ProjectConstants.staffPageSize);
+
+                if (result != null)
+                {
+                    staffs = result.Items?.ToList() ?? new();
+                    totalStaffs = result.TotalCount; // Lưu lại tổng số để hiển thị "Trang 1/10"
+                }
+            }
+            catch (ApiException ex) // Lỗi từ phía Server (400, 404, 500...)
+            {
+                // Đọc nội dung lỗi từ Server gửi về
+                var errorContent = await ex.GetContentAsAsync<Dictionary<string, string>>();
+                await JSRuntime.InvokeVoidAsync("alert", "Error API server: " + ex.Message);
             }
             catch (Exception ex)
             {
@@ -78,27 +101,22 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals // Thay bằng n
         {
             try
             {
-                // Tìm đối tượng staff trong danh sách 'staffs' dựa trên cái ID mà InputSelect đã bind
-                var selectedStaff = staffs.FirstOrDefault(s => s.Id == request.AssignedStaffId);
-
-                if (selectedStaff != null)
-                {
-                    // "Nối dây" cái tên vào đây trước khi gửi đi
-                    request.AssignedStaffName = selectedStaff.FullName;
-                }
-                // WebApp CHỈ gửi Request thô đi, không quan tâm CreatedBy hay Command
                 var result = await PhaseTaskApi.CreateAsync(request);
 
-                if (result != null)
-                {
-                    await JSRuntime.InvokeVoidAsync("alert", $"The task is created successfully!");
-                    await OnSaved.InvokeAsync();
-                    await CloseModal();
-                }
+                // Nếu tới được đây nghĩa là mã trả về là 2xx (Thành công)
+                await JSRuntime.InvokeVoidAsync("alert", $"Project '{result.Name}' created successfully!");
+                await OnSaved.InvokeAsync();
+                await CloseModal();
             }
-            catch (Exception ex)
+            catch (ApiException ex) // Lỗi từ phía Server (400, 404, 500...)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+                // Đọc nội dung lỗi từ Server gửi về
+                var errorContent = await ex.GetContentAsAsync<Dictionary<string, string>>();
+                await JSRuntime.InvokeVoidAsync("alert", "Error API server: " + ex.Message);
+            }
+            catch (Exception ex) // Lỗi mạng hoặc lỗi code
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Lỗi hệ thống: " + ex.Message);
             }
         }
 

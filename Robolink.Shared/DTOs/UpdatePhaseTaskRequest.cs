@@ -9,7 +9,7 @@ namespace Robolink.Shared.DTOs
     public class UpdatePhaseTaskRequest
     {
         [Required]
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; }
 
         [StringLength(200)]
         public string? Name { get; set; }
@@ -32,7 +32,8 @@ namespace Robolink.Shared.DTOs
 
         [Range(0, 9999)]
         public decimal? EstimatedHours { get; set; }
-
+        
+        public Guid? ProjectSystemPhaseConfigId { get; set; }
         public Guid? ParentPhaseTaskId { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Robolink.Core.Entities;
 using Robolink.Core.Interfaces;
 using Robolink.Infrastructure.Data;
@@ -16,8 +17,8 @@ namespace Robolink.Infrastructure.Repositories
     public class ProjectSystemPhaseConfigRepository : GenericRepository<ProjectSystemPhaseConfig>, IProjectSystemPhaseConfigRepository
     {
         
-        public ProjectSystemPhaseConfigRepository(IDbContextFactory<AppDBContext> contextFactory)
-    : base(contextFactory) { }
+        public ProjectSystemPhaseConfigRepository(IDbContextFactory<AppDBContext> contextFactory, IMapper mapper)
+    : base(contextFactory,mapper) { }
         /// <summary>Get all phase configs for a specific project (ordered by sequence)</summary>
         public async Task<IEnumerable<ProjectSystemPhaseConfig>> GetByProjectIdAsync(Guid projectId)
         {

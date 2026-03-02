@@ -15,6 +15,7 @@ namespace Robolink.Application
 
             // ✅ AutoMapper
             services.AddAutoMapper(typeof(ProjectMappingProfile));
+            services.AddAutoMapper(typeof(ProjectPhaseMappingProfile));
             services.AddAutoMapper(typeof(SystemPhaseMappingProfile));
             services.AddAutoMapper(typeof(PhaseTaskMappingProfile));
             // another way to register all profiles in the assembly

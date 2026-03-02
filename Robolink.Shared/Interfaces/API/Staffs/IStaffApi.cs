@@ -10,7 +10,7 @@ namespace Robolink.Shared.Interfaces.API.Staffs
     {
         // Lấy danh sách staffs có phân trang và lọc theo PhaseId
         [Get("/api/staffs")]
-        Task<PagedResult<StaffDto>> GetAllStaffsAsync();
+        Task<PagedResult<StaffDto>> GetAllStaffsAsync([Query] int startIndex, [Query] int count);
 
     }
 }

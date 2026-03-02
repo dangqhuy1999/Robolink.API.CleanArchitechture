@@ -6,6 +6,26 @@ namespace Robolink.Core.Entities
 {
     public class PhaseTask : EntityRootBase
     {
+        // 1. Constructor không tham số (BẮT BUỘC cho EF Core)
+        // EF Core dùng cái này để "đổ" dữ liệu từ DB vào Object.
+        // Chúng ta để protected hoặc public đều được.
+        public PhaseTask()
+        {
+            SubPhaseTasksItems = new List<PhaseTask>();
+            WorkLogs = new List<WorkLog>();
+        }
+
+        // 2. Constructor dùng để tạo mới (Custom Constructor)
+        // Khi em dùng lệnh: var task = new PhaseTask("Tên task", ...);
+        public PhaseTask(string name, Guid projectId, Guid phaseId) : this()
+        {
+            Id = Guid.NewGuid(); // Tự sinh ID ở đây
+            Name = name;
+            ProjectId = projectId;
+            ProjectSystemPhaseConfigId = phaseId;
+            Status = Task_Status.Pending; // Giá trị mặc định
+            StartDate = DateTime.Now;
+        }
         public string Name { get; set; } = null!;
         public Guid ProjectId { get; set; }
         public Guid ProjectSystemPhaseConfigId { get; set; }

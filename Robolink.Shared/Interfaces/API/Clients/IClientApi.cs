@@ -7,7 +7,7 @@ namespace Robolink.Shared.Interfaces.API.Clients
     {
         // Lấy danh sách task có phân trang và lọc theo PhaseId
         [Get("/api/clients")]
-        Task<PagedResult<ClientDto>> GetAllClientsAsync();
+        Task<PagedResult<ClientDto>> GetAllClientsAsync([Query] int startIndex, [Query] int count);
 
     }
 }

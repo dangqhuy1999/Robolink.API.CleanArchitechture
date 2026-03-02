@@ -1,17 +1,18 @@
+﻿using AutoMapper;
 using MediatR;
-using AutoMapper;
-using Robolink.Shared.DTOs;
+using Robolink.Core.Entities;
 using Robolink.Core.Interfaces;
+using Robolink.Shared.DTOs;
 
 namespace Robolink.Application.Commands.ProjectPhases
 {
     public class UpdateProjectPhaseConfigCommandHandler : IRequestHandler<UpdateProjectPhaseConfigCommand, ProjectPhaseConfigDto>
     {
-        private readonly IProjectSystemPhaseConfigRepository _configRepo;
+        private readonly IGenericRepository<ProjectSystemPhaseConfig> _configRepo;
         private readonly IMapper _mapper;
 
         public UpdateProjectPhaseConfigCommandHandler(
-            IProjectSystemPhaseConfigRepository configRepo,
+            IGenericRepository<ProjectSystemPhaseConfig> configRepo,
             IMapper mapper)
         {
             _configRepo = configRepo;
@@ -20,30 +21,24 @@ namespace Robolink.Application.Commands.ProjectPhases
 
         public async Task<ProjectPhaseConfigDto> Handle(UpdateProjectPhaseConfigCommand request, CancellationToken cancellationToken)
         {
-            var config = await _configRepo.GetByIdAsync(request.PhaseConfigId);
-            if (config == null)
-                throw new InvalidOperationException("Phase config not found");
+            // 1. Lấy dữ liệu từ DB (Bao gồm cả các liên kết nếu cần để Mapper làm việc)
+            var config = await _configRepo.GetByIdAsync(request.Request.Id)
+                ?? throw new InvalidOperationException("Không tìm thấy cấu hình giai đoạn.");
 
-            config.CustomPhaseName = request.CustomPhaseName;
-            config.Sequence = request.Sequence;
-            config.IsEnabled = request.IsEnabled;
+            // 2. 🚀 MÁY GIẶT AUTOMAPPER: Đè dữ liệu từ Request vào Entity
+            // Xóa sạch đống config.CustomPhaseName = ... cũ đi nhé
+            _mapper.Map(request.Request, config);
+
             config.UpdatedAt = DateTime.UtcNow;
 
+            // 3. Lưu vào Database
             await _configRepo.UpdateAsync(config);
             await _configRepo.SaveChangesAsync();
 
-            return new ProjectPhaseConfigDto
-            {
-                Id = config.Id,
-                ProjectId = config.ProjectId,
-                SystemPhaseId = config.SystemPhaseId,
-                SystemPhase = _mapper.Map<SystemPhaseDto>(config.SystemPhase),
-                CustomPhaseName = config.CustomPhaseName,
-                Sequence = config.Sequence,
-                IsEnabled = config.IsEnabled,
-                TaskCount = config.PhaseTasks?.Count ?? 0,
-                Tasks = _mapper.Map<List<PhaseTaskDto>>(config.PhaseTasks ?? new List<Robolink.Core.Entities.PhaseTask>())
-            };
+            // 4. 🚀 ĂN TIỀN: Trả về DTO xịn qua Projection
+            // Không cần "new ProjectPhaseConfigDto" thủ công nữa, SQL sẽ lo hết
+            return await _configRepo.GetProjectedByIdAsync<ProjectPhaseConfigDto>(config.Id)
+                   ?? throw new InvalidOperationException("Lỗi khi lấy dữ liệu sau cập nhật.");
         }
     }
 }

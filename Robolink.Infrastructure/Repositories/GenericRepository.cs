@@ -1,7 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using Robolink.Core.Common;
 using Robolink.Core.Interfaces;
 using Robolink.Infrastructure.Data;
+using Robolink.Shared.DTOs;
 using System.Linq.Expressions;
 
 namespace Robolink.Infrastructure.Repositories
@@ -14,17 +17,76 @@ namespace Robolink.Infrastructure.Repositories
     {
         protected readonly IDbContextFactory<AppDBContext> _contextFactory;
         protected readonly AppDBContext _context;
+        protected readonly IConfigurationProvider _configurationProvider;
         protected readonly DbSet<TEntity> _dbSet;
 
-        public GenericRepository(IDbContextFactory<AppDBContext> contextFactory)
+        public GenericRepository(IDbContextFactory<AppDBContext> contextFactory,
+        IMapper mapper) // Inject Mapper để lấy cấu hình
         {
             _contextFactory = contextFactory;
-
+            _configurationProvider = mapper.ConfigurationProvider;
             // Khởi tạo một context mặc định cho các tác vụ Write (Add/Update/Delete)
             _context = _contextFactory.CreateDbContext();
             _dbSet = _context.Set<TEntity>();
         }
 
+        // VŨ KHÍ MỚI: Truyền ID vào, lấy ra DTO của bất kỳ bảng nào!
+        // Use for create / update / delete xong thì gọi hàm này để lấy lại DTO mới nhất
+        public async Task<TDto?> GetProjectedByIdAsync<TDto>(Guid id)
+        {
+            // Tạo context riêng cho truy vấn đọc (Best practice cho EF Core)
+            using var context = await _contextFactory.CreateDbContextAsync();
+
+            return await context.Set<TEntity>()
+                .AsNoTracking()
+                .Where(e => e.Id == id) // TEntity kế thừa EntityBase nên chắc chắn có Id
+                .ProjectTo<TDto>(_configurationProvider) // Tự động Map và Include mọi thứ
+                .FirstOrDefaultAsync();
+        }
+        public async Task<IEnumerable<TDto>> GetProjectedAsync<TDto>(Expression<Func<TEntity, bool>> predicate)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+
+            return await context.Set<TEntity>()
+                .AsNoTracking()
+                .Where(predicate) // Lọc theo điều kiện (ví dụ: ProjectId == ...)
+                .ProjectTo<TDto>(_configurationProvider)
+                .ToListAsync();
+        }
+
+        // Hàm "thần thánh": Vừa lọc, vừa phân trang, vừa Map sang DTO bằng ProjectTo
+        public async Task<PagedResult<TDto>> GetPagedProjectedAsync<TDto>(
+            int startIndex,
+            int count,
+            Expression<Func<TEntity, bool>>? predicate = null)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+
+            // 1. Khởi tạo query và lọc IsDeleted (nếu có)
+            var query = context.Set<TEntity>().AsNoTracking();
+
+            // Giả sử em có thuộc tính IsDeleted dùng chung
+            query = query.Where(x => !x.IsDeleted);
+
+            // 2. Áp dụng thêm bộ lọc riêng (nếu có)
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+
+            // 3. Đếm tổng số bản ghi thỏa điều kiện
+            var totalCount = await query.CountAsync();
+
+            // 4. Phân trang và ProjectTo thẳng sang DTO
+            var items = await query
+                .OrderByDescending(x => x.CreatedAt) // Sắp xếp mặc định
+                .Skip(startIndex)
+                .Take(count)
+                .ProjectTo<TDto>(_configurationProvider)
+                .ToListAsync();
+
+            return new PagedResult<TDto>(items, totalCount);
+        }
         // ========== READ ==========
         public virtual async Task<TEntity?> GetByIdAsync(Guid id, params Expression<Func<TEntity, object>>[] includes)
         {

@@ -10,35 +10,37 @@ namespace Robolink.Application.Queries.Projects
     public class GetProjectsPagedQueryHandler : IRequestHandler<GetProjectsPagedQuery, PagedResult<ProjectDto>>
     {
         // 1. Đổi từ Generic sang Repo chuyên biệt
-        private readonly IProjectRepository _projectRepo;
+        private readonly IGenericRepository<Project> _projectRepo;
 
         // Lúc này em thậm chí KHÔNG CẦN IMapper ở Handler nữa 
         // vì Repo đã làm hộ việc đó thông qua ProjectTo rồi!
-        public GetProjectsPagedQueryHandler(IProjectRepository projectRepo)
+        public GetProjectsPagedQueryHandler(IGenericRepository<Project> projectRepo)
         {
             _projectRepo = projectRepo;
         }
 
         public async Task<PagedResult<ProjectDto>> Handle(GetProjectsPagedQuery request, CancellationToken cancellationToken)
         {
-            // 2. Gọi hàm "đặc sản" của ProjectRepository
-            // Hàm này trả về thẳng ProjectDto nên cực kỳ nhàn
-            (var items, var totalCount) = await _projectRepo.GetProjectsWithDeepDataAsync(
-                request.StartIndex,
-                request.Count
-            );
+            Expression<Func<Project, bool>> predicate;
 
-            // --- ĐOẠN DEBUG (Tùy chọn, để em kiểm tra xem con cháu đã lên đủ chưa) ---
-            System.Diagnostics.Debug.WriteLine($"📦 Query (ProjectTo) returned {items.Count()} DTOs");
-            foreach (var dto in items)
+            if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
-                // Kiểm tra ClientName và SubProjects xem có "Unknown" hay 0 không
-                System.Diagnostics.Debug.WriteLine($"  📌 {dto.ProjectCode}: Client = {dto.ClientName}, SubProjects = {dto.SubProjects?.Count ?? 0}");
+                var term = request.SearchTerm.ToLower();
+                // Search thì tìm tuốt, không phân biệt cha con (hiện Flat list)
+                predicate = x => x.Name.ToLower().Contains(term) || x.ProjectCode.ToLower().Contains(term);
             }
-            // ----------------------------------------------------------------------
+            else
+            {
+                // Không search thì chỉ hiện ông Cha (hiện Tree list)
+                predicate = x => x.ParentProjectId == null;
+            }
 
-            // 3. Trả về kết quả luôn - Không cần gọi _mapper.Map nữa!
-            return new PagedResult<ProjectDto>(items, totalCount);
+            // 3. Gọi hàm "thần thánh" của Repo, ném thêm cái predicate vào
+            return await _projectRepo.GetPagedProjectedAsync<ProjectDto>(
+                request.StartIndex,
+                request.Count,
+                predicate // 👈 Nếu searchTerm rỗng, cái này là null, nó chạy y hệt bản cũ!
+            );
         }
     }
 }

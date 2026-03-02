@@ -1,0 +1,117 @@
+﻿<div class="card phase-card h-100" @onclick="HandleClick">
+    <div class="card-header bg-light position-relative">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span class="badge bg-primary me-2">@Phase.Sequence</span>
+                <strong>@PhaseName</strong>
+            </div>
+            <div class="ms-2">
+                @if (Phase.IsEnabled)
+                {
+                    <span class="badge bg-success">✅ Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">⭕ Inactive</span>
+                }
+            </div>
+        </div>
+
+        <button type="button"
+                class="btn-recall-absolute"
+                @onclick="HandleDelete"
+                @onclick:stopPropagation="true"
+                title="Thu hồi phase về hệ thống">
+            X
+        </button>
+    </div>
+    <div class="card-body">
+        @if (Phase.SystemPhase != null)
+        {
+            <p class="text-muted small mb-3">@Phase.SystemPhase.Description</p>
+        }
+
+        <div class="phase-stats mb-4">
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted fw-bold">Tasks:</span>
+                <span class="badge bg-info">@Phase.TaskCount</span>
+            </div>
+        </div>
+
+        @if (Phase.Tasks != null && Phase.Tasks.Any())
+        {
+            <div class="tasks-preview bg-light p-2 rounded border-start border-4 border-primary">
+                <small class="text-muted d-block mb-2"><strong>Recent Tasks:</strong></small>
+                <ul class="list-unstyled small mb-0">
+                    @foreach (var task in Phase.Tasks.Take(3))
+                    {
+                        <li class="mb-1 text-truncate">
+                            <i class="bi bi-check-circle-fill text-success me-1"></i> @task.Description
+                        </li>
+                    }
+                </ul>
+                @if (Phase.Tasks.Count > 3)
+                {
+                    <small class="text-muted mt-1 d-block">+@(Phase.Tasks.Count - 3) more...</small>
+                }
+            </div>
+        }
+    </div>
+</div>
+<style>
+    .phase-card {
+        transition: all 0.3s ease;
+        border: 2px solid #e0e0e0;
+        cursor: pointer;
+    }
+
+        .phase-card:hover {
+            border-color: #0d6efd;
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(13,110,253,0.2);
+        }
+
+    .btn-recall {
+        background: none;
+        border: none;
+        padding: 0;
+        color: #dc3545; /* Màu đỏ nguy hiểm nhẹ */
+        font-size: 1.2rem;
+        line-height: 1;
+        transition: transform 0.2s ease, color 0.2s ease;
+        opacity: 0.6; /* Mặc định hơi mờ */
+    }
+
+        .btn-recall:hover {
+            transform: scale(1.2);
+            color: #a71d2a;
+            opacity: 1;
+        }
+
+    .btn-recall-absolute {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: white; /* Thêm nền trắng để nó nổi bật trên Header */
+        border-radius: 50%;
+        border: none;
+        line-height: 1;
+        padding: 0;
+        color: #dc3545;
+        font-size: 1.3rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: block !important; /* Ép hiển thị */
+        z-index: 5;
+    }
+
+        .btn-recall-absolute:hover {
+            transform: scale(1.2);
+            color: #a71d2a;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+    /* Hiệu ứng: Khi di chuột vào Card thì nút Recall mới nổi bật lên */
+    .phase-card:hover .btn-recall {
+        opacity: 1;
+    }
+</style>

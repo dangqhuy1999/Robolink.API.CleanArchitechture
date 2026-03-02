@@ -1,16 +1,22 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Refit;
 using Robolink.Application.Commands.PhaseTasks;
-using Robolink.Shared.DTOs;
 using Robolink.Application.Queries.PhaseTasks;
 using Robolink.Application.Queries.Staff;
+using Robolink.Shared.DTOs;
+using Robolink.Shared.Interfaces.API.PhaseTasks;
+using Robolink.Shared.Interfaces.API.Projects;
+using Robolink.Shared.Interfaces.API.Staffs;
+using Robolink.WebApp.Components.Features.Projects.Shared;
 
 namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
 {
     public partial class QuickAddSubPhaseTaskModal : ComponentBase
     {
-        [Inject] private IMediator Mediator { get; set; } = null!;
+        [Inject] private IPhaseTaskApi PhaseTaskApi { get; set; } = null!;
+        [Inject] private IStaffApi StaffApi { get; set; } = null!;
         [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
         [Parameter] public bool ShowModal { get; set; }
         [Parameter] public Guid ParentPhaseTaskId { get; set; }
@@ -20,6 +26,7 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
         private CreatePhaseTaskRequest request = new();
         private PhaseTaskDto? parentPhaseTask;
         private List<StaffDto> staffs = new();
+        private int totalStaffs;
         private bool isLoading = false;
 
         protected override async Task OnParametersSetAsync()
@@ -45,7 +52,9 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
         {
             try
             {
-                parentPhaseTask = await Mediator.Send(new GetPhaseTaskByIdQuery(ParentPhaseTaskId));
+                // Gọi Handler "vũ khí mới" của em
+                parentPhaseTask = await PhaseTaskApi.GetByIdAsync(ParentPhaseTaskId);
+
                 if (parentPhaseTask != null)
                 {
                     // Inherit client and some settings from parent
@@ -57,9 +66,15 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
                     request.ProjectSystemPhaseConfigId = parentPhaseTask.ProjectSystemPhaseConfigId;
                 }
             }
+            catch (ApiException ex) // Lỗi từ phía Server (400, 404, 500...)
+            {
+                // Đọc nội dung lỗi từ Server gửi về
+                var errorContent = await ex.GetContentAsAsync<Dictionary<string, string>>();
+                await JSRuntime.InvokeVoidAsync("alert", "Error API server: " + ex.Message);
+            }
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Error loading parent project: {ex.Message}");
+                await JSRuntime.InvokeVoidAsync("alert", $"Error loading parent task: {ex.Message}");
             }
         }
 
@@ -67,9 +82,22 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
         {
             try
             {
-                var result = await Mediator.Send(new GetAllStaffQuery());
-                staffs = result?.Items?.ToList() ?? new();
+                // Dùng biến số thay vì viết chết số 10
+                var result = await StaffApi.GetAllStaffsAsync(ProjectConstants.staffStartIndex, ProjectConstants.staffPageSize);
+
+                if (result != null)
+                {
+                    staffs = result.Items?.ToList() ?? new();
+                    totalStaffs = result.TotalCount; // Lưu lại tổng số để hiển thị "Trang 1/10"
+                }
             }
+            catch (ApiException ex) // Lỗi từ phía Server (400, 404, 500...)
+            {
+                // Đọc nội dung lỗi từ Server gửi về
+                var errorContent = await ex.GetContentAsAsync<Dictionary<string, string>>();
+                await JSRuntime.InvokeVoidAsync("alert", "Error API server: " + ex.Message);
+            }
+
             catch (Exception ex)
             {
                 await JSRuntime.InvokeVoidAsync("alert", $"Error loading managers: {ex.Message}");
@@ -80,22 +108,23 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
         {
             try
             {
-                var result = await Mediator.Send(new CreatePhaseTaskCommand
-                {
-                    Request = request,
-                    CreatedBy = "Huy Dang"
-                });
-
+                var result = await PhaseTaskApi.CreateAsync(request);
                 if (result != null)
                 {
-                    await JSRuntime.InvokeVoidAsync("alert", $"Sub-Task created successfully!");
+                    await JSRuntime.InvokeVoidAsync("alert", $"Sub-project '{result.Name}' created successfully!");
                     await OnSaved.InvokeAsync();
                     await CloseModal();
                 }
             }
-            catch (Exception ex)
+            catch (ApiException ex) // Lỗi từ phía Server (400, 404, 500...)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+                // Đọc nội dung lỗi từ Server gửi về
+                var errorContent = await ex.GetContentAsAsync<Dictionary<string, string>>();
+                await JSRuntime.InvokeVoidAsync("alert", "Error API server: " + ex.Message);
+            }
+            catch (Exception ex) // Lỗi mạng hoặc lỗi code
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Lỗi hệ thống: " + ex.Message);
             }
         }
 

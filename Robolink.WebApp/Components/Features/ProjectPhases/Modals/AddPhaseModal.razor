@@ -1,0 +1,56 @@
+﻿@if (ShowModal)
+{
+    <div class="modal show d-block" style="background-color: rgba(0,0,0,0.5)">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow-lg">
+                @* Thêm shadow cho xịn *@
+                <div class="modal-header bg-primary text-white">
+                    @* Thêm màu cho header *@
+                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Add New Phase</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                    @if (isLoading) @* Dùng biến nội bộ *@
+                    {
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary"></div>
+                            <p class="mt-2 text-muted">Loading system phases...</p>
+                        </div>
+                    }
+                    else if (!string.IsNullOrEmpty(errorMessage))
+     @* Dùng biến nội bộ *@
+                    {
+                        <div class="alert alert-danger">@errorMessage</div>
+                    }
+                    else if (availablePhases == null || !availablePhases.Any())
+     @* Dùng biến nội bộ *@
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-check2-circle text-success display-4"></i>
+                            <p class="mt-2">All available phases have been added to this project.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var phase in availablePhases)
+                            {
+                                <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                        @onclick="() => OnAssign.InvokeAsync(phase.Id)">
+                                    <div>
+                                        <strong>@phase.Name</strong><br />
+                                        <small class="text-muted">@phase.Description</small>
+                                    </div>
+                                    <i class="bi bi-chevron-right text-primary"></i>
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

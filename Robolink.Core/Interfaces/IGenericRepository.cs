@@ -1,4 +1,5 @@
 ﻿using Robolink.Core.Common;
+using Robolink.Shared.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -14,6 +15,17 @@ namespace Robolink.Core.Interfaces
     {
         // ========== READ ==========
         // Thêm tham số includes để cho phép nạp các bảng liên quan
+        // Hàm "thần thánh": Vừa lọc, vừa phân trang, vừa Map sang DTO bằng ProjectTo
+        Task<PagedResult<TDto>> GetPagedProjectedAsync<TDto>(
+            int startIndex,
+            int count,
+            Expression<Func<TEntity, bool>>? predicate = null);
+
+        // VŨ KHÍ MỚI: Truyền ID vào, lấy ra DTO của bất kỳ bảng nào!/ 
+        // Dung create / update / delete xong thì gọi hàm này để lấy lại DTO mới nhất
+        Task<TDto?> GetProjectedByIdAsync<TDto>(Guid id);
+        // Lấy danh sách DTO dựa trên một điều kiện (predicate)
+        Task<IEnumerable<TDto>> GetProjectedAsync<TDto>(Expression<Func<TEntity, bool>> predicate);
         Task<TEntity?> GetByIdAsync(Guid id, params Expression<Func<TEntity, object>>[] includes);
 
         /// <summary>Get all entities (respects soft delete by default)</summary>

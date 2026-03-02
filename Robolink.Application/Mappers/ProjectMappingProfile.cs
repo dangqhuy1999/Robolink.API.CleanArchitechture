@@ -13,7 +13,7 @@ namespace Robolink.Application.Mappers
             CreateMap<Project, ProjectDto>()
                 // 1. Chỉ dẫn cho SQL cách lấy ClientName (AutoMapper tự Join bảng Client)
                 .ForMember(dest => dest.ClientName,
-                    opt => opt.MapFrom(src => src.Client.Name ?? "Unknown"))
+                    opt => opt.MapFrom(src => src.Client != null ? src.Client.Name : "N/A"))
 
                 // 2. Chỉ dẫn cách lấy ManagerName (AutoMapper tự Join bảng Manager)
                 .ForMember(dest => dest.ManagerName,

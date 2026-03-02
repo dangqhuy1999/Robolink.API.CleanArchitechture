@@ -1,10 +1,12 @@
 ﻿<div class="modal @(ShowModal ? "show d-block" : "")" tabindex="-1" style="background: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div class="modal-content border-0 shadow-lg">
+
+            @* --- 1. HEADER: Tách biệt rõ ràng Create Project vs Sub-Project --- *@
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
-                    <i class="bi bi-plus-circle"></i>
-                    @if (request.ParentProjectId.HasValue && request.ParentProjectId != Guid.Empty)
+                    <i class="bi @(request.ParentProjectId.HasValue ? "bi-diagram-3" : "bi-plus-circle") me-2"></i>
+                    @if (IsSubProject)
                     {
                         <span>Create Sub-Project</span>
                     }
@@ -13,107 +15,143 @@
                         <span>Create New Project</span>
                     }
                 </h5>
-                <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
             </div>
-            <div class="modal-body">
+
+            <div class="modal-body p-4">
                 @if (isLoading)
                 {
-                    <div class="alert alert-info">
-                        <span class="spinner-border spinner-border-sm me-2"></span>
-                        Loading...
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2 text-muted">Loading...</div>
                     </div>
                 }
                 else
                 {
                     <form @onsubmit="HandleCreateProject">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Project Code</label>
-                                <input type="text" class="form-control" @bind="request.ProjectCode" required />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Project Name</label>
-                                <input type="text" class="form-control" @bind="request.Name" required />
+
+                        @* --- SECTION 1: BASIC INFORMATION (Thông tin cốt lõi) --- *@
+                        <div class="mb-4">
+                            <h6 class="text-secondary border-bottom pb-2 mb-3 fw-bold">
+                                <i class="bi bi-info-circle me-1"></i> General Information
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Project Code</label>
+                                    <input type="text" class="form-control" @bind="request.ProjectCode" placeholder="PRJ-001" required />
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label fw-semibold">Project Name</label>
+                                    <input type="text" class="form-control" @bind="request.Name" placeholder="Enter project title..." required />
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-semibold">Description</label>
+                                    <textarea class="form-control" @bind="request.Description" rows="2" placeholder="Brief summary of the project..."></textarea>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control" @bind="request.Description" rows="2"></textarea>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Client</label>
-                                <InputSelect class="form-control" @bind-Value="request.ClientId">
-                                    <option value="">-- Select Client --</option>
-                                    @if (clients != null)
-                                    {
-                                        @foreach (var client in clients)
+                        @* --- SECTION 2: HIERARCHY & PEOPLE (Giải quyết logic 2 tầng) --- *@
+                        <div class="mb-4 p-3 bg-light rounded-3 border">
+                            <h6 class="text-secondary mb-3 fw-bold">
+                                <i class="bi bi-diagram-2 me-1"></i> Management & Hierarchy
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Client</label>
+                                    <InputSelect class="form-select" @bind-Value="request.ClientId">
+                                        <option value="">-- Select Client --</option>
+                                        @if (clients != null)
                                         {
-                                            <option value="@client.Id">@client.Name</option>
+                                            @foreach (var client in clients)
+                                            {
+                                                <option value="@client.Id">@client.Name</option>
+                                            }
                                         }
-                                    }
-                                </InputSelect>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Project Manager</label>
-                                <InputSelect class="form-control" @bind-Value="request.ManagerId">
-                                    <option value="">-- Select Manager --</option>
-                                    @if (managers != null)
-                                    {
-                                        @foreach (var staff in managers)
+                                    </InputSelect>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Project Manager</label>
+                                    <InputSelect class="form-select" @bind-Value="request.ManagerId">
+                                        <option value="">-- Select Manager --</option>
+                                        @if (managers != null)
                                         {
-                                            <option value="@staff.Id">@staff.FullName</option>
+                                            @foreach (var staff in managers)
+                                            {
+                                                <option value="@staff.Id">@staff.FullName</option>
+                                            }
                                         }
+                                    </InputSelect>
+                                </div>
+
+                                @* Logic 2 tầng: Nếu đã là Sub-project thì hiện nhãn, nếu không mới cho chọn Cha *@
+                                <div class="col-md-12 mt-2">
+                                    @if (IsSubProject)
+                                    {
+                                        <div class="alert alert-info d-flex align-items-center mb-0 py-2">
+                                            <i class="bi bi-link-45deg me-2 fs-5"></i>
+                                            <span>This project will be created as a <strong>Sub-Project</strong>.</span>
+                                        </div>
                                     }
-                                </InputSelect>
+                                    else
+                                    {
+                                        <ParentProjectSelector @bind-SelectedParentId="request.ParentProjectId"
+                                                               ExcludeProjectId="null"
+                                                               CurrentParentName="null" />
+                                        <div class="form-text text-muted mt-1">
+                                            <i class="bi bi-info-circle small"></i> Only standalone projects can have sub-projects.
+                                        </div>
+                                    }
+                                </div>
                             </div>
                         </div>
 
-                        <!-- ✅ Parent Project Selector -->
-                        <ParentProjectSelector 
-                            @bind-SelectedParentId="request.ParentProjectId"
-                            ExcludeProjectId="null"
-                            CurrentParentName="null" />
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Start Date</label>
-                                <InputDate class="form-control" @bind-Value="request.StartDate" />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Deadline</label>
-                                <InputDate class="form-control" @bind-Value="request.Deadline" />
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Priority</label>
-                                <InputSelect class="form-control" @bind-Value="request.Priority">
-                                    <option value="0">Low</option>
-                                    <option value="1">Medium</option>
-                                    <option value="2">High</option>
-                                    <option value="3">Critical</option>
-                                </InputSelect>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Internal Budget</label>
-                                <InputNumber class="form-control" @bind-Value="request.InternalBudget" />
-                            </div>
-                        </div>
-
+                        @* --- SECTION 3: TIMELINE & BUDGET (Số liệu & Thời gian) --- *@
                         <div class="mb-3">
-                            <label class="form-label">Customer Budget</label>
-                            <InputNumber class="form-control" @bind-Value="request.CustomerBudget" />
+                            <h6 class="text-secondary border-bottom pb-2 mb-3 fw-bold">
+                                <i class="bi bi-calendar-check me-1"></i> Timeline & Financials
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Start Date</label>
+                                    <InputDate class="form-control" @bind-Value="request.StartDate" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Deadline</label>
+                                    <InputDate class="form-control" @bind-Value="request.Deadline" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Priority</label>
+                                    <InputSelect class="form-select" @bind-Value="request.Priority">
+                                        <option value="0">Low</option>
+                                        <option value="1">Medium</option>
+                                        <option value="2">High</option>
+                                        <option value="3">Critical</option>
+                                    </InputSelect>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Internal Budget</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">$</span>
+                                        <InputNumber class="form-control" @bind-Value="request.InternalBudget" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Customer Budget</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">$</span>
+                                        <InputNumber class="form-control" @bind-Value="request.CustomerBudget" />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="modal-footer px-0 pb-0">
-                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save"></i> Create Project
+                        @* --- FOOTER: ACTION BUTTONS --- *@
+                        <div class="modal-footer border-0 px-0 pb-0 mt-4">
+                            <button type="button" class="btn btn-outline-secondary px-4" @onclick="CloseModal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                <i class="bi bi-save me-1"></i>
+                                @ModalTitle
                             </button>
                         </div>
                     </form>

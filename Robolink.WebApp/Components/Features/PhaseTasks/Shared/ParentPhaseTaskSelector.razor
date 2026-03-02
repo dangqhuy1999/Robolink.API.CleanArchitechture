@@ -2,32 +2,51 @@
     <label class="form-label">
         <i class="bi bi-diagram-2"></i> Parent Task (Optional)
     </label>
-    <div class="input-group">
-        <InputSelect class="form-control"
-                     TValue="Guid ?"
-                     Value="SelectedParentId"
-                     ValueChanged="OnValueChanged"
-                     ValueExpression="@(() => SelectedParentId)">
-            <option value="@((Guid?)null)">-- None (Main Phase Task) --</option>
-            @if (AvailablePhaseTasks != null)
-            {
-                @foreach (var task in AvailablePhaseTasks.OrderBy(t => t.Name))
-                {
-                    @* Để Blazor tự hiểu Guid, không cần ToString() *@
-                    <option value="@task.Id" disabled=@(task.Id == ExcludePhaseTaskId)>
-                        @task.Name - @task.AssignedStaffName @* Hiển thị Name thay vì Id cho dễ nhìn *@
-                    </option>
-                }
-            }
-        </InputSelect>
-        <button type="button" class="btn btn-outline-secondary" @onclick="RefreshPhaseTasks" 
-                title="Refresh available tasks">
+
+    <div class="input-group mb-2">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" class="form-control"
+               placeholder="Gõ để tìm công việc..."
+               @bind="searchTerm"
+               @bind:event="oninput"
+               @onkeyup="HandleSearch" />
+
+        <button type="button" class="btn btn-outline-secondary" @onclick="RefreshPhaseTasks"
+                title="Làm mới danh sách">
             <i class="bi bi-arrow-clockwise"></i>
         </button>
     </div>
+
+    <InputSelect class="form-control"
+                 TValue="Guid ?"
+                 Value="SelectedParentId"
+                 ValueChanged="OnValueChanged"
+                 ValueExpression="@(() => SelectedParentId)">
+
+        <option value="">-- None (Main Phase Task) --</option>
+
+        @if (isLoading)
+        {
+            <option disabled>Đang tải dữ liệu...</option>
+        }
+        else if (AvailablePhaseTasks != null && AvailablePhaseTasks.Any())
+        {
+            @foreach (var task in AvailablePhaseTasks.OrderBy(t => t.Name))
+            {
+                <option value="@task.Id" disabled="@(task.Id == ExcludePhaseTaskId)">
+                    @task.Name - @task.AssignedStaffName
+                </option>
+            }
+        }
+        else
+        {
+            <option disabled>Không tìm thấy công việc phù hợp</option>
+        }
+    </InputSelect>
+
     @if (!string.IsNullOrEmpty(CurrentParentName))
     {
-        <small class="text-info">
+        <small class="text-info mt-1 d-block">
             <i class="bi bi-info-circle"></i> Current parent: <strong>@CurrentParentName</strong>
         </small>
     }

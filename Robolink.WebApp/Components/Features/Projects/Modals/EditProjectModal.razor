@@ -1,119 +1,163 @@
 ﻿<div class="modal @(ShowModal ? "show d-block" : "")" style="background: @(ShowModal ? "rgba(0,0,0,0.5)" : "");">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-pencil-square"></i> Edit Project
+        <div class="modal-content border-0 shadow-lg">
+
+            @* --- 1. HEADER: Nhận diện dự án --- *@
+            <div class="modal-header bg-light">
+                <h5 class="modal-title d-flex align-items-center">
+                    <i class="bi bi-pencil-square me-2 text-primary"></i>
+                    <span>Edit Project: <strong class="text-dark">@project?.ProjectCode</strong></span>
                 </h5>
                 <button type="button" class="btn-close" @onclick="CloseModal"></button>
             </div>
-            <div class="modal-body">
+
+            <div class="modal-body p-4">
                 @if (isLoading)
                 {
-                    <div class="alert alert-info">
-                        <span class="spinner-border spinner-border-sm me-2"></span>
-                        Loading...
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2 text-muted">Loading data...</div>
                     </div>
                 }
                 else if (project == null)
                 {
-                    <div class="alert alert-danger">Project not found</div>
+                    <div class="alert alert-danger">Project data not found.</div>
                 }
                 else
                 {
                     <form @onsubmit="HandleUpdateProject">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Project Code</label>
-                                <input type="text" class="form-control" value="@project.ProjectCode" disabled />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Project Name</label>
-                                <InputText class="form-control" @bind-Value="updateRequest.Name" />
+
+                        @* --- 2. SECTION: THÔNG TIN CHÍNH (Core Info) --- *@
+                        <div class="section-block mb-4">
+                            <h6 class="section-title text-secondary border-bottom pb-2 mb-3">
+                                <i class="bi bi-info-circle me-1"></i> Basic Information
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">Project Name</label>
+                                    <InputText class="form-control" @bind-Value="updateRequest.Name" />
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">Description</label>
+                                    <InputTextArea class="form-control" @bind-Value="updateRequest.Description" rows="2" />
+                                </div>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <InputTextArea class="form-control" @bind-Value="updateRequest.Description" rows="2" />
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Project Manager</label>
-                                <InputSelect class="form-control" @bind-Value="updateRequest.ManagerId">
-                                    <option value="">-- Select Manager --</option>
-                                    @if (managers != null)
-                                    {
-                                        @foreach (var staff in managers)
+                        @* --- 3. SECTION: NHÂN SỰ & QUAN HỆ (Hệ thống 2 tầng) --- *@
+                        <div class="section-block mb-4 p-3 bg-light rounded shadow-sm">
+                            <h6 class="section-title text-secondary mb-3">
+                                <i class="bi bi-diagram-2 me-1"></i> Management & Hierarchy
+                            </h6>
+                            <div class="row g-3">
+                                @* Cột chọn Manager *@
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Project Manager</label>
+                                    <InputSelect class="form-control" @bind-Value="updateRequest.ManagerId">
+                                        <option value="">-- Select Manager --</option>
+                                        @if (managers != null)
                                         {
-                                            <option value="@staff.Id">@staff.FullName</option>
+                                            @foreach (var staff in managers)
+                                            {
+                                                <option value="@staff.Id">@staff.FullName</option>
+                                            }
                                         }
+                                    </InputSelect>
+                                </div>
+
+                                @* Cột chọn Status *@
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Status</label>
+                                    <InputSelect class="form-control" @bind-Value="updateRequest.Status">
+                                        <option value="0">Draft</option>
+                                        <option value="1">In Progress</option>
+                                        <option value="2">Completed</option>
+                                        <option value="3">On Hold</option>
+                                    </InputSelect>
+                                </div>
+
+                                @* --- ĐÂY LÀ ĐIỂM CHỐT LOGIC 2 TẦNG --- *@
+                                <div class="col-md-12 mt-3">
+                                    @if (project.SubProjects?.Any() == true)
+                                    {
+                                        @* TRƯỜNG HỢP 1: Nếu dự án này ĐÃ CÓ CON (Nó đang là CHA) *@
+                                        <div class="alert alert-warning d-flex align-items-center mb-0">
+                                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                            <div>
+                                                Dự án này đang là <strong>Dự án cha</strong> (Tầng 1).
+                                                Theo quy tắc, dự án cha không thể thuộc về bất kỳ dự án nào khác.
+                                            </div>
+                                        </div>
                                     }
-                                </InputSelect>
-                            </div>
+                                    else
+                                    {
+                                        @* TRƯỜNG HỢP 2: Nếu dự án này chưa có con (Có thể là Con hoặc Standalone) *@
+                                        @* Cho phép chọn Cha. Component này sẽ lọc chỉ hiện những ông chưa có Cha *@
+                                        <ParentProjectSelector @bind-SelectedParentId="updateRequest.ParentProjectId"
+                                                               ExcludeProjectId="project.Id"
+                                                               CurrentParentName="@project.ParentProjectName" />
 
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Status</label>
-                                <InputSelect class="form-control" @bind-Value="updateRequest.Status">
-                                    <option value="">-- Select Status --</option>
-                                    <option value="0">Draft</option>
-                                    <option value="1">In Progress</option>
-                                    <option value="2">Completed</option>
-                                    <option value="3">On Hold</option>
-                                </InputSelect>
+                                        <small class="text-muted mt-1 d-block">
+                                            <i class="bi bi-info-circle"></i>
+                                            Để trở thành <strong>Dự án con</strong>, dự án không được phép chứa các dự án con khác.
+                                        </small>
+                                    }
+                                </div>
                             </div>
                         </div>
 
-                        <!-- ✅ NEW: Parent Project Selector -->
-                        <ParentProjectSelector 
-                            @bind-SelectedParentId="updateRequest.ParentProjectId"
-                            ExcludeProjectId="project.Id"
-                            CurrentParentName="@project.ParentProjectName" />
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Deadline</label>
-                                <InputDate class="form-control" @bind-Value="updateRequest.Deadline" />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Priority</label>
-                                <InputSelect class="form-control" @bind-Value="updateRequest.Priority">
-                                    <option value="">-- Select Priority --</option>
-                                    <option value="0">Low</option>
-                                    <option value="1">Medium</option>
-                                    <option value="2">High</option>
-                                    <option value="3">Critical</option>
-                                </InputSelect>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Internal Budget</label>
-                                <InputNumber class="form-control" @bind-Value="updateRequest.InternalBudget" />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Customer Budget</label>
-                                <InputNumber class="form-control" @bind-Value="updateRequest.CustomerBudget" />
+                        @* --- 4. SECTION: CON SỐ & THỜI GIAN (Quantitative) --- *@
+                        <div class="section-block mb-4">
+                            <h6 class="section-title text-secondary border-bottom pb-2 mb-3">
+                                <i class="bi bi-cash-stack me-1"></i> Budget & Timeline
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Deadline</label>
+                                    <InputDate class="form-control" @bind-Value="updateRequest.Deadline" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Internal Budget</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <InputNumber class="form-control text-end" @bind-Value="updateRequest.InternalBudget" />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Customer Budget</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <InputNumber class="form-control text-end" @bind-Value="updateRequest.CustomerBudget" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- ✅ NEW: Display Sub-Projects -->
+                        @* --- 5. SECTION: DỮ LIỆU CON (Sub-items) --- *@
                         @if (project.SubProjects?.Any() == true)
                         {
-                            <div class="mb-3">
-                                <label class="form-label"><i class="bi bi-diagram-3"></i> Sub-Projects</label>
-                                <SubProjectsList 
-                                    SubProjects="project.SubProjects" 
-                                    OnSelectSubProject="SelectSubProject" />
+                            <div class="section-block mb-0 border rounded p-3 bg-white">
+                                <h6 class="text-primary mb-3"><i class="bi bi-layers me-1"></i> Sub-Projects List</h6>
+                                <SubProjectsList SubProjects="project.SubProjects"
+                                                 OnSelectSubProject="SelectSubProject" />
                             </div>
                         }
 
-                        <div class="modal-footer px-0 pb-0">
-                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save"></i> Save Changes
+                        @* --- 6. FOOTER: HÀNH ĐỘNG --- *@
+                        <div class="modal-footer border-0 px-0 pb-0 mt-4">
+                            <hr class="w-100 mb-4" />
+                            <button type="button" class="btn btn-outline-secondary px-4" @onclick="CloseModal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+                                }
+                                else
+                                {
+
+                                    <i class="bi bi-check-circle me-1"></i>
+                                }
+                                Save All Changes
                             </button>
                         </div>
                     </form>

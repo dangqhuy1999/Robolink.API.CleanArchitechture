@@ -3,10 +3,6 @@ using Robolink.Shared.DTOs;
 
 namespace Robolink.Application.Commands.ProjectPhases
 {
-    public record UpdateProjectPhaseConfigCommand(
-        Guid PhaseConfigId,
-        string? CustomPhaseName,
-        int Sequence,
-        bool IsEnabled
-    ) : IRequest<ProjectPhaseConfigDto>;
+    public record UpdateProjectPhaseConfigCommand(UpdateProjectPhaseConfigRequest Request)
+    : IRequest<ProjectPhaseConfigDto>;
 }

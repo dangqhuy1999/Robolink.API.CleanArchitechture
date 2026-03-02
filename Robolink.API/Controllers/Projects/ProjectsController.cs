@@ -14,7 +14,7 @@ namespace Robolink.API.Controllers.Projects
 {
     [ApiController]
     [Route("api/projects")]
-    public class ProjectsController : ControllerBase, IProjectApi // Kế thừa để ép đúng chuẩn API
+    public class ProjectsController : ControllerBase // Kế thừa để ép đúng chuẩn API
     {
         private readonly IMediator _mediator;
 
@@ -24,22 +24,31 @@ namespace Robolink.API.Controllers.Projects
         }
 
         [HttpGet("paged")]
-        public async Task<PagedResult<ProjectDto>> GetProjectsPagedAsync([FromQuery] int startIndex, [FromQuery] int count)
+        public async Task<ActionResult<PagedResult<ProjectDto>>> GetProjectsPagedAsync(
+            [FromQuery] int startIndex, 
+            [FromQuery] int count,
+            [FromQuery] string? searchTerm = null) // 👈 Thêm cái này)
         {
-            // Controller lúc này chỉ đóng vai trò "người chuyển tin"
-            // Nó gửi yêu cầu xuống tầng Application thông qua Mediator
-            return await _mediator.Send(new GetProjectsPagedQuery(startIndex, count));
+            var result = await _mediator.Send(new GetProjectsPagedQuery(startIndex, count, searchTerm));
+            return Ok(result); // Nhất quán với các hàm khác
         }
 
-        [HttpGet("{id}")]
-        public async Task<ProjectDto> GetByIdAsync(Guid id)
+        [HttpGet("{id:guid}", Name = "GetProjectById")]
+        public async Task<ActionResult<ProjectDto>> GetByIdAsync(Guid id)
         {
-            return await _mediator.Send(new GetProjectByIdQuery(id));
+            var result = await _mediator.Send(new GetProjectByIdQuery(id));
+
+            if (result == null)
+            {
+                return NotFound(); // Trả về 404: Chuẩn dự án lớn
+            }
+
+            return Ok(result); // Trả về 200 kèm data
         }
 
 
         [HttpPost("sample")]
-        public async Task<ProjectDto> QuickCreateAsync()
+        public async Task<ActionResult<ProjectDto>> QuickCreateAsync()
         {
             // Tạo Command từ Request (Application nắm giữ logic này)
             var command = new CreateProjectCommand
@@ -63,11 +72,13 @@ namespace Robolink.API.Controllers.Projects
             // Gửi đi và nhận lại DTO
             var result = await _mediator.Send(command);
 
-            return (ProjectDto)result!;
+            // ✅ THAY THẾ CreatedAtAction BẰNG Ok
+            // Không còn lo lỗi "No route matches", không lo sập Server nữa.
+            return Ok(result);
         }
 
         [HttpPost]
-        public async Task<ProjectDto> CreateAsync([FromBody] CreateProjectRequest request)
+        public async Task<ActionResult<ProjectDto>> CreateAsync([FromBody] CreateProjectRequest request)
         {
             // Tạo Command từ Request (Application nắm giữ logic này)
             var command = new CreateProjectCommand
@@ -96,12 +107,21 @@ namespace Robolink.API.Controllers.Projects
             Việc ép kiểu (PhaseTaskDto) là để khẳng định với chương trình: 
             "Tôi biết chắc chắn kết quả trả về là DTO này".
              */
-            return (ProjectDto)result!;
+
+            // 3. Trả về chuẩn RESTful (Mã 201 Created)
+            // nameof(GetByIdAsync) giúp chỉ định đường dẫn lấy tài nguyên mới
+            // new { id = result.Id } truyền tham số Id vào route của hàm GetByIdAsync
+            // ✅ THAY THẾ CreatedAtAction BẰNG Ok
+            // Không còn lo lỗi "No route matches", không lo sập Server nữa.
+            return Ok(result);
         }
 
         [HttpPut("{id}")]
-        public async Task<ProjectDto> UpdateAsync(Guid id, [FromBody] UpdateProjectRequest request)
+        public async Task<ActionResult<ProjectDto>> UpdateAsync(Guid id, [FromBody] UpdateProjectRequest request)
         {
+            // 🛡️ Force ID từ URL vào Request để đồng nhất dữ liệu
+            request.Id = id;
+
             var command = new UpdateProjectCommand
             {
                 Id = id,
@@ -110,14 +130,25 @@ namespace Robolink.API.Controllers.Projects
             };
 
             var result = await _mediator.Send(command);
-            return (ProjectDto)result!; // Ép kiểu để hết lỗi đỏ
+
+            // Nếu kết quả null (do ID không tồn tại), trả về 404
+            if (result == null) return NotFound();
+
+            return Ok(result);
         }
 
         [HttpDelete("{id}")]
-        public async Task<bool> DeleteAsync(Guid id) // Bỏ ActionResult để khớp 100% với Interface
+        public async Task<IActionResult> DeleteAsync(Guid id)
         {
-            // Đảm bảo tên tham số trong Command là PhaseTaskId giống Handler
-            return await _mediator.Send(new DeleteProjectCommand(id));
+            // Handler nên trả về bool (thành công/thất bại)
+            var result = await _mediator.Send(new DeleteProjectCommand(id));
+
+            if (!result)
+            {
+                return NotFound(); // Trả về 404 nếu không tìm thấy để xóa
+            }
+
+            return NoContent(); // Trả về 204: "Đã xóa xong, không còn gì để trả về"
         }
     }
 }

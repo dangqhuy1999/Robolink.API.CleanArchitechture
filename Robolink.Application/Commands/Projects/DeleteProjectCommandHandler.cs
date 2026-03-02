@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Robolink.Core.Entities;
 using Robolink.Core.Interfaces;
 
@@ -16,23 +16,30 @@ namespace Robolink.Application.Commands.Projects
         public async Task<bool> Handle(DeleteProjectCommand request, CancellationToken cancellationToken)
         {
             var project = await _projectRepo.GetByIdAsync(request.ProjectId);
-            if (project == null)
-                throw new InvalidOperationException("Project not found");
+            if (project == null) return false;
 
-            try
-            {
-                if (request.HardDelete)
-                    await _projectRepo.DeleteAsync(request.ProjectId);
-                else
-                    await _projectRepo.SoftDeleteAsync(request.ProjectId);
+            // 1. Tìm tất cả dự án con (bao gồm cả những thằng đã bị xóa nếu cần, hoặc chỉ thằng active)
+            var subProjects = await _projectRepo.FindAsync(p => p.ParentProjectId == request.ProjectId);
 
-                await _projectRepo.SaveChangesAsync();
-                return true;
-            }
-            catch (Exception ex)
+            if (subProjects.Any())
             {
-                throw new InvalidOperationException($"Failed to delete project: {ex.Message}");
+                foreach (var sub in subProjects)
+                {
+                    if (request.HardDelete)
+                        await _projectRepo.DeleteAsync(sub.Id);
+                    else
+                        await _projectRepo.SoftDeleteAsync(sub.Id);
+                }
             }
+
+            // 2. Xóa chính nó
+            if (request.HardDelete)
+                await _projectRepo.DeleteAsync(request.ProjectId);
+            else
+                await _projectRepo.SoftDeleteAsync(request.ProjectId);
+
+            await _projectRepo.SaveChangesAsync();
+            return true;
         }
     }
 }

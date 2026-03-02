@@ -8,7 +8,7 @@ namespace Robolink.API.Controllers.Clients
 {
     [ApiController]
     [Route("api/clients")]
-    public class ClientsController : ControllerBase, IClientApi // Kế thừa để ép đúng chuẩn API
+    public class ClientsController : ControllerBase // Kế thừa để ép đúng chuẩn API
     {
         private readonly IMediator _mediator;
 
@@ -17,14 +17,18 @@ namespace Robolink.API.Controllers.Clients
             _mediator = mediator;
         }
         [HttpGet]
-        public async Task<PagedResult<ClientDto>> GetAllClientsAsync() // Sửa kiểu trả về thành PagedResult
+        public async Task<ActionResult<PagedResult<ClientDto>>> GetAllClientsAsync([FromQuery] int startIndex, [FromQuery] int count)
         {
-            var query = new GetAllClientsQuery(); // Query chứ không phải Command vì đây là lệnh lấy dữ liệu
+            // ❌ Sai: New không tham số trong khi Constructor bắt phải có
+            // var query = new GetAllClientsQuery(); 
+
+            // ✅ Đúng: Truyền giá trị từ URL xuống
+            var query = new GetAllClientsQuery(startIndex, count);
 
             var result = await _mediator.Send(query);
 
-            // Ép kiểu về PagedResult để khớp với đầu ra
-            return (PagedResult<ClientDto>)result!;
+            // ✅ Trả về Ok kèm dữ liệu
+            return Ok(result);
         }
     }
 }

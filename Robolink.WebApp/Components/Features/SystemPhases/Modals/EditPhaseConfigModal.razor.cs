@@ -1,14 +1,18 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Refit;
 using Robolink.Application.Commands.ProjectPhases;
 using Robolink.Shared.DTOs;
+using Robolink.Shared.Interfaces.API.ProjectPhases;
+using Robolink.Shared.Interfaces.API.SystemPhases;
 
 namespace Robolink.WebApp.Components.Features.SystemPhases.Modals
 {
     public partial class EditPhaseConfigModal : ComponentBase
     {
-        [Inject] protected IMediator Mediator { get; set; } = null!;
+        [Inject] private ISystemPhaseApi SystemPhaseApi { get; set; } = null!; // ✅ NEW
+        [Inject] private IProjectPhaseApi ProjectPhaseApi { get; set; } = null!; // ✅ NEW
         [Inject] protected IJSRuntime JSRuntime { get; set; } = null!;
         [Parameter]
         public bool ShowModal { get; set; }
@@ -26,7 +30,9 @@ namespace Robolink.WebApp.Components.Features.SystemPhases.Modals
         private int Sequence;
         private bool IsEnabled;
         private string? ErrorMessage;
+        private bool IsLoading = true;
 
+        private string? PhasesErrorMessage;
         protected override void OnParametersSet()
         {
             if (Phase != null)
@@ -42,42 +48,77 @@ namespace Robolink.WebApp.Components.Features.SystemPhases.Modals
         {
             try
             {
+                IsLoading = true;
                 ErrorMessage = null;
-                var command = new UpdateProjectPhaseConfigCommand(
-                    Phase!.Id,
-                    CustomPhaseName,
-                    Sequence,
-                    IsEnabled
-                );
-                await Mediator.Send(command);
-                await OnConfigChanged.InvokeAsync();
-                await OnClose();
+
+                // 🚀 Đóng gói dữ liệu vào Request DTO (Shared)
+                var request = new UpdateProjectPhaseConfigRequest
+                {
+                    Id = Phase!.Id,
+                    CustomPhaseName = CustomPhaseName,
+                    Sequence = Sequence,
+                    IsEnabled = IsEnabled
+                };
+
+                // 🚀 Gọi API qua Refit (Thay vì gọi Mediator trực tiếp)
+                var updatedDto = await ProjectPhaseApi.UpdateConfigAsync(Phase.Id, request);
+
+                if (updatedDto != null)
+                {
+                    await OnConfigChanged.InvokeAsync(); // Báo trang cha load lại list
+                    await OnClose(); // Đóng Modal
+                }
+            }
+            catch (ApiException ex)
+            {
+                // Đọc nội dung lỗi từ Backend (ví dụ: lỗi logic, validation)
+                ErrorMessage = $"Lỗi hệ thống: {ex.Content}";
             }
             catch (Exception ex)
             {
-                ErrorMessage = ex.Message;
+                ErrorMessage = $"Đã xảy ra lỗi: {ex.Message}";
+            }
+            finally
+            {
+                IsLoading = false;
+                StateHasChanged();
             }
         }
 
-        private async Task RemovePhase()
+        private async Task RemovePhase(Guid phaseConfigId)
         {
-            if (!await JSRuntime.InvokeAsync<bool>("confirm", "Remove this phase from project?"))
-                return;
+            var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa Giai đoạn này khỏi dự án không?");
+            if (!confirmed) return;
 
             try
             {
-                ErrorMessage = null;
-                var command = new RemovePhaseFromProjectCommand(Phase!.Id);
-                await Mediator.Send(command);
-                await OnConfigChanged.InvokeAsync();
-                await OnClose();
+                IsLoading = true;
+                // Gọi API xóa ở Backend
+                var success = await ProjectPhaseApi.RemovePhaseFromProjectAsync(phaseConfigId);
+
+                if (success)
+                {
+                    // 🚀 Báo cho trang cha load lại danh sách mới
+                    await OnConfigChanged.InvokeAsync();
+
+                    // 🚀 Gọi hàm OnClose() em vừa viết để đóng Modal
+                    await OnClose();
+                }
+            }
+            catch (ApiException ex)
+            {
+                ErrorMessage = $"Lỗi từ Server: {ex.Content}";
             }
             catch (Exception ex)
             {
-                ErrorMessage = ex.Message;
+                ErrorMessage = "Lỗi hệ thống: " + ex.Message;
+            }
+            finally
+            {
+                IsLoading = false;
+                StateHasChanged();
             }
         }
-
         private async Task OnClose()
         {
             await OnModalClose.InvokeAsync();

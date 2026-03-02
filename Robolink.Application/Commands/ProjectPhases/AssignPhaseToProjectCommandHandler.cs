@@ -8,43 +8,41 @@ namespace Robolink.Application.Commands.ProjectPhases
 {
     public class AssignPhaseToProjectCommandHandler : IRequestHandler<AssignPhaseToProjectCommand, ProjectPhaseConfigDto>
     {
-        private readonly IProjectSystemPhaseConfigRepository _configRepo;
+        private readonly IGenericRepository<ProjectSystemPhaseConfig> _configRepo;
         private readonly IGenericRepository<Project> _projectRepo;
         private readonly IGenericRepository<SystemPhase> _phaseRepo;
-        private readonly IMapper _mapper;
 
         public AssignPhaseToProjectCommandHandler(
-            IProjectSystemPhaseConfigRepository configRepo,
+            IGenericRepository<ProjectSystemPhaseConfig> configRepo,
             IGenericRepository<Project> projectRepo,
-            IGenericRepository<SystemPhase> phaseRepo,
-            IMapper mapper)
+            IGenericRepository<SystemPhase> phaseRepo)
         {
             _configRepo = configRepo;
             _projectRepo = projectRepo;
             _phaseRepo = phaseRepo;
-            _mapper = mapper;
         }
 
         public async Task<ProjectPhaseConfigDto> Handle(AssignPhaseToProjectCommand request, CancellationToken cancellationToken)
         {
-            // Validate project exists
-            var project = await _projectRepo.GetByIdAsync(request.ProjectId);
-            if (project == null)
+            // 1. Validate tồn tại (Chỉ dùng AnyAsync để SQL chạy cực nhanh, không load cả Entity)
+            if (!await _projectRepo.AnyAsync(p => p.Id == request.ProjectId))
                 throw new InvalidOperationException("Project not found");
 
-            // Validate phase exists
-            var phase = await _phaseRepo.GetByIdAsync(request.SystemPhaseId);
-            if (phase == null)
+            if (!await _phaseRepo.AnyAsync(p => p.Id == request.SystemPhaseId))
                 throw new InvalidOperationException("System Phase not found");
 
-            // Check if already assigned
-            if (await _configRepo.ProjectHasPhaseAsync(request.ProjectId, request.SystemPhaseId))
+            // 2. Check trùng (Dùng AnyAsync của Generic Repo thay cho hàm đặc thù)
+            var alreadyExists = await _configRepo.AnyAsync(x =>
+                x.ProjectId == request.ProjectId && x.SystemPhaseId == request.SystemPhaseId);
+
+            if (alreadyExists)
                 throw new InvalidOperationException("This phase is already assigned to the project");
 
-            // Get next sequence
-            var nextSequence = await _configRepo.GetNextSequenceAsync(request.ProjectId);
+            // 3. Tính Sequence (Dùng Count ngay trên Generic Repo)
+            var currentCount = await _configRepo.CountAsync(x => x.ProjectId == request.ProjectId);
+            var nextSequence = currentCount + 1;
 
-            // Create new config
+            // 4. Create Entity
             var config = new ProjectSystemPhaseConfig
             {
                 Id = Guid.NewGuid(),
@@ -54,27 +52,18 @@ namespace Robolink.Application.Commands.ProjectPhases
                 Sequence = nextSequence,
                 IsEnabled = true,
                 CreatedAt = DateTime.UtcNow,
-                // ✅ THÊM DÒNG NÀY ĐỂ HẾT LỖI COMPILER
+                // ✅ Gán mảng rỗng để thỏa mãn điều kiện 'required'
                 RowVersion = Array.Empty<byte>()
             };
 
             await _configRepo.AddAsync(config);
             await _configRepo.SaveChangesAsync();
 
-            // Return mapped DTO
-            config.SystemPhase = phase; // Attach phase for mapping
-            return new ProjectPhaseConfigDto
-            {
-                Id = config.Id,
-                ProjectId = config.ProjectId,
-                SystemPhaseId = config.SystemPhaseId,
-                SystemPhase = _mapper.Map<SystemPhaseDto>(phase),
-                CustomPhaseName = config.CustomPhaseName,
-                Sequence = config.Sequence,
-                IsEnabled = config.IsEnabled,
-                TaskCount = 0,
-                Tasks = new List<PhaseTaskDto>()
-            };
+            // 5. ĂN TIỀN: Dùng vũ khí hạng nặng để trả về DTO hoàn hảo
+            // Không gán tay, không IMapper ở đây. Repo tự Join và tự Map.
+            return await _configRepo.GetProjectedByIdAsync<ProjectPhaseConfigDto>(config.Id)
+                   ?? throw new Exception("Error mapping new phase");
         }
     }
+
 }

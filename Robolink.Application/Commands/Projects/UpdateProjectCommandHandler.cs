@@ -26,74 +26,47 @@ namespace Robolink.Application.Commands.Projects
         public async Task<ProjectDto> Handle(UpdateProjectCommand request, CancellationToken cancellationToken)
         {
             var updateId = request.Request.Id ?? throw new ArgumentNullException("Id cannot be null");
-            var project = await _projectRepo.GetByIdAsync(updateId); // Hết lỗi đỏ!
-            if (project == null)
-                throw new InvalidOperationException("Project not found");
 
-            // ✅ Validate manager if updating
+            // 1. Lấy dữ liệu cũ từ DB
+            var project = await _projectRepo.GetByIdAsync(updateId)
+                ?? throw new InvalidOperationException("Project not found");
+
+            // 2. Validate Manager (Chỉ kiểm tra, không cần gán tay)
             if (request.Request.ManagerId.HasValue && request.Request.ManagerId != Guid.Empty)
             {
                 var manager = await _staffRepo.GetByIdAsync(request.Request.ManagerId.Value);
-                if (manager == null)
-                    throw new InvalidOperationException("Manager not found");
+                if (manager == null) throw new InvalidOperationException("Manager not found");
             }
 
-            // ✅ NEW: Validate ParentProject if updating
-            if (request.Request.ParentProjectId.HasValue)
+            // 3. Validate ParentProject (Chỉ kiểm tra vòng lặp)
+            if (request.Request.ParentProjectId.HasValue && request.Request.ParentProjectId != Guid.Empty)
             {
-                if (request.Request.ParentProjectId == Guid.Empty)
-                {
-                    // Allow removing parent (setting to null/empty)
-                    project.ParentProjectId = null;
-                }
-                else
-                {
-                    // Prevent circular reference: parent project cannot be a sub-project
-                    var parentProject = await _projectRepo.GetByIdAsync(request.Request.ParentProjectId.Value);
-                    if (parentProject == null)
-                        throw new InvalidOperationException("Parent Project not found");
-
-                    // Prevent circular: project cannot be its own parent
-                    if (request.Request.ParentProjectId == project.Id)
-                        throw new InvalidOperationException("A project cannot be its own parent");
-
-                    project.ParentProjectId = request.Request.ParentProjectId.Value;
-                }
+                var parentProject = await _projectRepo.GetByIdAsync(request.Request.ParentProjectId.Value);
+                if (parentProject == null) throw new InvalidOperationException("Parent Project not found");
+                if (request.Request.ParentProjectId == project.Id)
+                    throw new InvalidOperationException("A project cannot be its own parent");
             }
 
-            // ✅ Update other fields (only if provided)
-            if (!string.IsNullOrEmpty(request.Request.Name))
-                project.Name = request.Request.Name;
+            // 4. 🚀 MÁY GIẶT AUTOMAPPER: Thay thế toàn bộ đống if gán tay của em!
+            // Nó sẽ tự động đè các giá trị khác Null từ Request vào Entity Project
+            _mapper.Map(request.Request, project);
 
-            if (!string.IsNullOrEmpty(request.Request.Description))
-                project.Description = request.Request.Description;
+            // Xử lý ngoại lệ nhỏ: Nếu user truyền Guid.Empty nghĩa là muốn gỡ Parent ra (cho bằng null)
+            if (request.Request.ParentProjectId == Guid.Empty)
+            {
+                project.ParentProjectId = null;
+            }
 
-            if (request.Request.ManagerId.HasValue && request.Request.ManagerId != Guid.Empty)
-                project.ManagerId = request.Request.ManagerId.Value;
-
-            if (request.Request.Deadline.HasValue)
-                project.Deadline = request.Request.Deadline.Value;
-
-            if (request.Request.Priority.HasValue)
-                project.Priority = (ProjectPriority)request.Request.Priority.Value;
-
-            if (request.Request.InternalBudget.HasValue)
-                project.InternalBudget = request.Request.InternalBudget.Value;
-
-            if (request.Request.CustomerBudget.HasValue)
-                project.CustomerBudget = request.Request.CustomerBudget.Value;
-
-            if (request.Request.Status.HasValue)
-                project.Status = (ProjectStatus)request.Request.Status.Value;
-
+            // Gán thông tin người cập nhật
             project.UpdatedBy = request.UpdatedBy ?? "System";
 
-            // ✅ Save
+            // 5. Lưu vào Database (NHỚ PHẢI CÓ SAVE CHANGES)
             await _projectRepo.UpdateAsync(project);
-            await _projectRepo.SaveChangesAsync();
+            await _projectRepo.SaveChangesAsync(); // ❌ Đoạn cũ của em bị thiếu dòng này!
 
-            // ✅ Return DTO
-            return _mapper.Map<ProjectDto>(project);
+            // 6. 🚀 ĂN TIỀN LÀ Ở ĐÂY: Lấy DTO xịn từ Generic Framework
+            return await _projectRepo.GetProjectedByIdAsync<ProjectDto>(project.Id)
+                   ?? throw new InvalidOperationException("Failed to retrieve updated project");
         }
     }
 }

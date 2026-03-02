@@ -2,8 +2,15 @@
 
 namespace Robolink.Application.Commands.SystemPhases
 {
-    public record DeleteSystemPhaseCommand(
-        Guid SystemPhaseId,
-        bool HardDelete = false  // ✅ NEW: Default to soft delete
-    ) : IRequest<bool>;
+    public class DeleteSystemPhaseCommand : IRequest<bool>
+    {
+        public Guid PhaseId { get; set; }
+        public bool HardDelete { get; set; } = false; // false = soft delete
+
+        public DeleteSystemPhaseCommand(Guid phaseId, bool hardDelete = false)
+        {
+            PhaseId = phaseId;
+            HardDelete = hardDelete;
+        }
+    }
 }

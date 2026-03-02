@@ -15,16 +15,28 @@ namespace Robolink.Application.Tests.Commands.PhaseTasks
     public class UpdatePhaseTaskCommandHandlerTests
     {
         private readonly Mock<IGenericRepository<PhaseTask>> _mockTaskRepo;
-        private readonly Mock<IProjectSystemPhaseConfigRepository> _mockPhaseConfigRepo;
+        private readonly Mock<IGenericRepository<Staff>> _mockStaffRepo; // ✅ Thêm Mock này
+        private readonly Mock<IGenericRepository<ProjectSystemPhaseConfig>> _mockPhaseConfigRepo; // ✅ Dùng Generic luôn cho đồng bộ
         private readonly Mock<IMapper> _mockMapper;
         private readonly UpdatePhaseTaskCommandHandler _handler;
 
         public UpdatePhaseTaskCommandHandlerTests()
         {
             _mockTaskRepo = new Mock<IGenericRepository<PhaseTask>>();
-            _mockPhaseConfigRepo = new Mock<IProjectSystemPhaseConfigRepository>();
+            _mockStaffRepo = new Mock<IGenericRepository<Staff>>(); // ✅ Khởi tạo Mock Staff
+
+            // Lưu ý: Nếu ở Handler em dùng IGenericRepository<ProjectSystemPhaseConfig> 
+            // thì ở đây cũng nên dùng Mock của Generic cho đồng nhất
+            _mockPhaseConfigRepo = new Mock<IGenericRepository<ProjectSystemPhaseConfig>>();
+
             _mockMapper = new Mock<IMapper>();
-            _handler = new UpdatePhaseTaskCommandHandler(_mockTaskRepo.Object, _mockPhaseConfigRepo.Object, _mockMapper.Object);
+
+            // ✅ Truyền ĐỦ 4 tham số theo đúng thứ tự trong Handler
+            _handler = new UpdatePhaseTaskCommandHandler(
+                _mockTaskRepo.Object,
+                _mockStaffRepo.Object,
+                _mockPhaseConfigRepo.Object,
+                _mockMapper.Object);
         }
 
         [Fact]

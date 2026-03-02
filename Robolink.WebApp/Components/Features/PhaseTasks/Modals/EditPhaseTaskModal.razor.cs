@@ -1,13 +1,16 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Refit;
 using Robolink.Application.Commands.PhaseTasks;
-using Robolink.Shared.DTOs;
 using Robolink.Application.Queries.PhaseTasks;
 using Robolink.Application.Queries.Staff;
+using Robolink.Shared.DTOs;
 using Robolink.Shared.Enums;
-using Robolink.Shared.Interfaces.API.Staffs;
 using Robolink.Shared.Interfaces.API.PhaseTasks;
+using Robolink.Shared.Interfaces.API.Projects;
+using Robolink.Shared.Interfaces.API.Staffs;
+using Robolink.WebApp.Components.Features.Projects.Shared;
 
 namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
 {
@@ -24,6 +27,7 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
         private PhaseTaskDto? phaseTask;
         private UpdatePhaseTaskRequest updateRequest = new();
         private List<StaffDto> staffs = new();
+        private int totalStaffs;
         private bool isLoading = false;
 
         protected override async Task OnParametersSetAsync()
@@ -60,9 +64,15 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
                     };
                 }
             }
+            catch (ApiException ex) // Lỗi từ phía Server (400, 404, 500...)
+            {
+                // Đọc nội dung lỗi từ Server gửi về
+                var errorContent = await ex.GetContentAsAsync<Dictionary<string, string>>();
+                await JSRuntime.InvokeVoidAsync("alert", "Error API server: " + ex.Message);
+            }
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Error loading project: {ex.Message}");
+                await JSRuntime.InvokeVoidAsync("alert", $"Error loading task: {ex.Message}");
             }
         }
 
@@ -70,8 +80,20 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
         {
             try
             {
-                var result = await StaffApi.GetAllStaffsAsync();
-                staffs = result?.Items?.ToList() ?? new();
+                // Dùng biến số thay vì viết chết số 10
+                var result = await StaffApi.GetAllStaffsAsync(ProjectConstants.staffStartIndex, ProjectConstants.staffPageSize);
+
+                if (result != null)
+                {
+                    staffs = result.Items?.ToList() ?? new();
+                    totalStaffs = result.TotalCount; // Lưu lại tổng số để hiển thị "Trang 1/10"
+                }
+            }
+                catch (ApiException ex) // Lỗi từ phía Server (400, 404, 500...)
+                {
+                    // Đọc nội dung lỗi từ Server gửi về
+                    var errorContent = await ex.GetContentAsAsync<Dictionary<string, string>>();
+                    await JSRuntime.InvokeVoidAsync("alert", "Error API server: " + ex.Message);
             }
             catch (Exception ex)
             {
@@ -83,19 +105,25 @@ namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
         {
             try
             {
-                var result = await PhaseTaskApi.UpdateAsync(PhaseTaskId,updateRequest);
+                var result = await PhaseTaskApi.UpdateAsync(PhaseTaskId, updateRequest);
 
-                if (result != null)
-                {
-                    await JSRuntime.InvokeVoidAsync("alert", "Task updated successfully!");
-                    await OnSaved.InvokeAsync();
-                    await CloseModal();
-                }
+                // Alert với thông tin xịn từ DTO trả về
+                await JSRuntime.InvokeVoidAsync("alert", $"Task '{result.Name}' đã cập nhật thành công!");
+                await OnSaved.InvokeAsync();
+                await CloseModal();
             }
+            catch (ApiException ex) // Lỗi từ phía Server (400, 404, 500...)
+            {
+                // Đọc nội dung lỗi từ Server gửi về
+                var errorContent = await ex.GetContentAsAsync<Dictionary<string, string>>();
+                await JSRuntime.InvokeVoidAsync("alert", "Error API server: " + ex.Message);
+            }
+        
             catch (Exception ex)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+                await JSRuntime.InvokeVoidAsync("alert", $"Lỗi hệ thống: {ex.Message}");
             }
+        
         }
 
         private async Task SelectSubPhaseTask(Guid subProjectId)

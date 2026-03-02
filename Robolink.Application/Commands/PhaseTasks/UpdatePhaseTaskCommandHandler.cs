@@ -9,44 +9,69 @@ namespace Robolink.Application.Commands.PhaseTasks
     public class UpdatePhaseTaskCommandHandler : IRequestHandler<UpdatePhaseTaskCommand, PhaseTaskDto>
     {
         private readonly IGenericRepository<PhaseTask> _taskRepo;
-        private readonly IProjectSystemPhaseConfigRepository _phaseConfigRepo;
+        private readonly IGenericRepository<Staff> _staffRepo; // ✅ Thêm để validate nhân viên
+        private readonly IGenericRepository<ProjectSystemPhaseConfig> _phaseConfigRepo; // ✅ Dùng Generic Repo luôn cho đồng bộ
         private readonly IMapper _mapper;
 
         public UpdatePhaseTaskCommandHandler(
             IGenericRepository<PhaseTask> taskRepo,
-            IProjectSystemPhaseConfigRepository phaseConfigRepo,
+            IGenericRepository<Staff> staffRepo,
+            IGenericRepository<ProjectSystemPhaseConfig> phaseConfigRepo,
             IMapper mapper)
         {
             _taskRepo = taskRepo;
+            _staffRepo = staffRepo;
             _phaseConfigRepo = phaseConfigRepo;
             _mapper = mapper;
         }
 
         public async Task<PhaseTaskDto> Handle(UpdatePhaseTaskCommand request, CancellationToken cancellationToken)
         {
-            // 1. Tìm task cũ từ DB
-            var task = await _taskRepo.GetByIdAsync(request.Id);
-            if (task == null)
-                throw new InvalidOperationException("Phase task not found");
+            // 1. Lấy dữ liệu cũ từ DB
+            var task = await _taskRepo.GetByIdAsync(request.Id)
+                ?? throw new InvalidOperationException("Phase task not found");
 
-            // 2. DÙNG MAPPER ĐỂ ĐÈ DỮ LIỆU (Thay thế cho 10 dòng gán tay của em)
-            // Nó sẽ tự động check: Nếu request.Request.Name null thì nó KHÔNG đè lên task.Name
-            // nhờ cái .Condition((src, dest, srcMember) => srcMember != null) em đã viết.
+            // 2. ✅ Validation: Nếu có đổi nhân viên, phải check nhân viên đó có tồn tại không
+            if (request.Request.AssignedStaffId.HasValue && request.Request.AssignedStaffId != Guid.Empty)
+            {
+                var staff = await _staffRepo.GetByIdAsync(request.Request.AssignedStaffId.Value);
+                if (staff == null) throw new InvalidOperationException("Assigned Staff not found");
+            }
+
+            // 3. ✅ Validation: Nếu có đổi Phase, check Phase mới
+            if (request.Request.ProjectSystemPhaseConfigId.HasValue && request.Request.ProjectSystemPhaseConfigId != Guid.Empty)
+            {
+                var config = await _phaseConfigRepo.GetByIdAsync(request.Request.ProjectSystemPhaseConfigId.Value);
+                if (config == null) throw new InvalidOperationException("Phase configuration not found");
+            }
+
+            // 4. ✅ Validation: Tránh vòng lặp Task cha - con
+            if (request.Request.ParentPhaseTaskId.HasValue && request.Request.ParentPhaseTaskId != Guid.Empty)
+            {
+                if (request.Request.ParentPhaseTaskId == task.Id)
+                    throw new InvalidOperationException("A task cannot be its own parent");
+            }
+
+            // 5. 🚀 MÁY GIẶT AUTOMAPPER: Đè dữ liệu mới lên Entity cũ
+            // Những trường null trong Request sẽ KHÔNG đè lên dữ liệu cũ (nhờ Condition trong Profile)
             _mapper.Map(request.Request, task);
+
+            // Xử lý logic xóa Task cha nếu truyền Guid.Empty
+            if (request.Request.ParentPhaseTaskId == Guid.Empty)
+            {
+                task.ParentPhaseTaskId = null;
+            }
 
             task.UpdatedBy = request.UpdatedBy ?? "System";
 
-            // 4. Lưu
+            // 6. Lưu vào Database
             await _taskRepo.UpdateAsync(task);
+            await _taskRepo.SaveChangesAsync(); // Đảm bảo mọi thứ đã vào DB
 
-            // 5. Lấy thông tin PhaseConfig để trả về DTO đầy đủ
-            var phaseConfig = await _phaseConfigRepo.GetByIdAsync(task.ProjectSystemPhaseConfigId);
-            var dto = _mapper.Map<PhaseTaskDto>(task);
-
-            if (phaseConfig != null)
-                dto.PhaseName = phaseConfig.CustomPhaseName ?? phaseConfig.SystemPhase?.Name;
-
-            return dto;
+            // 7. 🚀 CHIÊU CUỐI: Trả về DTO xịn
+            // Không cần gán tay PhaseName hay StaffName nữa, GetProjectedByIdAsync sẽ tự JOIN lấy hết!
+            return await _taskRepo.GetProjectedByIdAsync<PhaseTaskDto>(task.Id)
+                   ?? throw new InvalidOperationException("Failed to retrieve updated task");
         }
     }
 }

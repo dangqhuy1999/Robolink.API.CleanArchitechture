@@ -11,14 +11,14 @@ namespace Robolink.Application.Commands.Projects
     /// <summary>Handler for CreateProjectCommand</summary>
     public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand, ProjectDto>
     {
-        private readonly IProjectRepository _projectRepo;
+        private readonly IGenericRepository<Project> _projectRepo;
         private readonly IGenericRepository<Client> _clientRepo;
         private readonly IGenericRepository<Staff> _staffRepo;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
 
         public CreateProjectCommandHandler(
-            IProjectRepository projectRepo,
+            IGenericRepository<Project> projectRepo,
             IGenericRepository<Client> clientRepo,
             IGenericRepository<Staff> staffRepo,
             IMapper mapper,
@@ -72,9 +72,10 @@ namespace Robolink.Application.Commands.Projects
                 }, 
                 cancellationToken);
 
-            // 4. THAY THẾ TOÀN BỘ ĐOẠN DƯỚI BẰNG DÒNG NÀY:
-            // "Này Repo, lấy cho tôi cái DTO hoàn chỉnh của thằng vừa lưu xong"
-            return await _projectRepo.GetProjectByIdWithDeepDataAsync(project.Id);
+            // 5. ĂN TIỀN LÀ Ở ĐÂY: Dùng Framework Generic để lấy DTO xịn!
+            // Trả về DTO có đầy đủ tên Client, tên Manager mà không cần Include tay
+            return await _projectRepo.GetProjectedByIdAsync<ProjectDto>(project.Id)
+                   ?? throw new InvalidOperationException("Failed to retrieve updated project");
         }
     }
 }

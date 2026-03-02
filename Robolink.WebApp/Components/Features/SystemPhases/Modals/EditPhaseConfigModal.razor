@@ -38,7 +38,10 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="OnClose">Cancel</button>
                 <button type="button" class="btn btn-primary" @onclick="SaveChanges">Save Changes</button>
-                <button type="button" class="btn btn-danger" @onclick="RemovePhase">Remove Phase</button>
+
+                <button type="button" class="btn btn-danger" @onclick="() => RemovePhase(Phase!.Id)">
+                    Remove Phase
+                </button>
             </div>
         </div>
     </div>

@@ -1,33 +1,50 @@
-﻿
-<div class="mb-3">
+﻿<div class="mb-3">
     <label class="form-label">
         <i class="bi bi-diagram-2"></i> Parent Project (Optional)
     </label>
-    <div class="input-group">
-        <InputSelect class="form-control"
-                     TValue="Guid ?"
-                     Value="SelectedParentId"
-                     ValueChanged="OnValueChanged"
-                     ValueExpression="@(() => SelectedParentId)">
-            <option value="">-- None (Main Project) --</option>
-            @if (AvailableProjects != null && AvailableProjects.Any())
-            {
-                @foreach (var proj in AvailableProjects.OrderBy(p => p.Name))
-                {
-                    <option value="@proj.Id.ToString()" disabled="@(proj.Id == ExcludeProjectId)">
-                        @proj.ProjectCode - @proj.Name
-                    </option>
-                }
-            }
-        </InputSelect>
-        <button type="button" class="btn btn-outline-secondary" @onclick="RefreshProjects" 
-                title="Refresh available projects">
+
+    <div class="input-group mb-2">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" class="form-control"
+               placeholder="Gõ để tìm kiếm dự án..."
+               @bind="searchTerm"
+               @bind:event="oninput"
+               @onkeyup="HandleSearch" />
+
+        <button type="button" class="btn btn-outline-secondary" @onclick="RefreshProjects"
+                title="Làm mới danh sách">
             <i class="bi bi-arrow-clockwise"></i>
         </button>
     </div>
+
+    <InputSelect class="form-control"
+                 TValue="Guid ?"
+                 Value="SelectedParentId"
+                 ValueChanged="OnValueChanged"
+                 ValueExpression="@(() => SelectedParentId)">
+
+        <option value="">-- None (Main Project) --</option>
+
+        @if (isLoading)
+        {
+            <option disabled>Đang tải dữ liệu...</option>
+        }
+        else if (AvailableProjects != null && AvailableProjects.Any())
+        {
+            @foreach (var proj in AvailableProjects.OrderBy(p => p.Name))
+            {
+                <option value="@proj.Id">@proj.ProjectCode - @proj.Name</option>
+            }
+        }
+        else
+        {
+            <option disabled>Không tìm thấy dự án phù hợp</option>
+        }
+    </InputSelect>
+
     @if (!string.IsNullOrEmpty(CurrentParentName))
     {
-        <small class="text-info">
+        <small class="text-info mt-1 d-block">
             <i class="bi bi-info-circle"></i> Current parent: <strong>@CurrentParentName</strong>
         </small>
     }

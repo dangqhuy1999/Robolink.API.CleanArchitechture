@@ -12,14 +12,7 @@ namespace Robolink.Application.Mappers
             // ✅ SystemPhase → SystemPhaseDto
             CreateMap<SystemPhase, SystemPhaseDto>();
 
-            // ✅ ProjectSystemPhaseConfig → ProjectPhaseConfigDto
-            CreateMap<ProjectSystemPhaseConfig, ProjectPhaseConfigDto>()
-                .ForMember(dest => dest.SystemPhase, 
-                    opt => opt.MapFrom(src => src.SystemPhase))
-                .ForMember(dest => dest.TaskCount,
-                    opt => opt.MapFrom(src => src.PhaseTasks != null ? src.PhaseTasks.Count : 0))
-                .ForMember(dest => dest.Tasks,
-                    opt => opt.MapFrom(src => src.PhaseTasks != null ? src.PhaseTasks : new List<PhaseTask>()));
+            
         }
     }
 }

@@ -1,7 +1,9 @@
-using MediatR;
+﻿using MediatR;
 using Robolink.Shared.DTOs;
 
 namespace Robolink.Application.Queries.SystemPhases
 {
-    public record GetAllSystemPhasesQuery : IRequest<IEnumerable<SystemPhaseDto>>;
+    // Mặc định là chỉ lấy cái đang dùng (true), 
+    // nếu Admin muốn xem hết thì truyền false vào.
+    public record GetAllSystemPhasesQuery(bool OnlyActive = true) : IRequest<IEnumerable<SystemPhaseDto>>;
 }

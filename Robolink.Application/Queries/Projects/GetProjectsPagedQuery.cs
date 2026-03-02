@@ -7,10 +7,17 @@ using System.Text;
 namespace Robolink.Application.Queries.Projects
 {
     // Trong tầng Application
-    public class GetProjectsPagedQuery(int startIndex, int count) : IRequest<PagedResult<ProjectDto>>
+    public class GetProjectsPagedQuery : IRequest<PagedResult<ProjectDto>>
     {
-        // Bắt buộc phải có 2 dòng này để Handler "nhìn thấy" dữ liệu
-        public int StartIndex { get; } = startIndex;
-        public int Count { get; } = count;
+        public int StartIndex { get; set; }
+        public int Count { get; set; }
+        public string? SearchTerm { get; set; } // 👈 Thêm Property này
+
+        public GetProjectsPagedQuery(int startIndex, int count, string? searchTerm = null)
+        {
+            StartIndex = startIndex;
+            Count = count;
+            SearchTerm = searchTerm; // 👈 Gán giá trị
+        }
     }
 }

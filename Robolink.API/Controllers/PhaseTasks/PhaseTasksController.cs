@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Refit;
 using Robolink.Application.Commands.PhaseTasks;
+using Robolink.Application.Commands.Projects;
 using Robolink.Application.Queries.PhaseTasks;
 using Robolink.Core.Entities;
 using Robolink.Shared.DTOs;
@@ -14,32 +15,43 @@ namespace Robolink.API.Controllers.PhaseTasks
 {
     [ApiController]
     [Route("api/phasetasks")]
-    public class PhaseTasksController : ControllerBase, IPhaseTaskApi // Kế thừa để ép đúng chuẩn API
+    public class ProjectPhasesController : ControllerBase // Kế thừa để ép đúng chuẩn API
     {
         private readonly IMediator _mediator;
 
-        public PhaseTasksController(IMediator mediator)
+        public ProjectPhasesController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
         [HttpGet("paged")]
-        public async Task<PagedResult<PhaseTaskDto>> GetPhaseTasksPagedAsync([FromQuery] int startIndex, [FromQuery] int count, [FromQuery] Guid phaseId)
+        public async Task<ActionResult<PagedResult<PhaseTaskDto>>> GetPhaseTasksPagedAsync(
+            [FromQuery] int startIndex, 
+            [FromQuery] int count, 
+            [FromQuery] Guid phaseId,
+            [FromQuery] string? searchTerm
+            )
         {
             // Controller lúc này chỉ đóng vai trò "người chuyển tin"
             // Nó gửi yêu cầu xuống tầng Application thông qua Mediator
-            return await _mediator.Send(new GetPhaseTasksPagedQuery(startIndex, count, phaseId));
+            var result = await _mediator.Send(new GetPhaseTasksPagedQuery(startIndex, count, phaseId, searchTerm));
+            return Ok(result); // Nhất quán với các hàm khác
         }
 
-        [HttpGet("{id}")]
-        public async Task<PhaseTaskDto> GetByIdAsync(Guid id)
+        [HttpGet("{id:guid}", Name = "GetPhaseTaskById")]
+        public async Task<ActionResult<PhaseTaskDto>> GetByIdAsync(Guid id)
         {
-            return await _mediator.Send(new GetPhaseTaskByIdQuery(id));
+            var result = await _mediator.Send(new GetPhaseTaskByIdQuery(id));
+            if (result == null)
+            {
+                return NotFound(); // Trả về 404: Chuẩn dự án lớn
+            }
+            return Ok(result); // Trả về 200 kèm data
         }
 
 
         [HttpPost("sample")]
-        public async Task<PhaseTaskDto> QuickCreateAsync(Guid ProjectId,Guid ProjectSystemPhaseConfigId)
+        public async Task<ActionResult<PhaseTaskDto>> QuickCreateAsync(Guid ProjectId,Guid ProjectSystemPhaseConfigId)
         {
             // Tạo Command từ Request (Application nắm giữ logic này)
             var command = new CreatePhaseTaskCommand
@@ -78,11 +90,14 @@ namespace Robolink.API.Controllers.PhaseTasks
             // Gửi đi và nhận lại DTO
             var result = await _mediator.Send(command);
 
-            return (PhaseTaskDto)result!;
+
+            // ✅ THAY THẾ CreatedAtAction BẰNG Ok
+            // Không còn lo lỗi "No route matches", không lo sập Server nữa.
+            return Ok(result);
         }
 
         [HttpPost]
-        public async Task<PhaseTaskDto> CreateAsync([FromBody] CreatePhaseTaskRequest request)
+        public async Task<ActionResult<PhaseTaskDto>> CreateAsync([FromBody] CreatePhaseTaskRequest request)
         {
             // Tạo Command từ Request (Application nắm giữ logic này)
             var command = new CreatePhaseTaskCommand
@@ -111,11 +126,11 @@ namespace Robolink.API.Controllers.PhaseTasks
             Việc ép kiểu (PhaseTaskDto) là để khẳng định với chương trình: 
             "Tôi biết chắc chắn kết quả trả về là DTO này".
              */
-            return (PhaseTaskDto)result!;
+            return Ok(result);
         }
 
         [HttpPut("{id}")]
-        public async Task<PhaseTaskDto> UpdateAsync(Guid id, [FromBody] UpdatePhaseTaskRequest request)
+        public async Task<ActionResult<PhaseTaskDto>> UpdateAsync(Guid id, [FromBody] UpdatePhaseTaskRequest request)
         {
             var command = new UpdatePhaseTaskCommand
             {
@@ -125,14 +140,25 @@ namespace Robolink.API.Controllers.PhaseTasks
             };
 
             var result = await _mediator.Send(command);
-            return (PhaseTaskDto)result!; // Ép kiểu để hết lỗi đỏ
+
+            // Nếu kết quả null (do ID không tồn tại), trả về 404
+            if (result == null) return NotFound();
+
+            return Ok(result);
         }
 
         [HttpDelete("{id}")]
-        public async Task<bool> DeleteAsync(Guid id) // Bỏ ActionResult để khớp 100% với Interface
+        public async Task<IActionResult> DeleteAsync(Guid id) // Bỏ ActionResult để khớp 100% với Interface
         {
-            // Đảm bảo tên tham số trong Command là PhaseTaskId giống Handler
-            return await _mediator.Send(new DeletePhaseTaskCommand(id));
+            // Handler nên trả về bool (thành công/thất bại)
+            var result = await _mediator.Send(new DeletePhaseTaskCommand(id));
+
+            if (!result)
+            {
+                return NotFound(); // Trả về 404 nếu không tìm thấy để xóa
+            }
+
+            return NoContent(); // Trả về 204: "Đã xóa xong, không còn gì để trả về"
         }
     }
 }

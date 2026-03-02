@@ -1,12 +1,17 @@
-namespace Robolink.WebApp.Components.Features.Projects.Shared;
+﻿namespace Robolink.WebApp.Components.Features.Projects.Shared;
 
 public static class ProjectConstants
 {
     // Default Client and Manager for Quick Add
     public static readonly Guid DefaultClientId = Guid.Parse("188cd869-567e-4cd2-870a-48bdb04af5cd");
     public static readonly Guid DefaultManagerId = Guid.Parse("1b8c3dbf-63bb-4207-b108-9b28706185a7");
-    
+
     // Project Defaults
+    // Dùng biến số thay vì viết chết số 10
+    public const int clientPageSize = 50;
+    public const int clientStartIndex = 0;
+    public const int staffPageSize = 10;
+    public const int staffStartIndex = 0;
     public const int DefaultPageSize = 10;
     public const int DefaultProjectPriority = 1;
     public const int DefaultInternalBudget = 1000;

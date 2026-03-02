@@ -10,33 +10,29 @@ namespace Robolink.Application.Queries.PhaseTasks
     public class GetPhaseTasksPagedQueryHandler : IRequestHandler<GetPhaseTasksPagedQuery, PagedResult<PhaseTaskDto>>
     {
         private readonly IGenericRepository<PhaseTask> _phaseTaskRepo;
-        private readonly IMapper _mapper;
 
-        public GetPhaseTasksPagedQueryHandler(IGenericRepository<PhaseTask> phaseTaskRepo, IMapper mapper)
+        // ✅ Không cần IMapper nữa, Repo sẽ lo việc ánh xạ (Map)
+        public GetPhaseTasksPagedQueryHandler(IGenericRepository<PhaseTask> phaseTaskRepo)
         {
             _phaseTaskRepo = phaseTaskRepo;
-            _mapper = mapper;
         }
 
         public async Task<PagedResult<PhaseTaskDto>> Handle(GetPhaseTasksPagedQuery request, CancellationToken cancellationToken)
         {
-            // Tạo filter để SQL chỉ lấy Task thuộc về đúng Phase hiện tại
-            Expression<Func<PhaseTask, bool>> filter = x => x.ProjectSystemPhaseConfigId == request.PhaseId;
+            var term = request.SearchTerm?.Trim().ToLower();
 
-            // Gọi Repo với filter đã tạo. 
-            // Repo mới (dùng ContextFactory) sẽ giúp tránh lỗi "Second operation"
-            (IEnumerable<PhaseTask> items, int totalCount) = await _phaseTaskRepo.GetPagedAsync(
+            // Xây dựng query linh hoạt
+            Expression<Func<PhaseTask, bool>> predicate = x =>
+                x.ProjectSystemPhaseConfigId == request.PhaseId &&
+                (string.IsNullOrEmpty(term) || x.Name.ToLower().Contains(term));
+
+            // 3. Gọi hàm "thần thánh" đã được Projection (ProjectTo)
+            // SQL sinh ra sẽ chỉ SELECT những cột có trong PhaseTaskDto -> Cực nhanh!
+            return await _phaseTaskRepo.GetPagedProjectedAsync<PhaseTaskDto>(
                 request.StartIndex,
                 request.Count,
-                filter);
-
-            // Debug để kiểm tra dữ liệu đã lọc đúng chưa
-            System.Diagnostics.Debug.WriteLine($"📦 Phase {request.PhaseId} returned {items.Count()} tasks");
-
-            // Map sang DTO
-            var dtos = _mapper.Map<IEnumerable<PhaseTaskDto>>(items);
-
-            return new PagedResult<PhaseTaskDto>(dtos, totalCount);
+                predicate
+            );
         }
     }
 }

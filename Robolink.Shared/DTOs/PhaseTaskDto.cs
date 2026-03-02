@@ -9,10 +9,11 @@ namespace Robolink.Shared.DTOs
         public Guid Id  { get; set; }
         public Guid ProjectId { get; set; }
         public Guid ProjectSystemPhaseConfigId { get; set; }
-        public string? PhaseName { get; set; }
         public string Description { get; set; } = null!;  // ✅ Non-nullable
         public Guid AssignedStaffId { get; set; }
-        public string? AssignedStaffName { get; set; }
+        public string AssignedStaffName { get; set; } = null!;  // ✅ Non-nullable
+        public string PhaseName { get; set; } = null!;  // ✅ Non-nullable
+
         public Task_Status Status { get; set; }  // ✅ Non-nullable
         public DateTime DueDate { get; set; }
         public DateTime StartDate { get; set; }

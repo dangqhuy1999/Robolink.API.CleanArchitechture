@@ -2,10 +2,14 @@
 using Refit;
 using Robolink.Application;
 using Robolink.Infrastructure;
-using Robolink.Shared.Interfaces.API.PhaseTasks;
 using Robolink.Shared.Interfaces.API.Clients;
-using Robolink.Shared.Interfaces.API.Staffs;
+using Robolink.Shared.Interfaces.API.PhaseTasks;
+using Robolink.Shared.Interfaces.API.ProjectPhases;
 using Robolink.Shared.Interfaces.API.Projects;
+using Robolink.Shared.Interfaces.API.Staffs;
+using Robolink.Shared.Interfaces.API.SystemPhases;
+using Robolink.Shared.Interfaces.Services;
+using Robolink.WebApp.Shared.Services;
 namespace Robolink.WebApp
 {
     public static class DependencyInjection
@@ -33,12 +37,18 @@ namespace Robolink.WebApp
             */
             services.AddRefitClient<IProjectApi>(settings)
                     .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
-            services.AddRefitClient<IPhaseTaskApi>(settings)
+            services.AddRefitClient<IProjectPhaseApi>(settings)
+                    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
+            services.AddRefitClient<ISystemPhaseApi>(settings)
                     .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
             services.AddRefitClient<IClientApi>(settings)
                     .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
             services.AddRefitClient<IStaffApi>(settings)
                     .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
+
+            // Add these BEFORE builder.Build()
+            services.AddScoped<IToastNotificationService, ToastNotificationService>();
+            services.AddScoped<IApiErrorHandler, ApiErrorHandler>();
 
             return services;
         }

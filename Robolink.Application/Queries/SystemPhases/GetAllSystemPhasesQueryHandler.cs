@@ -1,28 +1,28 @@
+﻿using AutoMapper;
 using MediatR;
-using AutoMapper;
-using Robolink.Shared.DTOs;
 using Robolink.Core.Entities;
 using Robolink.Core.Interfaces;
+using Robolink.Shared.DTOs;
+using System.Linq.Expressions;
 
 namespace Robolink.Application.Queries.SystemPhases
 {
     public class GetAllSystemPhasesQueryHandler : IRequestHandler<GetAllSystemPhasesQuery, IEnumerable<SystemPhaseDto>>
     {
         private readonly IGenericRepository<SystemPhase> _phaseRepo;
-        private readonly IMapper _mapper;
 
         public GetAllSystemPhasesQueryHandler(
-            IGenericRepository<SystemPhase> phaseRepo,
-            IMapper mapper)
+            IGenericRepository<SystemPhase> phaseRepo)
         {
             _phaseRepo = phaseRepo;
-            _mapper = mapper;
         }
 
         public async Task<IEnumerable<SystemPhaseDto>> Handle(GetAllSystemPhasesQuery request, CancellationToken cancellationToken)
         {
-            var phases = await _phaseRepo.GetAllAsync();
-            return _mapper.Map<IEnumerable<SystemPhaseDto>>(phases.Where(p => p.IsActive));
+            // ✅ Nếu request.OnlyActive = true thì lọc, ngược lại thì lấy hết
+            Expression<Func<SystemPhase, bool>> filter = p => !request.OnlyActive || p.IsActive;
+
+            return await _phaseRepo.GetProjectedAsync<SystemPhaseDto>(filter);
         }
     }
 }

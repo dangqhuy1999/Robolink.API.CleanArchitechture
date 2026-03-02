@@ -1,8 +1,9 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Robolink.Core.Entities;
-using Robolink.Shared.Enums;
 using Robolink.Core.Interfaces;
 using Robolink.Infrastructure.Data;
+using Robolink.Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,8 +17,8 @@ namespace Robolink.Infrastructure.Repositories
     /// </summary>
     public class WorkLogRepository : GenericRepository<WorkLog>, IWorkLogRepository
     {
-        public WorkLogRepository(IDbContextFactory<AppDBContext> contextFactory)
-    : base(contextFactory) { }
+        public WorkLogRepository(IDbContextFactory<AppDBContext> contextFactory, IMapper mapper)
+    : base(contextFactory, mapper) { }
 
         /// <summary>Get all work logs for a specific project</summary>
         public async Task<IEnumerable<WorkLog>> GetByProjectIdAsync(Guid projectId)

@@ -7,10 +7,19 @@ using System.Text;
 namespace Robolink.Application.Queries.PhaseTasks
 {
     // Trong tầng Application
-    public class GetPhaseTasksPagedQuery(int startIndex, int count, Guid phaseId) : IRequest<PagedResult<PhaseTaskDto>>
+    public class GetPhaseTasksPagedQuery : IRequest<PagedResult<PhaseTaskDto>>
     {
-        public int StartIndex { get; } = startIndex;
-        public int Count { get; } = count;
-        public Guid PhaseId { get; } = phaseId; // Thêm ID này vào
+        public int StartIndex { get; } 
+        public int Count { get; } 
+        public Guid PhaseId { get; }  // Thêm ID này vào
+        public string? SearchTerm { get; set; } // 👈 Thêm Property này
+
+        public GetPhaseTasksPagedQuery(int startIndex, int count, Guid phaseId, string? searchTerm  )
+        {
+            StartIndex = startIndex;
+            Count = count;
+            PhaseId = phaseId; // 👈 Gán giá trị
+            SearchTerm = searchTerm;
+        }
     }
 }

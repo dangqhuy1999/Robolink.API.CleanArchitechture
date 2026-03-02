@@ -28,6 +28,7 @@ namespace Robolink.Shared.DTOs
         public Guid? ParentProjectId { get; set; }
         public string? ParentProjectName { get; set; }
         public List<ProjectDto> SubProjects { get; set; } = new();
+        public int SubProjectsCount => SubProjects?.Count ?? 0;
     }
 
     /// <summary>DTO for creating a new project</summary>
