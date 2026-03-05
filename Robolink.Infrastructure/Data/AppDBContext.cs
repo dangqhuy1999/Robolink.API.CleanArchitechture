@@ -56,10 +56,10 @@ namespace Robolink.Infrastructure.Data
                 entity.Property(pc => pc.CustomPhaseName).HasMaxLength(100);
                 entity.Property(pc => pc.Sequence).IsRequired(); // Sequence (int)
                 entity.Property(pc => pc.IsEnabled).IsRequired(); // IsEnabled (bool)
-                
+
                 // ✅ NEW: Add RowVersion
                 entity.Property(pc => pc.RowVersion).IsRowVersion().HasDefaultValue(new byte[0]);
-                
+
                 // Relationships
                 entity.HasOne(pc => pc.Project)
                       .WithMany(p => p.PhaseConfigs)
@@ -70,7 +70,7 @@ namespace Robolink.Infrastructure.Data
                       .WithMany(sp => sp.ProjectConfigs)
                       .HasForeignKey(pc => pc.SystemPhaseId)
                       .OnDelete(DeleteBehavior.Restrict);
-                
+
                 // ✅ NEW: Add Query Filter
                 entity.HasQueryFilter(pc => !pc.IsDeleted);
             });
@@ -79,7 +79,18 @@ namespace Robolink.Infrastructure.Data
             modelBuilder.Entity<Client>(entity =>
             {
                 entity.HasKey(c => c.Id);
-                entity.Property(c => c.RowVersion).IsRowVersion().HasDefaultValue(new byte[0]);
+
+                // Thêm các giới hạn vật lý vào đây thay vì để ở Entity
+                entity.Property(c => c.Name)
+                      .IsRequired()
+                      .HasMaxLength(200);
+
+                entity.Property(c => c.Industry)
+                      .HasMaxLength(100);
+
+                entity.Property(c => c.RowVersion)
+                      .IsRowVersion()
+                      .HasDefaultValue(new byte[0]);
                 entity.HasMany(c => c.Projects)
                       .WithOne(p => p.Client)
                       .HasForeignKey(p => p.ClientId)
@@ -91,7 +102,10 @@ namespace Robolink.Infrastructure.Data
             modelBuilder.Entity<Staff>(entity =>
             {
                 entity.HasKey(s => s.Id);
-                entity.Property(s => s.FullName).HasMaxLength(200);
+                entity.HasIndex(s => s.Username).IsUnique(); // Index để Login nhanh + Unique
+                entity.HasIndex(s => s.Email).IsUnique();
+                entity.Property(s => s.FullName).IsRequired().HasMaxLength(100);
+                entity.Property(s => s.Username).IsRequired().HasMaxLength(50);
                 entity.Property(s => s.RowVersion).IsRowVersion().HasDefaultValue(new byte[0]);
                 entity.HasQueryFilter(s => !s.IsDeleted);
             });
@@ -116,7 +130,7 @@ namespace Robolink.Infrastructure.Data
                       .WithMany(p => p.SubProjectsItems)
                       .HasForeignKey(p => p.ParentProjectId)
                       .OnDelete(DeleteBehavior.Restrict);
-                
+
                 entity.HasQueryFilter(p => !p.IsDeleted);
             });
 
@@ -124,19 +138,19 @@ namespace Robolink.Infrastructure.Data
             modelBuilder.Entity<PhaseTask>(entity =>
             {
                 entity.HasKey(t => t.Id);
-                
+
                 // ✅ FIXED: Configure properties
                 entity.Property(t => t.ProcessRate)
                       .HasDefaultValue(0)
                       .HasColumnType("smallint");
-                
+
                 entity.Property(t => t.EstimatedHours)
                       .HasColumnType("decimal(10,2)")
                       .HasDefaultValue(0);
-                
+
                 entity.Property(t => t.CompletedAt)
                       .HasColumnType("timestamp with time zone");
-                
+
                 entity.Property(t => t.RowVersion)
                       .IsRowVersion()
                       .HasDefaultValue(new byte[0]);
@@ -164,7 +178,7 @@ namespace Robolink.Infrastructure.Data
                       .WithMany(parent => parent.SubPhaseTasksItems)  // ✅ CHANGED: Use 'parent' to clarify
                       .HasForeignKey(t => t.ParentPhaseTaskId)
                       .OnDelete(DeleteBehavior.Restrict);
-                
+
                 // ✅ Query filter
                 entity.HasQueryFilter(t => !t.IsDeleted);
             });
@@ -174,13 +188,13 @@ namespace Robolink.Infrastructure.Data
             {
                 entity.HasKey(w => w.Id);
                 entity.Property(w => w.RowVersion).IsRowVersion().HasDefaultValue(new byte[0]);
-                
+
                 // Configure V1-V10 properties
                 for (int i = 1; i <= 10; i++)
                 {
                     entity.Property($"V{i}").HasColumnType("decimal(18,2)");
                 }
-                
+
                 entity.Property(w => w.ValueMain).HasColumnType("decimal(18,2)");
                 entity.Property(w => w.ValueSub).HasColumnType("decimal(18,2)");
 
@@ -199,7 +213,7 @@ namespace Robolink.Infrastructure.Data
                       .WithMany(s => s.WorkLogs)
                       .HasForeignKey(w => w.OperatorId)
                       .OnDelete(DeleteBehavior.Restrict);
-                
+
                 entity.HasQueryFilter(w => !w.IsDeleted);
             });
 
@@ -232,6 +246,7 @@ namespace Robolink.Infrastructure.Data
                 FullName = "Huy Dang",
                 Username = "huydang.admin",
                 PasswordHash = "AQAAAAEAACcQAAAAE...",
+                Email = "loli123@hmail.com",
                 Department = ProjectDepartment.Production,
                 Role = ProjectRole.Manager,
                 Status = StaffStatus.Active,

@@ -34,6 +34,8 @@ namespace Robolink.Core.Entities
         public DateTime StartDate { get; set; }
         public DateTime DueDate { get; set; }
         public Task_Status Status { get; set; } = Task_Status.Pending;
+        // ✅ Thêm thuộc tính này: Nó không tạo cột trong DB mà tự tính toán dựa trên Status
+        public bool IsCompleted => Status == Task_Status.Completed;
         public int Priority { get; set; } = 0; // ✅ NEW: 0=Low, 1=Medium, 2=High, 3=Critical    
         // ✅ NEW: Add these properties for progress tracking
         public int ProcessRate { get; set; } = 0;  // 0-100%

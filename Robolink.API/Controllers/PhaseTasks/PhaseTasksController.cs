@@ -71,7 +71,7 @@ namespace Robolink.API.Controllers.PhaseTasks
 
                     // Thời gian (Lưu ý: dùng DueDate thay vì Deadline)
                     StartDate = DateTime.UtcNow,
-                    DueDate = DateTime.Today.AddDays(PhaseTaskConstants.DefaultPhaseTaskDurationDays),
+                    DueDate = DateTime.UtcNow.AddDays(PhaseTaskConstants.DefaultPhaseTaskDurationDays),
 
                     // Tài chính & Trạng thái
                     InternalBudget = PhaseTaskConstants.DefaultInternalBudget,

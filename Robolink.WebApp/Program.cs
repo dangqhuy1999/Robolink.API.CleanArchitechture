@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Robolink.Infrastructure.Data;
 using Robolink.WebApp;
-using Robolink.WebApp.Components;
+using Robolink.WebApp.Shared;
 
 var builder = WebApplication.CreateBuilder(args);
 

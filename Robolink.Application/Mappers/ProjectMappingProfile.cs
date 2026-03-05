@@ -10,32 +10,38 @@ namespace Robolink.Application.Mappers
     {
         public ProjectMappingProfile()
         {
+            // Entity -> DTO
             CreateMap<Project, ProjectDto>()
-                // 1. Chỉ dẫn cho SQL cách lấy ClientName (AutoMapper tự Join bảng Client)
                 .ForMember(dest => dest.ClientName,
                     opt => opt.MapFrom(src => src.Client != null ? src.Client.Name : "N/A"))
 
-                // 2. Chỉ dẫn cách lấy ManagerName (AutoMapper tự Join bảng Manager)
                 .ForMember(dest => dest.ManagerName,
-                    opt => opt.MapFrom(src => src.Manager.FullName ?? "Unknown"))
+                    opt => opt.MapFrom(src => src.Manager != null ? src.Manager.FullName : "Unknown"))
 
                 .ForMember(dest => dest.ParentProjectName,
-                    opt => opt.MapFrom(src => src.ParentProject.Name))
+                    opt => opt.MapFrom(src => src.ParentProject != null ? src.ParentProject.Name : null))
 
-                // 3. Đệ quy: Tự động áp dụng chính quy tắc này cho danh sách con
-                .ForMember(dest => dest.SubProjects,
-                    opt => opt.MapFrom(src => src.SubProjectsItems));
+                .ForMember(dest => dest.ProgressPercentage, opt => opt.MapFrom(src =>
+                    (src.Tasks != null && src.Tasks.Any())
+                    ? Math.Round((double)src.Tasks.Count(t => t.IsCompleted) / src.Tasks.Count * 100, 2)
+                    : 0))
 
-            // KHÔNG DÙNG AfterMap ở đây nữa em nhé! 
-            // Vì ProjectTo sẽ tự Join để lấy ClientName cho từng SubProject luôn.
+                // Giới hạn độ sâu để tránh lỗi vòng lặp vô tận (Circular Reference)
+                .ForMember(dest => dest.SubProjects, opt => opt.MapFrom(src => src.SubProjectsItems))
+                .MaxDepth(3);
 
-            // Request -> Entity giữ nguyên
+            // Request -> Entity
             CreateMap<CreateProjectRequest, Project>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(_ => Guid.NewGuid()))
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => 0));
+                // Sử dụng Enum thay vì số 0 để code "Clean" hơn
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => ProjectStatus.Draft));
 
             CreateMap<UpdateProjectRequest, Project>()
+                // Bỏ qua Id để tránh overwrite key
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
+            
         }
     }
 }

@@ -4,5 +4,5 @@ using System.Text;
 
 namespace Robolink.Shared.Enums
 {
-    public enum ProjectPriority { Low, Medium, High, Critical }
+    public enum ProjectPriority { Low, Medium, High, Ugent }
 }

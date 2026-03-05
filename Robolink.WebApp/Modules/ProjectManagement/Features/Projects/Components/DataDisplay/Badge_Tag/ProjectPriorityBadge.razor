@@ -1,0 +1,17 @@
+
+@using Robolink.Shared.Enums
+
+<span class="badge @GetBadgeClass(Priority) text-@(Priority == ProjectPriority.Medium ? "dark" : "white")">
+    @Priority.ToString()
+</span>
+
+@code {
+    private string GetBadgeClass(ProjectPriority priority) => priority switch
+    {
+        ProjectPriority.Low => "bg-secondary",
+        ProjectPriority.Medium => "bg-primary",
+        ProjectPriority.High => "bg-success",
+        ProjectPriority.Ugent => "bg-warning",
+        _ => "bg-light text-dark"
+    };
+}

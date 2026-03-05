@@ -26,7 +26,25 @@ namespace Robolink.Core.Entities
         public string Description { get; set; } = String.Empty;
         public DateTime StartDate { get; set; }
         public DateTime Deadline { get; set; }
+        // Ví dụ cải tiến trong lớp Project
+        public void UpdateSchedule(DateTime start, DateTime deadline)
+        {
+            if (deadline < start)
+                throw new Exception("Deadline cannot be earlier than Start Date.");
 
+            StartDate = start;
+            Deadline = deadline;
+        }
+
+        public void MarkAsCompleted()
+        {
+            // Logic nghiệp vụ: Không thể hoàn thành nếu chưa có Task nào xong
+            if (!Tasks.Any()) throw new Exception("Cannot complete project without tasks");
+
+            Status = ProjectStatus.Completed;
+            // Phát đi một Domain Event nếu cần
+            // AddDomainEvent(new ProjectCompletedEvent(this));
+        }
         // Sử dụng Enum thay vì string để quản lý trạng thái chặt chẽ
         public ProjectStatus Status { get; set; } = ProjectStatus.Draft;
         public ProjectPriority Priority { get; set; } = ProjectPriority.Medium;
@@ -41,6 +59,14 @@ namespace Robolink.Core.Entities
         // Ánh xạ với CalculationConfigJson trong DB
         // Trong EF Core có thể dùng owned entity hoặc string chuyển đổi JSON
         public string? CalculationConfigJson { get; set; }
+        // Logic nghiệp vụ: Dự án có đang trễ tiến độ thực tế không?
+        public bool IsDelayed => Status != ProjectStatus.Completed && DateTime.Now > Deadline;
+
+        public void AssignManager(Guid managerId)
+        {
+            if (managerId == Guid.Empty) throw new ArgumentException("Manager is required");
+            ManagerId = managerId;
+        }
         public virtual ICollection<ProjectSystemPhaseConfig> PhaseConfigs { get; set; } = new List<ProjectSystemPhaseConfig>();
 
         public virtual ICollection<PhaseTask> Tasks { get; set; } = new List<PhaseTask>();

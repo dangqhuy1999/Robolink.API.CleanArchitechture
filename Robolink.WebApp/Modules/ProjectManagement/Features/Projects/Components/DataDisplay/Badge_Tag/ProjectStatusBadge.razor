@@ -1,0 +1,16 @@
+@using Robolink.Shared.Enums
+
+<span class="badge @GetBadgeClass(Status) text-@(Status == ProjectStatus.OnHold ? "dark" : "white")">
+    @Status.ToString().Replace("InProgress", "In Progress")
+</span>
+
+@code {
+    private string GetBadgeClass(ProjectStatus status) => status switch
+    {
+        ProjectStatus.Draft => "bg-secondary",
+        ProjectStatus.InProgress => "bg-primary",
+        ProjectStatus.Completed => "bg-success",
+        ProjectStatus.OnHold => "bg-warning",
+        _ => "bg-light text-dark"
+    };
+}

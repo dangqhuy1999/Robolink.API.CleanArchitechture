@@ -62,7 +62,7 @@ namespace Robolink.API.Controllers.Projects
                     ClientId = ProjectConstants.DefaultClientId,
                     ManagerId = ProjectConstants.DefaultManagerId,
                     StartDate = DateTime.UtcNow,
-                    Deadline = DateTime.Today.AddDays(ProjectConstants.DefaultProjectDurationDays),
+                    Deadline = DateTime.UtcNow.AddDays(ProjectConstants.DefaultProjectDurationDays),
                     Priority = ProjectConstants.DefaultProjectPriority,
                     InternalBudget = ProjectConstants.DefaultInternalBudget,
                     CustomerBudget = ProjectConstants.DefaultCustomerBudget

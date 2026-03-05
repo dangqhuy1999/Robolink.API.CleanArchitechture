@@ -1,4 +1,5 @@
 ﻿
+using Robolink.Shared.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace Robolink.Shared.DTOs
@@ -16,8 +17,8 @@ namespace Robolink.Shared.DTOs
         public string ManagerName { get; set; } = null!;
         public DateTime StartDate { get; set; }
         public DateTime Deadline { get; set; }
-        public int Status { get; set; }
-        public int Priority { get; set; }
+        public ProjectStatus Status { get; set; }
+        public ProjectPriority Priority { get; set; }
         public decimal? InternalBudget { get; set; }
         public decimal? CustomerBudget { get; set; }
         public string? CalculationConfigJson { get; set; }
@@ -29,70 +30,12 @@ namespace Robolink.Shared.DTOs
         public string? ParentProjectName { get; set; }
         public List<ProjectDto> SubProjects { get; set; } = new();
         public int SubProjectsCount => SubProjects?.Count ?? 0;
+        public double ProgressPercentage { get; set; } // Dùng double để lấy số thập phân nếu cần
     }
 
-    /// <summary>DTO for creating a new project</summary>
-    public class CreateProjectRequest
-    {
-        [Required(ErrorMessage = "Project Code is required")]
-        [StringLength(50)]
-        public string ProjectCode { get; set; } = null!;
+    
 
-        [Required(ErrorMessage = "Project Name is required")]
-        [StringLength(200)]
-        public string Name { get; set; } = null!;
-
-        [StringLength(500)]
-        public string Description { get; set; } = null!;
-
-        [Required(ErrorMessage = "Client is required")]
-        public Guid ClientId { get; set; }
-
-        [Required(ErrorMessage = "Manager is required")]
-        public Guid ManagerId { get; set; }
-
-        [Required(ErrorMessage = "Start Date is required")]
-        public DateTime StartDate { get; set; }
-
-        [Required(ErrorMessage = "Deadline is required")]
-        public DateTime Deadline { get; set; }
-
-        [Required]
-        public int Priority { get; set; } = 1; // Default: Medium
-
-        public int Status { get; set; } = 0; // Default: Draft
-
-        public decimal? InternalBudget { get; set; }
-        public decimal? CustomerBudget { get; set; }
-        public string? CalculationConfigJson { get; set; }
-        // ✅ NEW: Optional parent project
-        public Guid? ParentProjectId { get; set; }
-    }
-
-    /// <summary>DTO for updating a project</summary>
-    public class UpdateProjectRequest
-    {
-        [Required]
-        public Guid ?Id { get; set; }
-
-        [StringLength(200)]
-        public string? Name { get; set; }
-
-        [StringLength(500)]
-        public string? Description { get; set; }
-
-        public Guid? ManagerId { get; set; }
-
-        public DateTime? Deadline { get; set; }
-
-        public int? Priority { get; set; }
-        public int? Status { get; set; }
-
-        public decimal? InternalBudget { get; set; }
-        public decimal? CustomerBudget { get; set; }
-        // ✅ NEW: Allow changing parent project
-        public Guid? ParentProjectId { get; set; }
-    }
+    
 
     /// <summary>Response from CRUD operations</summary>
     public class CrudResponse<T>

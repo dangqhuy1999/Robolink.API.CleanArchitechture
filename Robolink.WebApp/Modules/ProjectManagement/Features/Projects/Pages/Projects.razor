@@ -1,0 +1,82 @@
+﻿@page "/projects"
+@implements IAsyncDisposable
+
+<div class="container-fluid mt-4">
+    <!-- ===== PAGE HEADER ===== -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0">📋 Projects Management</h1>
+            <small class="text-muted">Manage your projects and sub-projects hierarchically</small>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-success" @onclick="HandleShowCreateModal" disabled="@State.IsLoading">
+                <i class="bi bi-plus-lg"></i> New Project
+            </button>
+            <button type="button" class="btn btn-secondary" @onclick="HandleShowCreateModal" disabled="@State.IsLoading">
+                <i class="bi bi-lightning-fill"></i> Quick Add
+            </button>
+            <button type="button" class="btn btn-info" @onclick="HandleRefreshAsync" disabled="@State.IsLoading">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== LOADING STATE ===== -->
+    @if (State.IsLoading)
+    {
+        <div class="alert alert-info d-flex align-items-center" role="alert">
+            <div class="spinner-border spinner-border-sm me-2" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <strong>Loading projects...</strong>
+        </div>
+    }
+    <!-- ===== EMPTY STATE ===== -->
+    else if (!State.Projects.Any())
+    {
+        <div class="alert alert-warning d-flex justify-content-between align-items-center" role="alert">
+            <div>
+                <strong>No projects found.</strong> Create your first project to get started.
+            </div>
+            <button type="button" class="btn btn-sm btn-primary" @onclick="HandleShowCreateModal">
+                Create Project
+            </button>
+        </div>
+    }
+    <!-- ===== DATA STATE ===== -->
+    else
+    {
+        <!-- Projects Table -->
+        <ProjectTable 
+            Projects="@State.Projects"
+            OnEdit="HandleShowEditModal"
+            OnDelete="HandleDeleteProjectAsync"
+            OnAddSubProject="HandleShowQuickAddSubModal"
+            OnViewProject="HandleNavigateToProjectManagement" />
+
+        <!-- Pagination -->
+        <ProjectPagination 
+            CurrentPage="@State.CurrentPage"
+            TotalPages="@State.TotalPages"
+            TotalProjects="@State.TotalProjects"
+            OnPageChanged="HandlePageChangedAsync" />
+    }
+</div>
+
+<!-- ===== MODALS ===== -->
+<CreateProjectModal 
+    ShowModal="@State.ModalState.ShowCreateModal" 
+    OnClose="HandleHideCreateModal"
+    OnSaved="HandleCreateModalSaved" />
+
+<EditProjectModal 
+    ShowModal="@State.ModalState.ShowEditModal" 
+    ProjectId="@State.SelectedProjectId" 
+    OnClose="HandleHideEditModal" 
+    OnSaved="HandleEditModalSaved" />
+
+<QuickAddSubProjectModal
+    ShowModal="@State.ModalState.ShowQuickAddSubModal"
+    ParentProjectId="@State.SelectedProjectId"
+    OnClose="HandleHideQuickAddSubModal"
+    OnSaved="HandleQuickAddSubModalSaved" />
