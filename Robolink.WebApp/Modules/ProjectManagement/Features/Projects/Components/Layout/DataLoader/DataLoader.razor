@@ -1,0 +1,88 @@
+﻿@using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components.Layout.AppDataState
+@typeparam TItem
+
+<AppDataState 
+    IsLoading="_isLoading" 
+              IsEmpty="@(_result == null || !_result.Items.Any())"
+    LoadingMessage="@LoadingMessage"
+    EmptyMessage="@EmptyMessage">
+    
+    @if (_error != null)
+    {
+        @* Hiển thị lỗi nếu có biến cố *@
+        <div class="alert alert-danger d-flex align-items-center">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <div>
+                <strong>Lỗi hệ thống:</strong> @_error.Message
+                <button class="btn btn-link btn-sm text-danger fw-bold" @onclick="RefreshAsync">Thử lại</button>
+            </div>
+        </div>
+    }
+    else if (_result != null)
+    {
+        @* Truyền dữ liệu ra ngoài thông qua RenderFragment *@
+        @ChildContent(_result)
+    }
+
+</AppDataState>
+
+@code {
+    private bool _isLoading = true;
+    protected PaginatedResult<TItem>? _result;
+    private CancellationTokenSource _cts = new();
+
+    private Exception? _error;
+
+    [Parameter, EditorRequired]
+    public Func<CancellationToken, Task<PaginatedResult<TItem>>> LoadData { get; set; } = default!;
+
+    [Parameter] public RenderFragment<PaginatedResult<TItem>> ChildContent { get; set; } = default!;
+    [Parameter]
+    public EventCallback<PaginatedResult<TItem>> OnDataLoaded { get; set; }
+    [Parameter] public EventCallback<bool> IsLoadingChanged { get; set; }
+
+    [Parameter] public string LoadingMessage { get; set; } = "Đang tải...";
+    [Parameter] public string EmptyMessage { get; set; } = "Danh sách trống.";
+    
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAsync();
+    }
+
+    public async Task RefreshAsync()
+    {
+        // 1. Hủy request cũ
+        await _cts.CancelAsync();
+        _cts.Dispose();
+        _cts = new CancellationTokenSource();
+
+        try
+        {
+            _isLoading = true;
+            _error = null;
+            await IsLoadingChanged.InvokeAsync(true); // Báo cho Page là đang bận
+            // 2. Phải truyền _cts.Token vào đây thì tính năng hủy mới hoạt động
+            _result = await LoadData(_cts.Token);
+            await OnDataLoaded.InvokeAsync(_result); // <--- HÉT LÊN Ở ĐÂY
+        }
+        catch (OperationCanceledException) { /* Lỗi này là bình thường khi hủy request */ }
+        catch (Exception ex) 
+        {
+            _error = ex;
+            Console.WriteLine($"DataLoader Error: {ex.Message}");
+        }
+        finally 
+        {
+            _isLoading = false;
+            await IsLoadingChanged.InvokeAsync(false); // Báo cho Page là xong rồi
+            StateHasChanged();
+        }
+    }
+    public async ValueTask DisposeAsync()
+    {
+        await _cts.CancelAsync();
+        _cts.Dispose();
+    }
+}

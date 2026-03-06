@@ -68,7 +68,7 @@ public class CreateProjectViewModel
     /// <summary>
     /// Available managers for dropdown.
     /// </summary>
-    public List<ManagerViewModel> AvailableManagers { get; set; } = [];
+    public List<StaffViewModel> AvailableManagers { get; set; } = [];
 
     // ===== Computed Properties =====
 

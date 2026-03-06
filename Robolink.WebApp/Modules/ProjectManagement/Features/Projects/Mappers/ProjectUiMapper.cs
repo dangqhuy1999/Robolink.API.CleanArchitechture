@@ -35,7 +35,7 @@ public static class ProjectUiMapper
             SubProjects = dto.SubProjects?.Select(ToViewModel).ToList() ?? []
         };
     }
-
+    
     /// <summary>
     /// Converts multiple ProjectDtos to ProjectViewModels.
     /// </summary>
@@ -74,13 +74,13 @@ public static class ProjectUiMapper
     }
 
     /// <summary>
-    /// Converts a StaffDto to ManagerViewModel.
+    /// Converts a StaffDto to StaffViewModel.
     /// </summary>
-    public static ManagerViewModel ToManagerViewModel(StaffDto dto)
+    public static StaffViewModel ToStaffViewModel(StaffDto dto)
     {
         ArgumentNullException.ThrowIfNull(dto);
 
-        return new ManagerViewModel
+        return new StaffViewModel
         {
             Id = dto.Id,
             FullName = dto.FullName ?? "Unknown",
@@ -91,13 +91,13 @@ public static class ProjectUiMapper
     }
 
     /// <summary>
-    /// Converts multiple StaffDtos to ManagerViewModels.
+    /// Converts multiple StaffDtos to StaffViewModels.
     /// </summary>
-    public static List<ManagerViewModel> ToManagerViewModels(IEnumerable<StaffDto> dtos)
+    public static List<StaffViewModel> ToStaffViewModels(IEnumerable<StaffDto> dtos)
     {
         ArgumentNullException.ThrowIfNull(dtos);
 
-        return dtos.Select(ToManagerViewModel).ToList();
+        return dtos.Select(ToStaffViewModel).ToList();
     }
 
     /// <summary>

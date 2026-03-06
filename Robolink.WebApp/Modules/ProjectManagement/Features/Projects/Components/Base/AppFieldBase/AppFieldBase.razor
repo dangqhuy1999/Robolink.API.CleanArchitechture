@@ -1,0 +1,26 @@
+﻿@typeparam T
+@using Microsoft.AspNetCore.Components.Forms
+@using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.UI
+
+<div class="@Css.Field">
+
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <label class="@Css.Label">
+            @Label
+
+            @if (Required)
+            {
+                <span class="@Css.Required">*</span>
+            }
+        </label>
+    }
+
+    @ChildContent
+
+    @if (For != null)
+    {
+        <ValidationMessage class="@Css.Validation" For="For" />
+    }
+
+</div>

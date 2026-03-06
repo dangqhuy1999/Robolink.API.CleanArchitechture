@@ -173,13 +173,13 @@ public class ProjectService : IProjectService
         }
     }
 
-    public async Task<List<ManagerViewModel>> GetAvailableManagersAsync(
+    public async Task<List<StaffViewModel>> GetAvailableManagersAsync(
         CancellationToken cancellationToken = default)
     {
         try
         {
             var result = await _staffApi.GetAllStaffsAsync(0, 100);
-            return ProjectUiMapper.ToManagerViewModels(result?.Items ?? []);
+            return ProjectUiMapper.ToStaffViewModels(result?.Items ?? []);
         }
         catch (Exception ex)
         {

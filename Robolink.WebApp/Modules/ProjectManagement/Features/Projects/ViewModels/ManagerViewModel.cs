@@ -5,7 +5,7 @@ namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.ViewModels
 /// <summary>
 /// Represents a project manager in the projects context.
 /// </summary>
-public class ManagerViewModel
+public class StaffViewModel
 {
     public Guid Id { get; set; }
     public required string FullName { get; set; } // Đổi từ Name -> FullName để khớp Dto

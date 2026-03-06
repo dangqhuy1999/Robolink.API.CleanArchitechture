@@ -57,6 +57,8 @@ public interface IProjectService
     /// <summary>
     /// Gets available managers for project assignment.
     /// </summary>
-    Task<List<ManagerViewModel>> GetAvailableManagersAsync(
+    Task<List<StaffViewModel>> GetAvailableManagersAsync(
         CancellationToken cancellationToken = default);
+
+    
 }

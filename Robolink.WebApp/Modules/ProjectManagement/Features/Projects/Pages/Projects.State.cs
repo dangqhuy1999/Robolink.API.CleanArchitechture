@@ -1,4 +1,4 @@
-using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.ViewModels;
+﻿using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.ViewModels;
 
 namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Pages;
 
@@ -8,6 +8,7 @@ namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Pages;
 /// </summary>
 public class ProjectsPageState
 {
+    
     // ===== UI STATE =====
     public bool IsLoading { get; set; } = true;
     
@@ -47,9 +48,8 @@ public class ProjectsPageState
     /// <summary>
     /// Resets all state to initial values.
     /// </summary>
-    public void ResetAll()
+    public void ResetAll() 
     {
-        IsLoading = true;
         Projects.Clear();
         SelectedProjectId = Guid.Empty;
         ResetPagination();

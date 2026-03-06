@@ -58,7 +58,8 @@ namespace Robolink.Infrastructure.Repositories
         public async Task<PagedResult<TDto>> GetPagedProjectedAsync<TDto>(
             int startIndex,
             int count,
-            Expression<Func<TEntity, bool>>? predicate = null)
+            Expression<Func<TEntity, bool>>? predicate = null,
+            CancellationToken ct = default)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
 
@@ -83,7 +84,7 @@ namespace Robolink.Infrastructure.Repositories
                 .Skip(startIndex)
                 .Take(count)
                 .ProjectTo<TDto>(_configurationProvider)
-                .ToListAsync();
+                .ToListAsync(ct);
 
             return new PagedResult<TDto>(items, totalCount);
         }

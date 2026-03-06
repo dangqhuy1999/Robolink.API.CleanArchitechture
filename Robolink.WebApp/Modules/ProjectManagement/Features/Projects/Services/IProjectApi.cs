@@ -8,7 +8,11 @@ namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Services
 
             // Lấy danh sách project có phân trang và lọc theo PhaseId
             [Get("/api/projects/paged")]
-            Task<PagedResult<ProjectDto>> GetProjectsPagedAsync([Query] int startIndex, [Query] int count, [Query] string? searchTerm = null);
+            Task<PagedResult<ProjectDto>> GetProjectsPagedAsync(
+                [Query] int startIndex, 
+                [Query] int count, 
+                [Query] string? searchTerm = null, 
+                CancellationToken cancellationToken = default);
 
             // Lấy chi tiết 1 project theo ID
             [Get("/api/projects/{id}")]

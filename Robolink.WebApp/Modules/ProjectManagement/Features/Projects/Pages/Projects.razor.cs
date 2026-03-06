@@ -1,8 +1,11 @@
 ﻿
 using Microsoft.AspNetCore.Components;
-using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Services;
-using Robolink.WebApp.Shared.Services.NotificationService;
 using Microsoft.JSInterop;
+using Robolink.Shared.DTOs;
+using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components.Layout.DataLoader;
+using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Services;
+using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.ViewModels;
+using Robolink.WebApp.Shared.Services.NotificationService;
 
 namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Pages;
 
@@ -18,7 +21,7 @@ namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Pages;
 /// - Projects.Navigation.cs: Page navigation
 /// - Projects.razor: Pure markup (UI only)
 /// </summary>
-public partial class Projects : ComponentBase, IAsyncDisposable
+public partial class Projects : ComponentBase
 {
     // ===== INJECTED SERVICES =====
     [Inject] private IProjectService ProjectService { get; set; } = null!;
@@ -28,20 +31,14 @@ public partial class Projects : ComponentBase, IAsyncDisposable
     [Inject] private ILogger<Projects> Logger { get; set; } = null!;
 
     // ===== STATE =====
-    private ProjectsPageState State { get; set; } = new();
+    protected ProjectsPageState State { get; set; } = new();
 
-    // ===== LIFECYCLE =====
-    private CancellationTokenSource? _cancellationTokenSource;
+    protected DataLoader<ProjectViewModel> _loader = null!;
 
-    protected override async Task OnInitializedAsync()
-    {
-        Logger.LogInformation("Projects page initializing");
-        await HandleLoadProjectsAsync();
-    }
+    // Page bây giờ KHÔNG CẦN:
+    // - OnInitializedAsync (DataLoader tự làm)
+    // - IAsyncDisposable (DataLoader tự làm)
+    // - CancellationTokenSource (DataLoader tự làm)
 
-    async ValueTask IAsyncDisposable.DisposeAsync()
-    {
-        _cancellationTokenSource?.Dispose();
-        Logger.LogInformation("Projects page disposed");
-    }
+
 }

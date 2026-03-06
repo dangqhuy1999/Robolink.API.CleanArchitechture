@@ -1,0 +1,47 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+@inherits InputBase<string>
+
+<div class="@WrapperClass">
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <label class="form-label fw-semibold">
+            @Label
+            @if (Required)
+            {
+                <span class="text-danger ms-1">*</span>
+            }
+        </label>
+    }
+    
+    @* Thẻ input HTML kết hợp với thuộc tính CurrentValue có sẵn của InputBase *@
+    <input class="form-control @CssClass"
+           value="@CurrentValue"
+           @oninput="OnInputChanged"
+           placeholder="@Placeholder"
+           disabled="@Disabled" />
+           
+    @* ValueExpression cũng có sẵn từ InputBase luôn *@
+    <ValidationMessage For="@ValueExpression" class="text-danger small mt-1" />
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public string Placeholder { get; set; } = string.Empty;
+    [Parameter] public bool Required { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string WrapperClass { get; set; } = "mb-3";
+
+    // Hàm bắt buộc khi kế thừa InputBase (Xử lý ép kiểu dữ liệu)
+    protected override bool TryParseValueFromString(string? value, out string result, out string validationErrorMessage)
+    {
+        result = value ?? string.Empty;
+        validationErrorMessage = null!;
+        return true;
+    }
+
+    // Cập nhật giá trị ngay khi User gõ phím
+    private void OnInputChanged(ChangeEventArgs e)
+    {
+        CurrentValueAsString = e.Value?.ToString();
+    }
+}

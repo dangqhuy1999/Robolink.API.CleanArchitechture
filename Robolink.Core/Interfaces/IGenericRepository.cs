@@ -19,7 +19,8 @@ namespace Robolink.Core.Interfaces
         Task<PagedResult<TDto>> GetPagedProjectedAsync<TDto>(
             int startIndex,
             int count,
-            Expression<Func<TEntity, bool>>? predicate = null);
+            Expression<Func<TEntity, bool>>? predicate = null,
+            CancellationToken ct = default); // 👈 Thêm vào đây);
 
         // VŨ KHÍ MỚI: Truyền ID vào, lấy ra DTO của bất kỳ bảng nào!/ 
         // Dung create / update / delete xong thì gọi hàm này để lấy lại DTO mới nhất

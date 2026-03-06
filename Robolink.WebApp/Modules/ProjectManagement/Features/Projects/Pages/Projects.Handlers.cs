@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.ViewModels;
 using Robolink.WebApp.Shared.Services.NotificationService; 
@@ -15,6 +15,17 @@ public partial class Projects : ComponentBase
     /// Loads projects data with pagination.
     /// Called on page init and after data changes.
     /// </summary>
+    /// 
+    private void HandleDataReceived(PaginatedResult<ProjectViewModel> result)
+    {
+        // Đây chính là đoạn code cũ của em, chỉ khác là nó nằm gọn trong 1 hàm
+        State.Projects = result.Items.ToList();
+        State.TotalProjects = result.TotalCount;
+        State.TotalPages = (int)Math.Ceiling((double)result.TotalCount / State.PageSize);
+        Logger.LogInformation("Projects loaded. Count: {Count}", State.Projects.Count);
+    }
+
+    /*
     private async Task HandleLoadProjectsAsync()
     {
         try
@@ -44,7 +55,7 @@ public partial class Projects : ComponentBase
             State.IsLoading = false;
         }
     }
-
+    */
     /// <summary>
     /// Navigates to a specific page.
     /// Validates page number before navigation.
@@ -53,14 +64,30 @@ public partial class Projects : ComponentBase
     
     private async Task HandlePageChangedAsync(int pageNumber)
     {
-        if (pageNumber < 1 || pageNumber > State.TotalPages)
-        {
-            Logger.LogWarning("Invalid page number: {PageNumber}", pageNumber);
-            return;
-        }
+        // Vi da check tai component con, nhưng check lại ở đây để đảm bảo tính toàn vẹn (nếu có lỗi logic ở component con)
+        // 1. Chặn click trùng trang
+        if (pageNumber == State.CurrentPage) return;
 
+        Logger.LogInformation("Switching to page {PageNumber}", pageNumber);
+
+        // 2. Cập nhật State và Load lần 1
         State.CurrentPage = pageNumber;
-        await HandleLoadProjectsAsync();
+        await _loader.RefreshAsync(); // Dùng DataLoader để tự động gọi HandleDataReceived khi có dữ liệu mới
+        //await HandleLoadProjectsAsync();
+
+        // 3. Xử lý trường hợp "lệch pha" (Edge Case)
+        // Ví dụ: Đang ở trang 10, nhưng ai đó vừa xóa bớt dự án khiến chỉ còn 8 trang.
+        // Sau khi Load lần 1, State.TotalPages sẽ được cập nhật con số mới (ví dụ = 8).
+        if (State.CurrentPage > State.TotalPages && State.TotalPages > 0)
+        {
+            Logger.LogWarning("Page {Current} is out of range. Redirecting to last page {Total}",
+                               State.CurrentPage, State.TotalPages);
+
+            State.CurrentPage = State.TotalPages;
+
+            // 4. Load lần 2: Lấy dữ liệu thực tế của trang cuối cùng
+            await _loader.RefreshAsync(); // Dùng DataLoader để tự động gọi HandleDataReceived khi có dữ liệu mới
+        }
     }
     /// <summary>
     /// Handles project deletion with confirmation.
@@ -109,7 +136,7 @@ public partial class Projects : ComponentBase
                 State.CurrentPage = 1;
             }
 
-            await HandleLoadProjectsAsync();
+            await _loader.RefreshAsync(); // Dùng DataLoader để tự động gọi HandleDataReceived khi có dữ liệu mới
         }
         catch (Exception ex)
         {
@@ -138,6 +165,6 @@ public partial class Projects : ComponentBase
     private async Task HandleRefreshAsync()
     {
         State.ResetPagination();
-        await HandleLoadProjectsAsync();
+        await _loader.RefreshAsync(); // Dùng DataLoader để tự động gọi HandleDataReceived khi có dữ liệu mới
     }
 }

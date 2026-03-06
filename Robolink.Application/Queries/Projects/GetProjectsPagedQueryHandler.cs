@@ -39,7 +39,8 @@ namespace Robolink.Application.Queries.Projects
             return await _projectRepo.GetPagedProjectedAsync<ProjectDto>(
                 request.StartIndex,
                 request.Count,
-                predicate // 👈 Nếu searchTerm rỗng, cái này là null, nó chạy y hệt bản cũ!
+                predicate, // 👈 Nếu searchTerm rỗng, cái này là null, nó chạy y hệt bản cũ!
+                cancellationToken
             );
         }
     }

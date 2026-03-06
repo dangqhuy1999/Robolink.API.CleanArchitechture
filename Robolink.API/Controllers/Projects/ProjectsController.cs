@@ -5,8 +5,6 @@ using Robolink.Application.Commands.Projects;
 using Robolink.Application.Queries.Projects;
 using Robolink.Core.Entities;
 using Robolink.Shared.DTOs;
-using Robolink.Shared.Enums;
-using Robolink.Shared.Interfaces.API.Projects;
 using Robolink.WebApp.Components.Features.Projects.Shared; // Interface em vừa tạo
 
 
@@ -27,9 +25,10 @@ namespace Robolink.API.Controllers.Projects
         public async Task<ActionResult<PagedResult<ProjectDto>>> GetProjectsPagedAsync(
             [FromQuery] int startIndex, 
             [FromQuery] int count,
-            [FromQuery] string? searchTerm = null) // 👈 Thêm cái này)
+            [FromQuery] string? searchTerm = null,
+            CancellationToken ct = default)
         {
-            var result = await _mediator.Send(new GetProjectsPagedQuery(startIndex, count, searchTerm));
+            var result = await _mediator.Send(new GetProjectsPagedQuery(startIndex, count, searchTerm), ct);
             return Ok(result); // Nhất quán với các hàm khác
         }
 
