@@ -1,0 +1,13 @@
+﻿
+@using Robolink.WebApp.Modules.ProjectManagement.Shared.UI
+<button class="@MergedClasses" disabled="@(IsDisabled || IsLoading)" @onclick="HandleClickAsync" type="button">
+    @if (IsLoading)
+    {
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        <span>Loading...</span>
+    }
+    else
+    {
+        @ChildContent
+    }
+</button>

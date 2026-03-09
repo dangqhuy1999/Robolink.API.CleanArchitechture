@@ -5,9 +5,9 @@ using Refit;
 using Robolink.Application.Commands.SystemPhases;
 using Robolink.Application.Queries.SystemPhases;
 using Robolink.Shared.DTOs;
-using Robolink.Shared.Interfaces.API.SystemPhases;
+using Robolink.Shared.Services.API.SystemPhases;
 
-namespace Robolink.WebApp.Components.Features.SystemPhases.Pages
+namespace Robolink.WebApp.Modules.ProjectManagement.Features.SystemPhases.Pages
 {
     public partial class SystemPhaseDetail : ComponentBase
     {

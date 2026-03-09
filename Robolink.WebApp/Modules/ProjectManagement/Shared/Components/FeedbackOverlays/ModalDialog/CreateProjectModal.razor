@@ -1,0 +1,156 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+
+@if (ShowModal)
+{
+    <div class="modal @(ShowModal ? "show d-block" : "")" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <!-- ===== MODAL HEADER ===== -->
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-plus-circle"></i> @State.ModalTitle
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="HandleCloseAsync" disabled="@State.IsProcessing"></button>
+                </div>
+
+                <!-- ===== MODAL BODY ===== -->
+                <div class="modal-body">
+                    @if (State.IsLoadingData)
+                    {
+                        <div class="alert alert-info">
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            Loading...
+                        </div>
+                    }
+                    else
+                    {
+                        @if (!string.IsNullOrEmpty(State.LastErrorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-circle me-2"></i>
+                                @State.LastErrorMessage
+                                <button type="button" class="btn btn-link btn-sm text-danger fw-bold" @onclick="@(() => State.LastErrorMessage = null)">Try again</button>
+                            </div>
+                        }
+
+                        <form @onsubmit="HandleSubmitAsync">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Project Name</label>
+                                <InputText class="form-control"
+                                           @bind-Value="State.FormData.Name"
+                                           @bind-Value:after="() => HandleFieldChanged(nameof(State.FormData.Name), State.FormData.Name)"
+                                           placeholder="Enter project name"
+                                           disabled="@State.IsSubmitting" />
+                                @if (HasFieldError(nameof(State.FormData.Name)))
+                                {
+                                    <div class="text-danger small mt-1">@GetFieldError(nameof(State.FormData.Name))</div>
+                                }
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <InputTextArea class="form-control"
+                                               @bind-Value="State.FormData.Description"
+                                               @bind-Value:after="() => HandleFieldChanged(nameof(State.FormData.Description), State.FormData.Description)"
+                                               rows="3"
+                                               placeholder="Enter project description"
+                                               disabled="@State.IsSubmitting" />
+                                @if (HasFieldError(nameof(State.FormData.Description)))
+                                {
+                                    <div class="text-danger small mt-1">@GetFieldError(nameof(State.FormData.Description))</div>
+                                }
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Client <span class="text-danger">*</span></label>
+                                    <select class="form-select @(HasFieldError(nameof(State.FormData.ClientId)) ? "is-invalid" : "")"
+                                            @onchange="HandleClientSelected"
+                                            disabled="@State.IsSubmitting">
+                                        <option value="">-- Select a Client --</option>
+                                        @foreach (var client in State.AvailableClients)
+                                        {
+                                            <option value="@client.Id" selected="@(State.FormData.ClientId == client.Id)">@client.Name</option>
+                                        }
+                                    </select>
+                                    @if (HasFieldError(nameof(State.FormData.ClientId)))
+                                    {
+                                        <div class="text-danger small mt-1">@GetFieldError(nameof(State.FormData.ClientId))</div>
+                                    }
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Project Manager <span class="text-danger">*</span></label>
+                                    <select class="form-select @(HasFieldError(nameof(State.FormData.ManagerId)) ? "is-invalid" : "")"
+                                            @onchange="HandleManagerSelected"
+                                            disabled="@State.IsSubmitting">
+                                        <option value="">-- Select a Manager --</option>
+                                        @foreach (var manager in State.AvailableManagers)
+                                        {
+                                            <option value="@manager.Id" selected="@(State.FormData.ManagerId == manager.Id)">@manager.FullName</option>
+                                        }
+                                    </select>
+                                    @if (HasFieldError(nameof(State.FormData.ManagerId)))
+                                    {
+                                        <div class="text-danger small mt-1">@GetFieldError(nameof(State.FormData.ManagerId))</div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date"
+                                           class="form-control"
+                                           @bind="State.FormData.StartDate"
+                                           @onchange="HandleStartDateChanged"
+                                           disabled="@State.IsSubmitting" />
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Deadline</label>
+                                    <input type="date"
+                                           class="form-control @(HasFieldError(nameof(State.FormData.Deadline)) ? "is-invalid" : "")"
+                                           @bind="State.FormData.Deadline"
+                                           @onchange="HandleDeadlineChanged"
+                                           disabled="@State.IsSubmitting" />
+                                    @if (HasFieldError(nameof(State.FormData.Deadline)))
+                                    {
+                                        <div class="text-danger small mt-1">@GetFieldError(nameof(State.FormData.Deadline))</div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Priority (1-5)</label>
+                                <input type="number"
+                                       class="form-control @(HasFieldError(nameof(State.FormData.Priority)) ? "is-invalid" : "")"
+                                       min="1" max="5"
+                                       @bind="State.FormData.Priority"
+                                       @onchange="e => HandleFieldChanged(nameof(State.FormData.Priority), e.Value)"
+                                       disabled="@State.IsSubmitting" />
+                                @if (HasFieldError(nameof(State.FormData.Priority)))
+                                {
+                                    <div class="text-danger small mt-1">@GetFieldError(nameof(State.FormData.Priority))</div>
+                                }
+                            </div>
+
+                            <div class="modal-footer px-0 pb-0">
+                                <button type="button" class="btn btn-secondary" @onclick="HandleCloseAsync" disabled="@State.IsProcessing">Cancel</button>
+                                <button type="submit" class="btn btn-primary" disabled="@State.IsSubmitting">
+                                    @if (State.IsSubmitting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                    }
+                                    @State.SubmitButtonText
+                                </button>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop fade show"></div>
+}

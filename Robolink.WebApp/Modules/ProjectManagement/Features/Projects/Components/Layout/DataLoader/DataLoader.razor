@@ -3,7 +3,7 @@
 
 <AppDataState 
     IsLoading="_isLoading" 
-              IsEmpty="@(_result == null || !_result.Items.Any())"
+    IsEmpty="@(_result == null || !_result.Items.Any())"
     LoadingMessage="@LoadingMessage"
     EmptyMessage="@EmptyMessage">
     
@@ -29,6 +29,8 @@
 @code {
     private bool _isLoading = true;
     protected PaginatedResult<TItem>? _result;
+    // THÊM DÒNG NÀY: Public property để bên ngoài chỉ được ĐỌC (Read-only)
+    public PaginatedResult<TItem>? CurrentData => _result;
     private CancellationTokenSource _cts = new();
 
     private Exception? _error;

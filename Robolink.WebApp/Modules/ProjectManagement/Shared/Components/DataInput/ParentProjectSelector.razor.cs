@@ -5,10 +5,9 @@ using Microsoft.JSInterop;
 using Refit;
 using Robolink.Application.Queries.Projects;
 using Robolink.Shared.DTOs;
-using Robolink.Shared.Interfaces.API.Projects;
-using Robolink.WebApp.Components.Features.Projects.Pages;    
+using Robolink.Shared.Services.API.Projects;
 
-namespace Robolink.WebApp.Components.Features.Projects.Shared
+namespace Robolink.WebApp.Modules.ProjectManagement.Shared.Components.DataInput
 {
     public partial class ParentProjectSelector : ComponentBase
     {

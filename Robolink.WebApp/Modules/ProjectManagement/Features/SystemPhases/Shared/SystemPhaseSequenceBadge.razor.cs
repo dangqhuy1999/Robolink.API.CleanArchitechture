@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Robolink.WebApp.Components.Features.SystemPhases.Shared
+namespace Robolink.WebApp.Modules.ProjectManagement.Features.SystemPhases.Shared
 {
     public partial class SystemPhaseSequenceBadge : ComponentBase
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Robolink.WebApp.Components.Features.PhaseTasks.Pagination
+namespace Robolink.WebApp.Modules.ProjectManagement.Features.PhaseTasks.Components.Pagination
 {
     public partial class PhaseTaskPagination : ComponentBase
     {

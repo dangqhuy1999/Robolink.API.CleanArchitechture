@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Robolink.Application.Queries.Clients;
 using Robolink.Application.Queries.Staff;
 using Robolink.Shared.DTOs;
-using Robolink.Shared.Interfaces.API.Staffs;
+using Robolink.Shared.Services.API.Staffs;
 
 namespace Robolink.API.Controllers.Staffs
 {

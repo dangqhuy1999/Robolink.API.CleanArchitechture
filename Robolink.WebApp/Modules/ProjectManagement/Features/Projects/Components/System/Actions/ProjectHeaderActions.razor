@@ -1,0 +1,22 @@
+﻿@using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components.System.Actions.AppButton
+@* File: ProjectHeaderActions.razor *@
+<div class="d-flex gap-2">
+    <AppButton Theme="success" Icon="bi-plus-lg" OnClick="OnCreate" IsDisabled="IsLoading">
+        New Project
+    </AppButton>
+
+    <AppButton Theme="secondary" Icon="bi-lightning-fill" OnClick="OnQuickAdd" IsDisabled="IsLoading">
+        Quick Add
+    </AppButton>
+
+    <AppButton Theme="info" Icon="bi-arrow-clockwise" OnClick="OnRefresh" IsDisabled="IsLoading">
+        Refresh
+    </AppButton>
+</div>
+
+@code {
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public EventCallback OnCreate { get; set; }
+    [Parameter] public EventCallback OnQuickAdd { get; set; }
+    [Parameter] public EventCallback OnRefresh { get; set; }
+}

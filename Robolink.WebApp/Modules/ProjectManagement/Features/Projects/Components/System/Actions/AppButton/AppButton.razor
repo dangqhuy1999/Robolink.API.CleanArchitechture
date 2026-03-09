@@ -1,5 +1,15 @@
-@* AppButton component *@ 
-.
-<div class="AppButton"> 
-    AppButton component 
-</div> 
+@using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components.Base.AppButtonBase
+
+@* File: AppButton.razor *@
+<AppButtonBase 
+    Class="@GetThemeClass()" 
+    IsLoading="IsLoading" 
+    IsDisabled="IsDisabled" 
+    OnClick="OnClick">
+    
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <i class="@Icon me-2"></i>
+    }
+    @ChildContent
+</AppButtonBase>

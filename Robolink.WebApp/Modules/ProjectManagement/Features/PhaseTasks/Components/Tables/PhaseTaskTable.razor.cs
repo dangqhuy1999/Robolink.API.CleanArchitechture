@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Robolink.Shared.DTOs;
 
-namespace Robolink.WebApp.Components.Features.PhaseTasks.Tables
+namespace Robolink.WebApp.Modules.ProjectManagement.Features.PhaseTasks.Components.Tables
 {
     public partial class PhaseTaskTable : ComponentBase
     {

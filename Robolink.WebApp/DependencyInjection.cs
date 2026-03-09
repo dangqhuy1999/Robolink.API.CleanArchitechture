@@ -1,13 +1,13 @@
 ﻿
 using Refit;
 using Robolink.Application;
-using Robolink.Infrastructure;
-using Robolink.WebApp.Shared.Services.Clients;
-using Robolink.WebApp.Shared.Services.Staffs;
+using Robolink.Shared.Services.API.Clients;
+using Robolink.Shared.Services.API.Staffs;
 using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Services;
-using Robolink.WebApp.Modules.ProjectManagement.Features.SystemPhases.Services;
-using Robolink.WebApp.Modules.ProjectManagement.Features.ProjectPhases.Services;
-using Robolink.WebApp.Modules.ProjectManagement.Features.PhaseTasks.Services;
+using Robolink.Shared.Services.API.Projects;
+using Robolink.Shared.Services.API.SystemPhases;
+using Robolink.Shared.Services.API.ProjectPhases;
+using Robolink.Shared.Services.API.PhaseTasks;
 using Robolink.WebApp.Shared.Services.ApiError;
 using Robolink.WebApp.Shared.Services.NotificationService;
 namespace Robolink.WebApp

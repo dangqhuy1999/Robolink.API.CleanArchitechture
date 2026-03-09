@@ -27,8 +27,8 @@
                             <button class="btn btn-sm btn-outline-primary"
                                     @onclick="() => HandleToggleExpand(phaseTask.Id)"
                                     @onclick:stopPropagation="true">
-                                @* Ngăn chặn click vào hàng *@
-                                <i class="bi bi-chevron-@(IsExpanded(phaseTask.Id) ? "down" : "right")"></i>
+                                    @* Ngăn chặn click vào hàng *@
+                                    <i class="bi bi-chevron-@(IsExpanded(phaseTask.Id) ? "down" : "right")"></i>
                             </button>
                         }
                     </td>
@@ -55,7 +55,7 @@
                     {
                         <tr class="sub-project-row bg-light">
 
-                            <td></td> @* Cột chevron trống *@
+                            <td></td> @* Cột chevron trống  need to erase*@
                             <td><strong>@sub.Name</strong></td>
                             <td @onclick="() => HandleViewPhaseTask(sub.Id)" class="cursor-pointer">
                                 <span class="ms-3 text-muted">↳ @sub.Description</span>

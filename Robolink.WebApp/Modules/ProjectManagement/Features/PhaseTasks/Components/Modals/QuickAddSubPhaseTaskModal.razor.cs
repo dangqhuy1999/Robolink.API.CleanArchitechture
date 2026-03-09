@@ -6,12 +6,12 @@ using Robolink.Application.Commands.PhaseTasks;
 using Robolink.Application.Queries.PhaseTasks;
 using Robolink.Application.Queries.Staff;
 using Robolink.Shared.DTOs;
-using Robolink.Shared.Interfaces.API.PhaseTasks;
-using Robolink.Shared.Interfaces.API.Projects;
-using Robolink.Shared.Interfaces.API.Staffs;
+using Robolink.Shared.Services.API.PhaseTasks;
+using Robolink.Shared.Services.API.Projects;
+using Robolink.Shared.Services.API.Staffs;
 using Robolink.WebApp.Components.Features.Projects.Shared;
 
-namespace Robolink.WebApp.Components.Features.PhaseTasks.Modals
+namespace Robolink.WebApp.Modules.ProjectManagement.Features.PhaseTasks.Components.Modals
 {
     public partial class QuickAddSubPhaseTaskModal : ComponentBase
     {

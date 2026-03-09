@@ -7,13 +7,12 @@ using Robolink.Application.Queries.ProjectPhases;
 using Robolink.Application.Queries.SystemPhases;
 using Robolink.Core.Entities;
 using Robolink.Shared.DTOs;
-using Robolink.Shared.Interfaces.API.Projects;
-using Robolink.Shared.Interfaces.API.SystemPhases;
-using Robolink.WebApp.Components.Features.Projects.Pages;
+using Robolink.Shared.Services.API.Projects;
+using Robolink.Shared.Services.API.SystemPhases;
 
-namespace Robolink.WebApp.Components.Features.SystemPhases.Pages
+namespace Robolink.WebApp.Modules.ProjectManagement.Features.SystemPhases.Pages
 {
-    public partial class SystemPhases
+    public partial class SystemPhases : ComponentBase
     {
         [Inject] private ISystemPhaseApi SystemPhaseApi { get; set; } = null!; // ✅ NEW
         [Inject] private IJSRuntime JSRuntime { get; set; } = null!;

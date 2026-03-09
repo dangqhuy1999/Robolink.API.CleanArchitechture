@@ -13,7 +13,7 @@ public class ProjectsPageState
     public bool IsLoading { get; set; } = true;
     
     // ===== DATA STATE =====
-    public List<ProjectViewModel> Projects { get; set; } = [];
+    //public List<ProjectViewModel> Projects { get; set; } = [];
     
     // ===== SELECTION STATE =====
     public Guid SelectedProjectId { get; set; } = Guid.Empty;
@@ -50,7 +50,7 @@ public class ProjectsPageState
     /// </summary>
     public void ResetAll() 
     {
-        Projects.Clear();
+        //Projects.Clear();
         SelectedProjectId = Guid.Empty;
         ResetPagination();
         ModalState.ResetAll();

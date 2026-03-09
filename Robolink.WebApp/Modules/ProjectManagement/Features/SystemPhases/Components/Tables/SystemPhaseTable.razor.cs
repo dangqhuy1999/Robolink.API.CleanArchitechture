@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Robolink.Shared.DTOs;
 
-namespace Robolink.WebApp.Components.Features.SystemPhases.Tables
+namespace Robolink.WebApp.Modules.ProjectManagement.Features.SystemPhases.Components.Tables
 {
     public partial class SystemPhaseTable : ComponentBase
     {

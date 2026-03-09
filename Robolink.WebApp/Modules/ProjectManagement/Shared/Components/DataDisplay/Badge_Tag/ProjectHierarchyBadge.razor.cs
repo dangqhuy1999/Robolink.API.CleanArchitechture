@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Robolink.WebApp.Components.Features.Projects.Shared
+namespace Robolink.WebApp.Modules.ProjectManagement.Shared.Components.DataDisplay.Badge_Tag
 {
     public partial class ProjectHierarchyBadge : ComponentBase
     {

@@ -8,12 +8,11 @@ using Robolink.Application.Queries.Projects;
 using Robolink.Application.Queries.SystemPhases;
 using Robolink.Core.Entities;
 using Robolink.Shared.DTOs;
-using Robolink.Shared.Interfaces.API.ProjectPhases;
-using Robolink.Shared.Interfaces.API.Projects;
-using Robolink.Shared.Interfaces.API.SystemPhases;
-using Robolink.WebApp.Components.Features.Projects.Pages;
+using Robolink.Shared.Services.API.ProjectPhases;
+using Robolink.Shared.Services.API.Projects;
+using Robolink.Shared.Services.API.SystemPhases;
 
-namespace Robolink.WebApp.Components.Features.ProjectPhases.Pages
+namespace Robolink.WebApp.Modules.ProjectManagement.Features.ProjectPhases.Pages
 {
     public partial class ProjectDetails : ComponentBase
     {

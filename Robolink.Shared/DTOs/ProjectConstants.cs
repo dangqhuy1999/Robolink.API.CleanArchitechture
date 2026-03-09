@@ -13,7 +13,6 @@ public static class ProjectConstants
     public const int staffPageSize = 10;
     public const int staffStartIndex = 0;
     public const int DefaultPageSize = 10;
-    public const int DefaultProjectPriority = 1;
     public const int DefaultInternalBudget = 1000;
     public const int DefaultCustomerBudget = 2000;
     public const int DefaultProjectDurationDays = 30;

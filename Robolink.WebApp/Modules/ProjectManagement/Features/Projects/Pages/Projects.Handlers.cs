@@ -19,10 +19,10 @@ public partial class Projects : ComponentBase
     private void HandleDataReceived(PaginatedResult<ProjectViewModel> result)
     {
         // Đây chính là đoạn code cũ của em, chỉ khác là nó nằm gọn trong 1 hàm
-        State.Projects = result.Items.ToList();
+        // State.Projects = result.Items.ToList();
         State.TotalProjects = result.TotalCount;
         State.TotalPages = (int)Math.Ceiling((double)result.TotalCount / State.PageSize);
-        Logger.LogInformation("Projects loaded. Count: {Count}", State.Projects.Count);
+        Logger.LogInformation("Projects loaded.");
     }
 
     /*
@@ -96,7 +96,7 @@ public partial class Projects : ComponentBase
     private async Task HandleDeleteProjectAsync(Guid projectId)
     {
         // Find project in current list
-        var projectToDelete = State.Projects.FirstOrDefault(p => p.Id == projectId);
+        var projectToDelete = _loader.CurrentData?.Items.FirstOrDefault(p => p.Id == projectId);
         if (projectToDelete == null)
         {
             Logger.LogWarning("Attempted to delete non-existent project. ID: {ProjectId}", projectId);
@@ -131,7 +131,7 @@ public partial class Projects : ComponentBase
             await ToastNotificationService.ShowSuccessAsync("Project deleted successfully.");
 
             // Reset to first page if needed
-            if (State.Projects.Count <= 1)
+            if (_loader.CurrentData?.Items.Count() <= 1)
             {
                 State.CurrentPage = 1;
             }

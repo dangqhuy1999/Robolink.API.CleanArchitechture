@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Robolink.Shared.DTOs;
 
-namespace Robolink.WebApp.Components.Features.Projects.Shared
+namespace Robolink.WebApp.Modules.ProjectManagement.Shared.Components.DataDisplay.List
 {
     public partial class SubProjectsList : ComponentBase
     {

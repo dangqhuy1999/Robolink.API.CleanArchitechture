@@ -25,7 +25,7 @@ namespace Robolink.Application.Commands.Projects
 
         public async Task<ProjectDto> Handle(UpdateProjectCommand request, CancellationToken cancellationToken)
         {
-            var updateId = request.Request.Id ?? throw new ArgumentNullException("Id cannot be null");
+            var updateId = request.Request.Id ?? throw new ArgumentNullException(nameof(request.Request.Id), "Id cannot be null");
 
             // 1. Lấy dữ liệu cũ từ DB
             var project = await _projectRepo.GetByIdAsync(updateId)

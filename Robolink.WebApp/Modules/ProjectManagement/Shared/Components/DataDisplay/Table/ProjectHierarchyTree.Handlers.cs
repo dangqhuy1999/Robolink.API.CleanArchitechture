@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 
-namespace Robolink.WebApp.Components.Features.Projects.Tables
+namespace Robolink.WebApp.Modules.ProjectManagement.Shared.Components.DataDisplay.Table
 {
     public partial class ProjectHierarchyTree : ComponentBase
     {

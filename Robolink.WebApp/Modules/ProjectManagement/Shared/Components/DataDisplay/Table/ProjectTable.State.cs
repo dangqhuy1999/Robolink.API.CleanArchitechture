@@ -1,14 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.ViewModels;
 
-namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components.Tables
+namespace Robolink.WebApp.Modules.ProjectManagement.Shared.Components.DataDisplay.Table
 {
     public partial class ProjectTable : ComponentBase
     {
-        /// <summary>
-        /// List of projects to display in the table
-        /// </summary>
-        private List<ProjectViewModel> Projects { get; set; } = [];
+
 
         /// <summary>
         /// Track which rows are expanded to show sub-projects
@@ -31,6 +28,7 @@ namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components
         /// Check if a row is expanded
         /// </summary>
         private bool IsExpanded(Guid projectId) => ExpandedProjects.Contains(projectId);
+        
 
         /// <summary>
         /// Get count of expanded rows
@@ -40,7 +38,7 @@ namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components
         /// <summary>
         /// Check if any projects are displayed
         /// </summary>
-        private bool HasProjects => Projects?.Any() == true;
+        private bool HasProjects => Projects?.Items.ToList().Any() == true;
 
         /// <summary>
         /// Get sorted projects based on current sort state
@@ -49,11 +47,11 @@ namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components
         {
             get
             {
-                if (!Projects?.Any() == true) return new();
+                if (!Projects?.Items.ToList().Any() == true) return new();
 
                 return SortDirection == "asc"
-                    ? Projects.OrderBy(GetSortValue).ToList()
-                    : Projects.OrderByDescending(GetSortValue).ToList();
+                    ? Projects.Items.ToList().OrderBy(GetSortValue).ToList()
+                    : Projects.Items.ToList().OrderByDescending(GetSortValue).ToList();
             }
         }
 

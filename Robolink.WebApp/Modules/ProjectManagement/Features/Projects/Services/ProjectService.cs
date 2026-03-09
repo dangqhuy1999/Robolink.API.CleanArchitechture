@@ -1,6 +1,7 @@
 ﻿
-using Robolink.WebApp.Shared.Services.Clients;
-using Robolink.WebApp.Shared.Services.Staffs;
+using Robolink.Shared.Services.API.Clients;
+using Robolink.Shared.Services.API.Projects;
+using Robolink.Shared.Services.API.Staffs;
 using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Mappers;
 using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.ViewModels;
 using Robolink.WebApp.Shared.Services.ApiError;

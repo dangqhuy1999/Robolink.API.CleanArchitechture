@@ -38,14 +38,16 @@ namespace Robolink.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Industry")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -332,14 +334,20 @@ namespace Robolink.Infrastructure.Migrations
                     b.Property<int>("Department")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("FullName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<string>("PasswordHash")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("Role")
@@ -362,9 +370,17 @@ namespace Robolink.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Username")
-                        .HasColumnType("text");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Username")
+                        .IsUnique();
 
                     b.ToTable("Staffs");
 
@@ -374,6 +390,7 @@ namespace Robolink.Infrastructure.Migrations
                             Id = new Guid("1b8c3dbf-63bb-4207-b108-9b28706185a7"),
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Department = 1,
+                            Email = "loli123@hmail.com",
                             FullName = "Huy Dang",
                             IsDeleted = false,
                             PasswordHash = "AQAAAAEAACcQAAAAE...",

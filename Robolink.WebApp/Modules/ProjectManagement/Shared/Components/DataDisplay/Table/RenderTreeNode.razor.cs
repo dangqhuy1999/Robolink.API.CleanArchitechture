@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Robolink.Shared.DTOs;
+using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.ViewModels;
 
-namespace Robolink.WebApp.Components.Features.Projects.Tables
+namespace Robolink.WebApp.Modules.ProjectManagement.Shared.Components.DataDisplay.Table
 {
     public partial class RenderTreeNode : ComponentBase
     {
         [Parameter]
-        public ProjectDto Project { get; set; } = null!;
+        public ProjectViewModel Project { get; set; } = null!;
 
         [Parameter]
         public bool IsExpanded { get; set; } = false;

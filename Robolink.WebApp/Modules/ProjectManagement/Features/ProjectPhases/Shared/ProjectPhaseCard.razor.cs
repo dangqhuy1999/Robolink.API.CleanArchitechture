@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Robolink.Shared.DTOs;
 
-namespace Robolink.WebApp.Components.Features.ProjectPhases.Shared
+namespace Robolink.WebApp.Modules.ProjectManagement.Features.ProjectPhases.Shared
 {
     public partial class ProjectPhaseCard : ComponentBase
     {

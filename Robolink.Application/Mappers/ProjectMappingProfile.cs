@@ -23,7 +23,7 @@ namespace Robolink.Application.Mappers
 
                 .ForMember(dest => dest.ProgressPercentage, opt => opt.MapFrom(src =>
                     (src.Tasks != null && src.Tasks.Any())
-                    ? Math.Round((double)src.Tasks.Count(t => t.IsCompleted) / src.Tasks.Count * 100, 2)
+                    ? Math.Round((double)src.Tasks.Count(x => x.Status == Task_Status.Completed) / src.Tasks.Count * 100, 2)
                     : 0))
 
                 // Giới hạn độ sâu để tránh lỗi vòng lặp vô tận (Circular Reference)

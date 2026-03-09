@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components.NavigationLayout.Pagination
+namespace Robolink.WebApp.Modules.ProjectManagement.Shared.Components.NavigationLayout.Pagination
 {
     public partial class ProjectPagination : ComponentBase
     {

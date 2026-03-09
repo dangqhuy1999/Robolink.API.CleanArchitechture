@@ -1,72 +1,55 @@
 ﻿@page "/projects"
-@using Robolink.WebApp.Components.Features.Projects.Modals
-@using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components.Modals
-@using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components.Tables
-
-
+@using Robolink.WebApp.Modules.ProjectManagement.Shared.Components.DataDisplay.Table
+@using Robolink.WebApp.Modules.ProjectManagement.Shared.Components.NavigationLayout.Pagination
 
 <AppPageContainer>
     <!-- ===== PAGE HEADER ===== -->
     <AppPageHeader
         Title="📋 Projects Management"
         Subtitle="Manage your projects and sub-projects hierarchically">
-
         <Actions>
-
-            <button class="btn btn-success"
-                    @onclick="HandleShowCreateModal"
-                    disabled="@State.IsLoading">
-                <i class="bi bi-plus-lg"></i> New Project
-            </button>
-
-            <button class="btn btn-secondary"
-                    @onclick="HandleShowCreateModal"
-                    disabled="@State.IsLoading">
-                <i class="bi bi-lightning-fill"></i> Quick Add
-            </button>
-
-            <button class="btn btn-info"
-                    @onclick="HandleRefreshAsync"
-                    disabled="@State.IsLoading">
-                <i class="bi bi-arrow-clockwise"></i> Refresh
-            </button>
+            @* Gọi duy nhất một Component nghiệp vụ ở đây *@
+            <ProjectHeaderActions 
+                IsLoading="@State.IsLoading"
+                OnCreate="HandleShowCreateModal"
+                OnQuickAdd="HandleShowCreateModal" 
+                OnRefresh="HandleRefreshAsync" />
 
         </Actions>
-
     </AppPageHeader>
     
+    <DataLoader 
+        TItem="ProjectViewModel" 
+        LoadData="async (token) => {
+            var result = await ProjectService.GetProjectsPaginatedAsync(
+                pageNumber: State.CurrentPage,
+                pageSize: State.PageSize,
+                searchTerm: null,
+                cancellationToken: token);
 
-    <DataLoader TItem="ProjectViewModel" 
-                LoadData="async (token) => {
-                    var result = await ProjectService.GetProjectsPaginatedAsync(
-                        pageNumber: State.CurrentPage,
-                        pageSize: State.PageSize,
-                        searchTerm: null,
-                        cancellationToken: token);
-
-                    return new PaginatedResult<ProjectViewModel> { Items = result.Projects, TotalCount = result.TotalCount };
-                }"
-                IsLoadingChanged="val => State.IsLoading = val"
-                OnDataLoaded="HandleDataReceived"
-            @ref="_loader">
+            return new PaginatedResult<ProjectViewModel> { Items = result.Projects, TotalCount = result.TotalCount };
+        }"
+        IsLoadingChanged="val => State.IsLoading = val"
+        OnDataLoaded="HandleDataReceived"
+        @ref="_loader">
         <ChildContent Context="result">
 
-        <!-- Projects Table -->
-        <ProjectTable Projects="@State.Projects"
-                        OnEdit="HandleShowEditModal"
-                        OnDelete="HandleDeleteProjectAsync"
-                        OnAddSubProject="HandleShowQuickAddSubModal"
-                        OnViewProject="HandleNavigateToProjectManagement" />
+            <!-- Projects Table -->
+            <ProjectTable Projects="result"
+                OnEdit="HandleShowEditModal"
+                OnDelete="HandleDeleteProjectAsync"
+                OnAddSubProject="HandleShowQuickAddSubModal"
+                OnViewProject="HandleNavigateToProjectManagement" />
 
-        <!-- Pagination -->
-        <ProjectPagination CurrentPage="@State.CurrentPage"
-                            TotalPages="@State.TotalPages"
-                            TotalProjects="@State.TotalProjects"
-                            OnPageChanged="HandlePageChangedAsync" />
-    </ChildContent>
-</DataLoader>
-        
-    
+            <!-- Pagination -->
+            <ProjectPagination 
+                CurrentPage="@State.CurrentPage"
+                TotalPages="@State.TotalPages"
+                TotalProjects="@State.TotalProjects"
+                OnPageChanged="HandlePageChangedAsync" />
+        </ChildContent>
+    </DataLoader>
+
 </AppPageContainer>
 
 <!-- ===== MODALS ===== -->

@@ -33,12 +33,10 @@ public partial class Projects : ComponentBase
     // ===== STATE =====
     protected ProjectsPageState State { get; set; } = new();
 
-    protected DataLoader<ProjectViewModel> _loader = null!;
-
+    public DataLoader<ProjectViewModel> _loader = null!;
+    
     // Page bây giờ KHÔNG CẦN:
     // - OnInitializedAsync (DataLoader tự làm)
     // - IAsyncDisposable (DataLoader tự làm)
     // - CancellationTokenSource (DataLoader tự làm)
-
-
 }

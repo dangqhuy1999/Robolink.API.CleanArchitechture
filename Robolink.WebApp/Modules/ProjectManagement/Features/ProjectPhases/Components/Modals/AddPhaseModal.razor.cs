@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Robolink.Shared.DTOs;
-using Robolink.Shared.Interfaces.API.SystemPhases;
-namespace Robolink.WebApp.Modules.ProjectManagement.Features.ProjectPhases.Modals
+using Robolink.Shared.Services.API.SystemPhases;
+namespace Robolink.WebApp.Modules.ProjectManagement.Features.ProjectPhases.Components.Modals
 {
     public partial class AddPhaseModal : ComponentBase
     {

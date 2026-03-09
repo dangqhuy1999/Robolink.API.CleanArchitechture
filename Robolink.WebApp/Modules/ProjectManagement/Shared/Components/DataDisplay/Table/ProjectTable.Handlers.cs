@@ -1,19 +1,22 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components.Tables
+namespace Robolink.WebApp.Modules.ProjectManagement.Shared.Components.DataDisplay.Table
 {
     public partial class ProjectTable : ComponentBase
     {
         /// <summary>
         /// Toggle expand/collapse for a row
         /// </summary>
-        private async Task HandleToggleRow(Guid projectId)
+        private async Task HandleToggleExpand(Guid projectId)
         {
             if (ExpandedProjects.Contains(projectId))
+            {
                 ExpandedProjects.Remove(projectId);
+            }
             else
+            {
                 ExpandedProjects.Add(projectId);
-
+            }
             StateHasChanged();
             await Task.CompletedTask;
         }
@@ -86,7 +89,7 @@ namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components
         /// </summary>
         private async Task HandleExpandAll()
         {
-            foreach (var project in Projects)
+            foreach (var project in Projects.Items.ToList())
             {
                 ExpandedProjects.Add(project.Id);
             }

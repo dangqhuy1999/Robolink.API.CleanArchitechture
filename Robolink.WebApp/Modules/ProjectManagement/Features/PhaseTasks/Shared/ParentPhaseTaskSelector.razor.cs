@@ -5,9 +5,9 @@ using Microsoft.JSInterop;
 using Refit;
 using Robolink.Application.Queries.PhaseTasks;
 using Robolink.Shared.DTOs;
-using Robolink.Shared.Interfaces.API.PhaseTasks;
-using Robolink.Shared.Interfaces.API.Projects;
-namespace Robolink.WebApp.Components.Features.PhaseTasks.Shared
+using Robolink.Shared.Services.API.PhaseTasks;
+using Robolink.Shared.Services.API.Projects;
+namespace Robolink.WebApp.Modules.ProjectManagement.Features.PhaseTasks.Shared
 {
     public partial class ParentPhaseTaskSelector : ComponentBase
     {

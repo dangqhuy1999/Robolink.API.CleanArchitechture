@@ -5,6 +5,7 @@ using Robolink.Application.Commands.Projects;
 using Robolink.Application.Queries.Projects;
 using Robolink.Core.Entities;
 using Robolink.Shared.DTOs;
+using Robolink.Shared.Enums;
 using Robolink.WebApp.Components.Features.Projects.Shared; // Interface em vừa tạo
 
 
@@ -62,7 +63,7 @@ namespace Robolink.API.Controllers.Projects
                     ManagerId = ProjectConstants.DefaultManagerId,
                     StartDate = DateTime.UtcNow,
                     Deadline = DateTime.UtcNow.AddDays(ProjectConstants.DefaultProjectDurationDays),
-                    Priority = ProjectConstants.DefaultProjectPriority,
+                    Priority = ProjectPriority.Medium,
                     InternalBudget = ProjectConstants.DefaultInternalBudget,
                     CustomerBudget = ProjectConstants.DefaultCustomerBudget
                 }

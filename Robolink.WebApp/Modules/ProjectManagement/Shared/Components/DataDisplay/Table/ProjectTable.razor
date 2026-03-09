@@ -1,6 +1,5 @@
-﻿@using Robolink.Shared.DTOs
-@using Robolink.WebApp.Components.Features.Projects.Shared
-@using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Shared
+﻿@using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.ViewModels
+@using Robolink.WebApp.Modules.ProjectManagement.Shared.Components.DataDisplay.Badge_Tag
 
 <div class="table-responsive">
     <table class="table table-hover table-striped table-sm">
@@ -21,7 +20,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var project in Projects)
+            @foreach (var project in Projects.Items.ToList())
             {
                 <!-- ✅ MAIN PROJECT ROW - CLICKABLE FOR NAVIGATION -->
                 <tr class="project-row cursor-pointer" @onclick="() => HandleViewProject(project.Id)" style="cursor: pointer;">
@@ -169,7 +168,6 @@
         </tbody>
     </table>
 </div>
-
 
 <style>
     .cursor-pointer {

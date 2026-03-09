@@ -2,7 +2,7 @@
 using Robolink.Shared.DTOs;
 using Robolink.WebApp.Modules.ProjectManagement.Features.Projects.ViewModels;
 
-namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components.Tables
+namespace Robolink.WebApp.Modules.ProjectManagement.Shared.Components.DataDisplay.Table
 {
     /// <summary>
     /// Table component for displaying projects with expand/collapse rows.
@@ -13,11 +13,11 @@ namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components
     /// - Handlers.cs: Event handlers
     /// - razor: Pure markup
     /// </summary>
-    public partial class ProjectTable : ComponentBase
+    public partial class ProjectTable
     {
         // ===== PARAMETERS (From Parent) =====
         [Parameter]
-        public List<ProjectViewModel> Projects { get; set; } = [];
+        public PaginatedResult<ProjectViewModel>? Projects { get; set; }
 
         [Parameter]
         public EventCallback<Guid> OnEdit { get; set; }
@@ -31,8 +31,6 @@ namespace Robolink.WebApp.Modules.ProjectManagement.Features.Projects.Components
         [Parameter]
         public EventCallback<Guid> OnViewProject { get; set; } // ✅ NEW: Event for viewing project
 
-        private HashSet<Guid> expandedProjects = new();
-
-        private bool IsExpanded(Guid projectId) => expandedProjects.Contains(projectId);
+        
     }
 }

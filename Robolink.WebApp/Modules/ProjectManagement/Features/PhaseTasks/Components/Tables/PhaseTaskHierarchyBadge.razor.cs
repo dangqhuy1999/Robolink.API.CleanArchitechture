@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Robolink.WebApp.Components.Features.PhaseTasks.Tables
+namespace Robolink.WebApp.Modules.ProjectManagement.Features.PhaseTasks.Components.Tables
 {
     public partial class PhaseTaskHierarchyBadge : ComponentBase
     {

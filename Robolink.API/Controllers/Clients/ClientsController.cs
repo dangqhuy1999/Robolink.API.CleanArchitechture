@@ -2,7 +2,7 @@
 using Robolink.Application.Queries.Clients;
 using Robolink.Shared.DTOs;
 using MediatR;
-using Robolink.Shared.Interfaces.API.Clients;
+using Robolink.Shared.Services.API.Clients;
 
 namespace Robolink.API.Controllers.Clients
 {

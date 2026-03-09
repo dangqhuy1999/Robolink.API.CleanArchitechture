@@ -25,11 +25,11 @@
 
   <ItemGroup>
     <Folder Include="Modules\ProjectManagement\Features\PhaseTasks\Mappers\" />
+    <Folder Include="Modules\ProjectManagement\Features\PhaseTasks\Services\" />
     <Folder Include="Modules\ProjectManagement\Features\PhaseTasks\ViewModels\" />
     <Folder Include="Modules\ProjectManagement\Features\ProjectPhases\Mappers\" />
+    <Folder Include="Modules\ProjectManagement\Features\ProjectPhases\Services\" />
     <Folder Include="Modules\ProjectManagement\Features\ProjectPhases\ViewModels\" />
-    <Folder Include="Modules\ProjectManagement\Features\Projects\Components\Base\AppButtonBase\" />
-    <Folder Include="Modules\ProjectManagement\Features\Projects\Components\Base\AppLayoutBase\" />
     <Folder Include="Modules\ProjectManagement\Shared\Components\Actions\Button\" />
     <Folder Include="Modules\ProjectManagement\Shared\Components\Actions\IconButton\" />
     <Folder Include="Modules\ProjectManagement\Shared\Components\Actions\Link\" />
