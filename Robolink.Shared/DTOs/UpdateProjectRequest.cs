@@ -9,13 +9,13 @@ namespace Robolink.Shared.DTOs
     /// <summary>DTO for updating a project</summary>
     public class UpdateProjectRequest
     {
-        [Required]
+        
         public Guid? Id { get; set; }
 
         [StringLength(200)]
         public string? Name { get; set; }
         [StringLength(50)]
-        public string ProjectCode { get; set; } = null!;
+        public string? ProjectCode { get; set; }
         [StringLength(500)]
         public string? Description { get; set; }
 

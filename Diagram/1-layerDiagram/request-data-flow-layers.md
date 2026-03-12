@@ -5,7 +5,7 @@ Trong một hệ thống tách biệt hoàn toàn giữa **WebApp (Blazor)** và
 
 Quy trình hiện tại:
 
-> `User Input -> ViewModel -> [Mapper 1] -> DTO -> API -> Handler -> [Mapper 2] -> Entity -> Repo -> DB`
+`User Input -> ViewModel -> [Mapper 1] -> DTO -> API -> Handler -> [Mapper 2] -> Entity -> Repo -> DB`
 
 **Đánh giá:** * **Về mặt lý thuyết (Sách giáo khoa):** Tuyệt đối chuẩn! Nó phân tách rõ ràng trách nhiệm. WebApp chỉ biết ViewModel và DTO. API chỉ biết DTO và Entity. Không thằng nào giẫm chân lên thằng nào. Đổi Database không ảnh hưởng đến UI, đổi UI không ảnh hưởng đến DB.
 

@@ -33,7 +33,7 @@ namespace Robolink.API.Controllers.Projects
             return Ok(result); // Nhất quán với các hàm khác
         }
 
-        [HttpGet("{id:guid}", Name = "GetProjectById")]
+        [HttpGet("{id:guid}", Name = "GetProjectById")] 
         public async Task<ActionResult<ProjectDto>> GetByIdAsync(Guid id)
         {
             var result = await _mediator.Send(new GetProjectByIdQuery(id));
@@ -74,7 +74,10 @@ namespace Robolink.API.Controllers.Projects
 
             // ✅ THAY THẾ CreatedAtAction BẰNG Ok
             // Không còn lo lỗi "No route matches", không lo sập Server nữa.
-            return Ok(result);
+            // 201 Created Status code
+            // + location of the resource (http://localhost:3000/api/projects/{id})
+            // + person object in the response body
+            return CreatedAtRoute("GetProjectById", new {id=result.Id},result);
         }
 
         [HttpPost]
@@ -113,11 +116,16 @@ namespace Robolink.API.Controllers.Projects
             // new { id = result.Id } truyền tham số Id vào route của hàm GetByIdAsync
             // ✅ THAY THẾ CreatedAtAction BẰNG Ok
             // Không còn lo lỗi "No route matches", không lo sập Server nữa.
-            return Ok(result);
+            
+            // 201 Created Status code
+            // + location of the resource (http://localhost:3000/api/projects/{id})
+            // + person object in the response body
+            return CreatedAtRoute("GetProjectById", new { id = result.Id }, result);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ProjectDto>> UpdateAsync(Guid id, [FromBody] UpdateProjectRequest request)
+        // Lưu ý: Đổi kiểu trả về từ ActionResult<ProjectDto> thành IActionResult vì bạn không trả về dữ liệu nữa.
+        public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UpdateProjectRequest request)
         {
             // 🛡️ Force ID từ URL vào Request để đồng nhất dữ liệu
             request.Id = id;
@@ -134,7 +142,7 @@ namespace Robolink.API.Controllers.Projects
             // Nếu kết quả null (do ID không tồn tại), trả về 404
             if (result == null) return NotFound();
 
-            return Ok(result);
+            return NoContent(); // Trả về mã 204
         }
 
         [HttpDelete("{id}")]

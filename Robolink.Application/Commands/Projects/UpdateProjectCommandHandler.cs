@@ -11,22 +11,27 @@ namespace Robolink.Application.Commands.Projects
     {
         private readonly IGenericRepository<Project> _projectRepo;
         private readonly IGenericRepository<Staff> _staffRepo;
+        private readonly IGenericRepository<Client> _clientRepo;
         private readonly IMapper _mapper;
 
         public UpdateProjectCommandHandler(
             IGenericRepository<Project> projectRepo,
             IGenericRepository<Staff> staffRepo,
+            IGenericRepository<Client> clientRepo,
             IMapper mapper)
         {
             _projectRepo = projectRepo;
             _staffRepo = staffRepo;
+            _clientRepo = clientRepo;
             _mapper = mapper;
         }
 
         public async Task<ProjectDto> Handle(UpdateProjectCommand request, CancellationToken cancellationToken)
         {
-            var updateId = request.Request.Id ?? throw new ArgumentNullException(nameof(request.Request.Id), "Id cannot be null");
-
+            ///// Thay vì tin vào Body, hãy tin vào URL để bảo mật 
+            var updateId = request.Id;
+            // Đồng bộ luôn vào Request để Mapper không làm loạn
+            request.Request.Id = updateId;
             // 1. Lấy dữ liệu cũ từ DB
             var project = await _projectRepo.GetByIdAsync(updateId)
                 ?? throw new InvalidOperationException("Project not found");
@@ -37,7 +42,12 @@ namespace Robolink.Application.Commands.Projects
                 var manager = await _staffRepo.GetByIdAsync(request.Request.ManagerId.Value);
                 if (manager == null) throw new InvalidOperationException("Manager not found");
             }
-
+            // 2.1 Validate Client (Nếu có thay đổi khách hàng)
+            if (request.Request.ClientId.HasValue && request.Request.ClientId != Guid.Empty)
+            {
+                var client = await _clientRepo.GetByIdAsync(request.Request.ClientId.Value);
+                if (client == null) throw new InvalidOperationException("Client not found");
+            }
             // 3. Validate ParentProject (Chỉ kiểm tra vòng lặp)
             if (request.Request.ParentProjectId.HasValue && request.Request.ParentProjectId != Guid.Empty)
             {
@@ -64,7 +74,7 @@ namespace Robolink.Application.Commands.Projects
             await _projectRepo.UpdateAsync(project);
             await _projectRepo.SaveChangesAsync(); // ❌ Đoạn cũ của em bị thiếu dòng này!
 
-            // 6. 🚀 ĂN TIỀN LÀ Ở ĐÂY: Lấy DTO xịn từ Generic Framework
+            //6. 🚀 ĂN TIỀN LÀ Ở ĐÂY: Lấy DTO xịn từ Generic Framework
             return await _projectRepo.GetProjectedByIdAsync<ProjectDto>(project.Id)
                    ?? throw new InvalidOperationException("Failed to retrieve updated project");
         }

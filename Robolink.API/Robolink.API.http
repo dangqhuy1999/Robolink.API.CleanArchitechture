@@ -1,6 +1,5 @@
-@Robolink.API_HostAddress = http://localhost:5146
+@Robolink.API_HostAddress = http://localhost:5146/api/projects/paged?startIndex=0&count=10
 
-GET {{Robolink.API_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
+### Lấy danh sách dự án có phân trang (Trang đầu tiên, 10 item)
+GET {{Robolink.API_HostAddress}}
+Content-Type: application/json
